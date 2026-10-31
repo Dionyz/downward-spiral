@@ -42,6 +42,8 @@ var stats := {"kills": 0, "fights": 0, "rooms": 0, "gold_earned": 0}
 var perks: Dictionary = {}    # account perks this run started with (DSMeta.perks)
 var messages: Array = []      # short lines for the UI (level ups, loot); cleared by the UI
 var room: Dictionary = {}     # legacy scratch (banking flag)
+var charges := {"skip": 1, "reroll": 0, "banish": 0}   # boon-offer charges left this run
+var banished: Array = []      # boons banished from the pool this run
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +60,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 	r.line = p_line
 	var ps: Dictionary = r._cfg().get("potions_start", {"hp": 3, "mp": 2})
 	r.potions = {"hp": int(ps.get("hp", 3)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
+	r.charges = _ints(r.perks.get("charges", DSMeta.charges(p_data, {})))
 	var L: Dictionary = p_data.classes.get(p_line, {})
 	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
 	r._new_floor()
@@ -74,6 +77,7 @@ func to_dict() -> Dictionary:
 		"offer": offer.duplicate(), "offer_source": offer_source, "pending_boons": pending_boons,
 		"event_id": event_id, "event_outcome": event_outcome.duplicate(), "result": result,
 		"stats": stats.duplicate(), "perks": perks.duplicate(true), "room": room.duplicate(true),
+		"charges": charges.duplicate(), "banished": banished.duplicate(),
 	}
 
 
@@ -105,6 +109,8 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.stats = _normalize(d.get("stats", r.stats))
 	r.perks = _normalize(d.get("perks", {}))
 	r.room = _normalize(d.get("room", {}))
+	r.charges = _ints(d.get("charges", r.charges))
+	r.banished = _normalize(d.get("banished", []))
 	if r.perks.is_empty():
 		r.perks = DSMeta.all_unlocked(p_data)
 	var wd: Dictionary = _normalize(d.get("world", {}))
@@ -185,9 +191,43 @@ func take_boon(i: int) -> void:
 	_close_offer()
 
 
-func skip_boon() -> void:
-	if phase == "boon":
+## Pass on the offer. Uses a skip charge.
+func skip_boon() -> bool:
+	if phase != "boon" or int(charges.get("skip", 0)) <= 0:
+		return false
+	charges["skip"] = int(charges["skip"]) - 1
+	_close_offer()
+	return true
+
+
+## Replace the whole offer with new boons (not the ones just shown, if the pool allows). Uses a reroll charge.
+func reroll_boons() -> bool:
+	if phase != "boon" or int(charges.get("reroll", 0)) <= 0:
+		return false
+	var pool := available_boons().filter(func(id): return not offer.has(id))
+	if pool.is_empty():
+		return false
+	charges["reroll"] = int(charges["reroll"]) - 1
+	rng.shuffle(pool)
+	var n := offer.size()
+	offer = pool.slice(0, n)
+	return true
+
+
+## Remove offered boon `i` from the pool for the rest of the run; a new one takes its slot. Uses a banish charge.
+func banish_boon(i: int) -> bool:
+	if phase != "boon" or i < 0 or i >= offer.size() or int(charges.get("banish", 0)) <= 0:
+		return false
+	charges["banish"] = int(charges["banish"]) - 1
+	banished.append(str(offer[i]))
+	var pool := available_boons().filter(func(id): return not offer.has(id))
+	if pool.is_empty():
+		offer.remove_at(i)
+	else:
+		offer[i] = rng.pick(pool)
+	if offer.is_empty():
 		_close_offer()
+	return true
 
 
 func _close_offer() -> void:
@@ -525,7 +565,7 @@ func available_boons() -> Array:
 	for id in ids:
 		var b: Dictionary = data.boons[id]
 		var lines: Array = b.get("lines", [])
-		if boons.has(id):
+		if boons.has(id) or banished.has(id):
 			continue
 		if int(b.get("tier", 1)) > int(perks.get("boon_tier", 99)):
 			continue

@@ -109,9 +109,47 @@ func test_take_and_skip_boon():
 	assert_true(r.boons.has(id))
 	assert_eq(r.phase, "explore")
 	r._open_offer("level")
-	r.skip_boon()
+	assert_eq(r.charges["skip"], 1, "one skip per run to start")
+	assert_true(r.skip_boon())
 	assert_eq(r.phase, "explore")
 	assert_eq(r.boons.size(), 1)
+	r._open_offer("level")
+	assert_false(r.skip_boon(), "no skips left")
+	assert_eq(r.phase, "boon")
+
+
+func test_reroll_and_banish_charges():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	assert_eq(r.charges["reroll"], 0)
+	assert_eq(r.charges["banish"], 0)
+	r._open_offer("level")
+	assert_false(r.reroll_boons(), "no rerolls without the upgrade")
+	assert_false(r.banish_boon(0), "no banishes without the upgrade")
+	r.charges = {"skip": 1, "reroll": 1, "banish": 1}
+	var before: Array = r.offer.duplicate()
+	assert_true(r.reroll_boons())
+	assert_eq(r.offer.size(), 3)
+	for id in r.offer:
+		assert_false(before.has(id), "reroll shows new boons")
+	assert_eq(r.charges["reroll"], 0)
+	var gone: String = r.offer[0]
+	assert_true(r.banish_boon(0))
+	assert_true(r.banished.has(gone))
+	assert_ne(r.offer[0], gone, "a new boon takes the banished one's slot")
+	assert_eq(r.offer.size(), 3)
+	assert_eq(r.phase, "boon", "banishing doesn't end the pick")
+	assert_false(r.available_boons().has(gone), "banished boons stay out of the pool")
+	var r2 := DSRunState.from_dict(data, JSON.parse_string(JSON.stringify(r.to_dict())))
+	assert_true(r2.banished.has(gone), "banishes survive save")
+	assert_eq(int(r2.charges["banish"]), 0)
+
+
+func test_charges_come_from_the_account():
+	var acct := {"upgrades": {"skip": 2, "banish": 1}}
+	var p := DSMeta.perks(data, 1)
+	p["charges"] = DSMeta.charges(data, acct)
+	var r := DSRunState.new_run(data, "warrior", 5, p)
+	assert_eq(r.charges, {"skip": 3, "reroll": 0, "banish": 1})
 
 
 func test_drink_potion():

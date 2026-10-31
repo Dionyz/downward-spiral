@@ -65,3 +65,23 @@ func test_account_potion_perks():
 	var r1 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 1))
 	var r3 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 3))
 	assert_eq(int(r3.potions["hp"]), int(r1.potions["hp"]) + 1)
+
+
+func test_upgrade_prices_double_and_cap_at_five():
+	var a := {"gold": 10000}
+	assert_eq(DSMeta.upgrade_price(data, a, "skip"), 100)
+	a = DSMeta.buy_upgrade(data, a, "skip")
+	assert_eq(DSMeta.owned(a, "skip"), 1)
+	assert_eq(int(a["gold"]), 9900)
+	assert_eq(DSMeta.upgrade_price(data, a, "skip"), 200)
+	for i in 10:
+		a = DSMeta.buy_upgrade(data, a, "skip")
+	assert_eq(DSMeta.owned(a, "skip"), 5, "capped at 5")
+	assert_eq(DSMeta.upgrade_price(data, a, "skip"), -1)
+	assert_eq(DSMeta.charges(data, a)["skip"], 6, "1 base + 5 bought")
+
+
+func test_upgrade_needs_gold():
+	var a := {"gold": 50}
+	assert_eq(DSMeta.buy_upgrade(data, a, "banish"), a, "can't afford")
+	assert_eq(DSMeta.charges(data, {}), {"skip": 1, "reroll": 0, "banish": 0})

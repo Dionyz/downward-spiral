@@ -306,12 +306,36 @@ func _show_boons() -> void:
 	h.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(h)
 	Game.sfx("level_up")
+	var banish_left := int(run.charges.get("banish", 0))
 	for i in run.offer.size():
 		var ii := i
 		var card := _big_boon(str(run.offer[i]), func(): _take_boon(ii))
 		card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		if banish_left > 0:
+			# Small Banish button in the card's top-right corner.
+			var bb := UI.button("Banish", func(): _banish_boon(ii), 40)
+			bb.add_theme_font_size_override("font_size", 16)
+			bb.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+			bb.position = Vector2(-110, 8)
+			bb.size = Vector2(100, 40)
+			bb.add_theme_color_override("font_color", UI.WARN)
+			card.add_child(bb)
+			card.resized.connect(func(): bb.position = Vector2(card.size.x - 110, 8))
 		v.add_child(card)
-	v.add_child(UI.button("Skip", _skip_boon, 56))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var skip := UI.button("Skip (%d)" % int(run.charges.get("skip", 0)), _skip_boon, 56)
+	skip.disabled = int(run.charges.get("skip", 0)) <= 0
+	var rr := UI.button("Reroll (%d)" % int(run.charges.get("reroll", 0)), _reroll_boons, 56)
+	rr.disabled = int(run.charges.get("reroll", 0)) <= 0
+	for b in [skip, rr]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(b)
+	v.add_child(row)
+	if banish_left > 0:
+		var bl := UI.label("Banish left this run: %d" % banish_left, 16, UI.DIM)
+		bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(bl)
 	Hint.show(self, "boon")
 	if Game.autoplay != "":
 		_shot("boon_f%d" % run.floor_num, func(): _take_boon(0))
@@ -371,8 +395,23 @@ func _take_boon(i: int) -> void:
 
 
 func _skip_boon() -> void:
-	run.skip_boon()
-	_after_choice()
+	if run.skip_boon():
+		_after_choice()
+
+
+func _reroll_boons() -> void:
+	if run.reroll_boons():
+		Game.save_run()
+		_show_boons()
+
+
+func _banish_boon(i: int) -> void:
+	if run.banish_boon(i):
+		Game.save_run()
+		if run.phase == "boon":
+			_show_boons()
+		else:
+			_after_choice()
 
 
 func _show_event() -> void:

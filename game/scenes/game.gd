@@ -101,7 +101,19 @@ func account_level() -> int:
 
 
 func account_perks() -> Dictionary:
-	return DSMeta.perks(data, account_level())
+	var p := DSMeta.perks(data, account_level())
+	p["charges"] = DSMeta.charges(data, account)
+	return p
+
+
+## Spend banked gold on one level of a boon-offer upgrade (skip / reroll / banish).
+func buy_upgrade(id: String) -> bool:
+	var before := int(account.get("gold", 0))
+	account = DSMeta.buy_upgrade(data, account, id)
+	if int(account.get("gold", 0)) == before:
+		return false
+	_write(_path(ACCOUNT_SAVE), account)
+	return true
 
 
 func class_unlocked(line: String) -> bool:

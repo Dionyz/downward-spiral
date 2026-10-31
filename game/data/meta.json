@@ -66,5 +66,26 @@
    "text": "You have mastered the Spiral."
   }
  },
- "bonus_cap_pct": 10
+ "bonus_cap_pct": 10,
+ "upgrade_max": 5,
+ "upgrades": {
+  "skip": {
+   "name": "Skip",
+   "desc": "Pass on a boon offer and take nothing.",
+   "base": 1,
+   "price": 100
+  },
+  "reroll": {
+   "name": "Reroll",
+   "desc": "Replace all three boons on offer with new ones.",
+   "base": 0,
+   "price": 100
+  },
+  "banish": {
+   "name": "Banish",
+   "desc": "Remove one offered boon from the pool for the rest of the run; a new one takes its place.",
+   "base": 0,
+   "price": 150
+  }
+ }
 }

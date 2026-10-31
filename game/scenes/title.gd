@@ -18,6 +18,7 @@ func _ready() -> void:
 	if Game.has_saved_run():
 		v.add_child(UI.button("Continue", _continue, 80))
 	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
+	v.add_child(UI.button("Upgrades  (%d gold)" % int(Game.account.get("gold", 0)), func(): Game.goto("upgrades"), 64))
 	v.add_child(UI.button("Settings and credits", func(): Game.goto("settings"), 56))
 	var lvl := Game.account_level()
 	var acct := UI.label("Account level %d · %d XP" % [lvl, int(Game.account.get("xp", 0))], 18, UI.DIM)

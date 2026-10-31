@@ -43,6 +43,7 @@ func _ready() -> void:
 			v.add_child(n)
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
+	v.add_child(UI.button("Upgrades  (%d gold)" % int(Game.account.get("gold", 0)), func(): Game.goto("upgrades"), 56))
 	v.add_child(UI.button("Title", func(): Game.goto("title"), 56))
 	Hint.show(self, "run_end")
 	if Game.autoplay != "":
