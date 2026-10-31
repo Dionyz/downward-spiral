@@ -181,4 +181,25 @@ static func make_monster(data: DSData, id: String, level: int, idx: int = 0) -> 
 			a["max"] = int(float(a.get("max", a["min"])) * dmg_mult)
 		c.monster_abilities[k] = a
 	c.rules = m.get("rules", []).duplicate(true)
+	c.flags["dmg_mult"] = dmg_mult
+	c.flags["phases"] = m.get("phases", []).duplicate(true)
 	return c
+
+
+## Apply boons (ids from boons.json) to a player. Run-level effects (gold, xp) live in DSRunState.
+static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
+	for id in boon_ids:
+		var b: Dictionary = data.boons.get(id, {})
+		var e: Dictionary = b.get("effect", {})
+		if e.has("flag"):
+			c.flags[str(e["flag"])] = true
+		var sb: Dictionary = e.get("skill_bonus", {})
+		for k in sb.keys():
+			if c.skills.has(k):
+				c.skills[k] = mini(100, int(c.skills[k]) + int(sb[k]))
+		var ss: Dictionary = e.get("start_status", {})
+		for k in ss.keys():
+			var params: Dictionary = data.ability(k).get("params", {})
+			c.add_status(k, int(ss[k]), {"ac": int(params.get("ac", 0))})
+	if c.flags.get("boon_mana_regen", false):
+		c.mana_regen += 2

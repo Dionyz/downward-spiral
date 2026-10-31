@@ -150,6 +150,8 @@ func _has_passive(c: Combatant, pid: String) -> bool:
 ## Potions: the only direct player actions during a fight besides tap-to-queue and extract.
 func use_potion(kind: String) -> void:
 	var pct := float(balance.get("potion_pct", 35)) / 100.0
+	if player.flags.get("boon_potion", false):
+		pct *= 1.5
 	if kind == "hp":
 		var amt := int(player.max_hp * pct)
 		player.hp = mini(player.max_hp, player.hp + amt)
@@ -337,6 +339,10 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 	if dam <= 0:
 		dam = 1
 	# Parry-stack boon: bonus to next swing.
+	if ch.flags.get("boon_bloodied", false) and ch.hp_pct() < 40.0:
+		dam += DSStats.idiv(dam, 4)
+	if ch.flags.get("boon_opportunist", false) and (not victim.can_see() or victim.is_stunned() or victim.has_status("knocked_down")):
+		dam += DSStats.idiv(dam * 3, 10)
 	var stacks := int(ch.flags.get("parry_stacks", 0))
 	if stacks > 0:
 		dam += DSStats.idiv(dam * 5 * stacks, 100)
@@ -447,7 +453,8 @@ func parry_chance(ch: Combatant, victim: Combatant) -> int:
 		c = 10
 	match victim.stance:
 		"storm":
-			c -= 15
+			if not victim.flags.get("boon_storm_parry", false):
+				c -= 15
 		"cobra":
 			c += 15
 	if victim.has_status("transfixed"):
@@ -572,6 +579,30 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	return _raw_damage(ch, victim, dam, dt, extra)
 
 
+## Boss phases: when HP drops below a phase threshold, the monster gains new abilities and rules.
+func _check_phase(c: Combatant) -> void:
+	var phases: Array = c.flags.get("phases", [])
+	var done := int(c.flags.get("phase", 0))
+	while done < phases.size() and c.hp_pct() < float(phases[done].get("hp_below", 0)):
+		var ph: Dictionary = phases[done]
+		var mult := float(c.flags.get("dmg_mult", 1.0))
+		var abil: Dictionary = ph.get("abilities", {})
+		for k in abil.keys():
+			var a: Dictionary = abil[k].duplicate(true)
+			a["name"] = k
+			if a.has("min"):
+				a["min"] = int(float(a["min"]) * mult)
+				a["max"] = int(float(a.get("max", a["min"])) * mult)
+			c.monster_abilities[k] = a
+		var new_rules: Array = ph.get("rules", []).duplicate(true)
+		new_rules.append_array(c.rules)
+		c.rules = new_rules
+		c.flags["speed"] = int(c.flags.get("speed", 0)) + int(ph.get("speed", 0))
+		done += 1
+		c.flags["phase"] = done
+		_emit({"t": "phase", "src": c.name, "n": done + 1, "text": str(ph.get("text", ""))})
+
+
 func _total_ac(c: Combatant) -> int:
 	var a := c.ac
 	for s in c.statuses.values():
@@ -596,6 +627,8 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		var sw := int(victim.max_hp * 0.3)
 		victim.hp = mini(victim.max_hp, victim.hp + sw)
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": sw, "source": "second wind"})
+	if victim.hp > 0 and not victim.is_player:
+		_check_phase(victim)
 	if victim.hp <= 0:
 		victim.hp = 0
 		_emit({"t": "death", "src": victim.name, "killer": ch.name if ch != null else ""})
@@ -610,6 +643,8 @@ func _weapon_effects(ch: Combatant, victim: Combatant, wield) -> void:
 		var lvl := int(wield.get("level", ch.mud_level))
 		if not _saves(ch, victim, lvl):
 			var pd := maxi(1, DSStats.idiv(ch.mud_level, int(data.ability("envenom").get("params", {}).get("poison_dmg_level_div", 10))))
+			if ch.flags.get("boon_virulent", false):
+				pd *= 2
 			var had := victim.has_status("poisoned")
 			victim.add_status("poisoned", 3, {"dmg": pd})
 			if not had:
@@ -867,6 +902,8 @@ func _h_berserk(c: Combatant, a: Dictionary, p: Dictionary) -> void:
 	_emit({"t": "heal", "src": c.name, "dst": c.name, "amount": heal, "source": "berserk"})
 	var mod := maxi(1, DSStats.idiv(c.mud_level, int(p.get("mod_level_div", 4))))
 	var rounds := int(p.get("duration_rounds", 6))
+	if c.flags.get("boon_long_berserk", false):
+		rounds *= 2
 	c.add_status("berserk", rounds + 1, {"hitroll": mod, "damroll": mod, "ac": int(p.get("ac", 0))})
 	_emit({"t": "status_applied", "src": c.name, "dst": c.name, "status": "berserk", "rounds": rounds})
 

@@ -37,5 +37,13 @@ Choices made where the spec was silent or contradicted itself. Each one is the s
 | D-031 | Fights are 1–4 normal monsters (`balance.fight_size`) or one elite. | Owner. |
 | D-032 | Dual wielders wield a matched pair from the single weapon slot (the off-hand copies the main weapon). | Spec has three item slots. |
 | D-033 | No HP/mana regen between fights for now. | Owner: get it running first, look at survival later. |
-| D-034 | Milestone 4 prototype levels the character up once per won fight (1 → 4 over the floor) so unlocks show up; XP comes with milestone 5. | Makes the one-floor prototype show progression. |
 | D-035 | Rule slots: 2 at run start, a 3rd at level 5 (`balance.rule_slots`, `rule_slot_bonus_level`). | Owner. |
+| D-036 | Run economy (all in `balance.run`): monsters are level 1/2/4/5/7/9 on floors 1–6, elites +1, boss level 10. XP per kill = 10 × monster level (elite ×3, boss ×5); next level needs 40 × current level. Gold per kill = 3 × level + 0–3 (elite ×5, boss ×10). | First guesses; milestone 6 tunes them. |
+| D-037 | Rules can be edited between any rooms for free. Rest rooms offer **Rest** (40% HP and mana) or **Train** (swap which 4 abilities you carry, plus rules). Newly learned abilities auto-equip into empty slots. | Spec says rules are edited "between rooms", and rest offers "edit rules and swap abilities with no HP cost". Free rule edits read as the friendlier version; swapping abilities is what rest gates. |
+| D-038 | No extract button during fights. Extraction is offered only at the end of floors 2–5 (the spec's run table). | "The player can stop the run (extract)" read together with the run table. |
+| D-039 | 16 boons for milestone 5 (8 shared, 2 per class line), each with `refs` checked by a test. The spec's 40 come in milestone 6. | Milestone order. |
+| D-040 | Save/resume: the run autosaves on every room change. A fight's monsters and RNG seed are fixed when you enter the room, so quitting mid-fight and resuming replays the same fight from its start. Potions drunk in an abandoned fight are not spent. | Spec: "quitting mid-run resumes in the same room". |
+| D-041 | Boss (the Spiral Warden, floor 6) has three phases at 66% and 33% HP; each phase adds an ability and new rules. No telegraphs. | Spec's multi-phase boss, minus telegraphs. |
+| D-042 | Events are data (`events.json`): ops for HP, mana, gold, XP, potions, boons and items, plus chance branches. An item found in an event is offered as a take-or-leave reward. | Keeps events data-driven. |
+| D-043 | Potions: start with 2 HP (and 2 MP for mages), 20% drop chance after fights, max 5 of each. | First guess. |
+| D-044 | Account progress for now is just banking: account XP, gold, runs, deaths/extracts/victories, best floor in `user://account.json`. Unlocks and account levels are milestone 8. | Milestone order. |

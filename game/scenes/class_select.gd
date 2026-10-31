@@ -25,5 +25,7 @@ func _ready() -> void:
 
 
 func _start(line: String) -> void:
-	Game.new_run(line)
-	Game.goto("camp")
+	var args := OS.get_cmdline_user_args()
+	var si := args.find("--seed")
+	Game.new_run(line, int(args[si + 1]) if si >= 0 and si + 1 < args.size() else 0)
+	Game.goto("dungeon")

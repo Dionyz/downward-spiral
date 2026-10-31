@@ -9,17 +9,18 @@ Single-player Android roguelike: auto-exploration and rule-driven auto combat th
 | 1. Data import | Done. Classes and abilities import from the MUD; items are our own (`items.json`). |
 | 2. Headless combat sim | Done, all four classes. |
 | 3. Rules | Done (telegraphs dropped by owner). |
-| 4. Playable text prototype | One floor of 3 fights playable on desktop. Android export pending (QUESTIONS.md). |
-| 5–8 | Not started. |
+| 4. Playable text prototype | Done on desktop (Android export deferred by owner). |
+| 5. Run loop | Done: 6 floors, all room types, rewards, items, boons, events, boss, extraction, death, save/resume. |
+| 6–8 | Not started. |
 
 ## Layout
 
 ```
 game/core/     pure logic, no Nodes: rng, stats, game_data, combatant, ability, factory,
-               combat_sim, rules, combat_text, loot, encounters
-game/scenes/   title, class_select, camp (rule editor), combat, run_end + Game autoload
+               combat_sim, rules, combat_text, loot, encounters, dungeon_gen, run_state, autopilot
+game/scenes/   title, class_select, dungeon (map + rooms), combat, run_end + Game autoload
 game/ui/       theme/widgets, combat log, rule editor
-game/data/     classes/abilities.json (imported), items/monsters/balance.json (hand-authored),
+game/data/     classes/abilities.json (imported); items, monsters, boons, events, rooms, balance (hand-authored);
                overrides/*.json (hand-tuned, merged at load, never touched by the importer)
 tools/         import_mud_data.py, combat_log.gd (CLI combat log)
 tests/unit/    GUT tests
@@ -65,8 +66,8 @@ Smoke-test the whole UI headless (clicks through a run; add `--shots <dir>` unde
 godot --headless --path . -- --autoplay warrior
 ```
 
-Prototype-floor win rates per class:
+Full-run win rates per class (autopilot, default rules):
 
 ```bash
-godot --headless --path . -s tools/balance_floor.gd -- --runs 300
+godot --headless --path . -s tools/balance_run.gd -- --runs 200
 ```

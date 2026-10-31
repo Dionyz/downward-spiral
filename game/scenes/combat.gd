@@ -1,6 +1,6 @@
 extends Control
 ## Plays back one fight from CombatSim, about one round per second (2x / 4x toggle).
-## The character fights on its own; the player can drink potions or extract.
+## The character fights on its own; the player can only drink potions.
 
 var sim: CombatSim
 var player: Combatant
@@ -17,13 +17,17 @@ var mp_pot: Button
 var speed_btn: Button
 var continue_btn: Button
 var timer: Timer
+var run: DSRunState
+var pots := {}
 
 
 func _ready() -> void:
 	var v := UI.screen(self)
-	player = Game.make_player()
-	enemies = Game.next_encounter()
-	sim = CombatSim.new(Game.rng, Game.data)
+	run = Game.run
+	player = run.make_player()
+	enemies = run.fight_monsters()
+	sim = CombatSim.new(run.fight_rng(), Game.data)
+	pots = run.potions.duplicate()
 
 	enemy_box = VBoxContainer.new()
 	v.add_child(enemy_box)
@@ -37,8 +41,8 @@ func _ready() -> void:
 	frame.add_child(log_view)
 	v.add_child(frame)
 
-	var L: Dictionary = Game.data.classes.get(Game.line, {})
-	v.add_child(UI.label("%s · level %d" % [str(L.get("display", Game.line)), Game.level], 22, UI.ACCENT))
+	var L: Dictionary = Game.data.classes.get(run.line, {})
+	v.add_child(UI.label("%s · level %d · floor %d" % [str(L.get("display", run.line)), run.level, run.floor_num], 22, UI.ACCENT))
 	hp_label = UI.label("", 20)
 	v.add_child(hp_label)
 	hp_bar = UI.bar(UI.HP, 26)
@@ -54,8 +58,7 @@ func _ready() -> void:
 	hp_pot = UI.button("", func(): _potion("hp"))
 	mp_pot = UI.button("", func(): _potion("mp"))
 	speed_btn = UI.button("", _toggle_speed)
-	var ext := UI.button("Extract", _extract)
-	for b in [hp_pot, mp_pot, speed_btn, ext]:
+	for b in [hp_pot, mp_pot, speed_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(b)
 	v.add_child(row)
@@ -90,11 +93,16 @@ func _add_enemy_row(e: Combatant) -> void:
 func _tick() -> void:
 	if sim.over:
 		return
+	if Game.autoplay != "":
+		if player.hp_pct() < 30.0:
+			_potion("hp")
+		if player.max_mana > 0 and player.mana_pct() < 15.0:
+			_potion("mp")
 	log_view.add_events(sim.step())
 	_refresh()
 	if Game.autoplay != "" and sim.round_num == 3 and OS.get_cmdline_user_args().has("--shots"):
 		timer.paused = true
-		Game.auto_next("combat_mid_%d" % (Game.fight_index + 1), func(): timer.paused = false, 0.2)
+		Game.auto_next("combat_mid_f%d_s%d" % [run.floor_num, run.step], func(): timer.paused = false, 0.2)
 	if sim.over:
 		timer.stop()
 		_end()
@@ -114,10 +122,10 @@ func _refresh() -> void:
 		r["bar"].value = e.hp
 		r["status"].text = "dead" if not e.is_alive() else _statuses(e)
 		r["name"].modulate = Color(1, 1, 1, 0.4) if not e.is_alive() else Color.WHITE
-	hp_pot.text = "HP potion (%d)" % Game.potions["hp"]
-	mp_pot.text = "MP potion (%d)" % Game.potions["mp"]
-	hp_pot.disabled = Game.potions["hp"] <= 0 or sim.over
-	mp_pot.disabled = Game.potions["mp"] <= 0 or sim.over
+	hp_pot.text = "HP potion (%d)" % int(pots.get("hp", 0))
+	mp_pot.text = "MP potion (%d)" % int(pots.get("mp", 0))
+	hp_pot.disabled = int(pots.get("hp", 0)) <= 0 or sim.over
+	mp_pot.disabled = int(pots.get("mp", 0)) <= 0 or sim.over
 	mp_pot.visible = player.max_mana > 0
 	speed_btn.text = "%dx" % int(Game.speed)
 
@@ -133,9 +141,9 @@ func _statuses(c: Combatant) -> String:
 
 
 func _potion(kind: String) -> void:
-	if Game.potions[kind] <= 0 or sim.over:
+	if int(pots.get(kind, 0)) <= 0 or sim.over:
 		return
-	Game.potions[kind] -= 1
+	pots[kind] = int(pots[kind]) - 1
 	sim.events = []
 	sim.use_potion(kind)
 	log_view.add_events(sim.events)
@@ -148,23 +156,15 @@ func _toggle_speed() -> void:
 	_refresh()
 
 
-func _extract() -> void:
-	timer.stop()
-	Game.finish_fight(player, "extract")
-	Game.goto("run_end")
-
-
 func _end() -> void:
-	Game.finish_fight(player, sim.result)
+	run.finish_fight(player, enemies, sim.result, pots)
+	Game.save_run()
 	continue_btn.visible = true
 	continue_btn.text = "Continue" if sim.result == "win" else "See the end"
 	if Game.autoplay != "":
 		print("[autoplay] fight over: %s in %d rounds, HP %d/%d, log lines %d" % [sim.result, sim.round_num, player.hp, player.max_hp, log_view.get_line_count()])
-		Game.auto_next("combat_end_%d" % (Game.fight_index), _continue)
+		Game.auto_next("combat_end_f%d_s%d" % [run.floor_num, run.step], _continue)
 
 
 func _continue() -> void:
-	if Game.result == "":
-		Game.goto("camp")
-	else:
-		Game.goto("run_end")
+	Game.goto("run_end" if run.phase == "over" else "dungeon")

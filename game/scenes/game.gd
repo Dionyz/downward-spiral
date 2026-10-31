@@ -1,26 +1,18 @@
 extends Node
-## Autoload "Game": run state for the milestone 4 prototype (one floor of fights).
-## Holds data, the run's RNG and the player's carried-over HP, mana, rules and potions.
+## Autoload "Game": owns the current DSRunState, the account, and save files.
+## Saves: user://run.json (autosaved on every room change), user://account.json.
 
 const SCENES := "res://game/scenes/%s.tscn"
+const RUN_SAVE := "user://run.json"
+const ACCOUNT_SAVE := "user://account.json"
 
 var data: DSData
-var rng: DSRng
-var seed_value: int = 0
-var line: String = "warrior"
-var level: int = 1
-var fight_index: int = 0
-var fights_per_floor: int = 3
-var hp: int = -1
-var mana: int = -1
-var rules: Array = []
-var actives: Array = []
-var potions := {"hp": 2, "mp": 2}
-var result: String = ""        # "", "win", "loss", "extract"
-var fights_won: int = 0
+var run: DSRunState
+var account: Dictionary = {}
 var speed: float = 1.0
 ## Headless smoke test: `godot --headless --path . -- --autoplay warrior` clicks through a whole run.
 var autoplay: String = ""
+var save_dir: String = ""   # override for autoplay so real saves aren't touched
 
 
 func _ready() -> void:
@@ -30,83 +22,90 @@ func _ready() -> void:
 	if i >= 0:
 		autoplay = args[i + 1] if i + 1 < args.size() else "warrior"
 		speed = 64.0
+		save_dir = "user://autoplay"
+		DirAccess.make_dir_recursive_absolute(save_dir)
+	account = _read(_path(ACCOUNT_SAVE))
 
 
-func new_run(p_line: String, p_seed: int = 0) -> void:
-	line = p_line
-	seed_value = p_seed if p_seed != 0 else int(Time.get_unix_time_from_system()) % 1000000007
-	rng = DSRng.new(seed_value)
-	level = 1
-	fight_index = 0
-	fights_won = 0
-	hp = -1
-	mana = -1
-	result = ""
-	potions = {"hp": int(data.balance.get("start_potions_hp", 2)), "mp": int(data.balance.get("start_potions_mp", 2))}
-	var p := DSFactory.make_player(data, line, 1, level)
-	rules = p.rules.duplicate(true)
-	actives = p.actives.duplicate()
+func _path(p: String) -> String:
+	return p if save_dir == "" else p.replace("user:/", save_dir)
 
 
-## A fresh Combatant for the next fight, carrying HP/mana from the last one.
-func make_player() -> Combatant:
-	var p := DSFactory.make_player(data, line, 1, level, {"rules": rules, "actives": actives})
-	if hp >= 0:
-		p.hp = clampi(hp, 1, p.max_hp)
-	if mana >= 0:
-		p.mana = clampi(mana, 0, p.max_mana)
-	return p
+# --- runs -----------------------------------------------------------------
+
+func new_run(line: String, seed_value: int = 0) -> void:
+	if seed_value == 0:
+		seed_value = int(Time.get_unix_time_from_system() * 1000.0) % 2147483646 + 1
+	run = DSRunState.new_run(data, line, seed_value)
+	save_run()
 
 
-func next_encounter() -> Array:
-	return DSEncounters.roll_fight(data, rng, 1, level)
+func has_saved_run() -> bool:
+	var d := _read(_path(RUN_SAVE))
+	return not d.is_empty() and d.get("phase", "over") != "over"
 
 
-## Called by the combat scene when a fight ends.
-func finish_fight(p: Combatant, fight_result: String) -> void:
-	hp = p.hp
-	mana = p.mana
-	if fight_result == "win":
-		fights_won += 1
-		fight_index += 1
-		_level_up()
-		if fight_index >= fights_per_floor:
-			result = "win"
-	else:
-		result = fight_result
+func load_run() -> bool:
+	var d := _read(_path(RUN_SAVE))
+	if d.is_empty():
+		return false
+	run = DSRunState.from_dict(data, d)
+	return true
 
 
-## Prototype levelling: one level per won fight. New actives auto-equip into free slots.
-func _level_up() -> void:
-	var old := DSFactory.make_player(data, line, 1, level)
-	level = mini(10, level + 1)
-	var neu := DSFactory.make_player(data, line, 1, level)
-	hp += neu.max_hp - old.max_hp
-	mana += neu.max_mana - old.max_mana
-	for a in DSFactory.default_actives(data, line, 1, level):
-		if not actives.has(a) and actives.size() < int(data.balance.get("max_actives", 4)):
-			actives.append(a)
+func save_run() -> void:
+	if run != null:
+		_write(_path(RUN_SAVE), run.to_dict())
 
 
-func rule_slots() -> int:
-	return DSFactory.rule_slots(data, level)
+## Bank the finished run into the account once, and clear the run save.
+func finish_run() -> Dictionary:
+	if run == null or run.phase != "over":
+		return {}
+	var b := run.banked()
+	if not run.room.get("banked", false):
+		account = DSRunState.bank_into(account, run)
+		run.room["banked"] = true
+		_write(_path(ACCOUNT_SAVE), account)
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(_path(RUN_SAVE)))
+	return b
 
 
-## Autoplay step: wait a moment, optionally save a screenshot (--shots <dir>), then run `next`.
+# --- io -------------------------------------------------------------------
+
+func _read(path: String) -> Dictionary:
+	if not FileAccess.file_exists(path):
+		return {}
+	var f := FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return {}
+	var v = JSON.parse_string(f.get_as_text())
+	return v if typeof(v) == TYPE_DICTIONARY else {}
+
+
+func _write(path: String, d: Dictionary) -> void:
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(d))
+
+
+# --- navigation and autoplay ----------------------------------------------
+
+func goto(scene: String) -> void:
+	get_tree().change_scene_to_file(SCENES % scene)
+
+
 var _shot_n := 0
 
 
-func auto_next(shot_name: String, next: Callable, delay: float = 0.4) -> void:
+## Autoplay step: wait a moment, optionally save a screenshot (--shots <dir>), then run `next`.
+func auto_next(shot_name: String, next: Callable, delay: float = 0.3) -> void:
 	await get_tree().create_timer(delay).timeout
 	var args := OS.get_cmdline_user_args()
 	var i := args.find("--shots")
 	if i >= 0 and i + 1 < args.size():
 		await RenderingServer.frame_post_draw
 		_shot_n += 1
-		var path := "%s/%02d_%s.png" % [args[i + 1], _shot_n, shot_name]
+		var path := "%s/%03d_%s.png" % [args[i + 1], _shot_n, shot_name]
 		get_viewport().get_texture().get_image().save_png(path)
 	next.call()
-
-
-func goto(scene: String) -> void:
-	get_tree().change_scene_to_file(SCENES % scene)

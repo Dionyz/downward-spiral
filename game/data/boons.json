@@ -1,0 +1,204 @@
+{
+ "_note": "Boons change how abilities and fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. effect keys: flag (read by CombatSim), skill_bonus, run (read by DSRunState), start_status.",
+ "boons": {
+  "concussive_bash": {
+   "name": "Concussive Bash",
+   "desc": "Bash also slows the target for 2 rounds.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "bash"
+   ],
+   "effect": {
+    "flag": "boon_bash_slow"
+   }
+  },
+  "riposte": {
+   "name": "Riposte",
+   "desc": "Each parry adds +5% damage to your next swing, stacking to 5.",
+   "lines": [
+    "warrior",
+    "knifer"
+   ],
+   "refs": [
+    "parry"
+   ],
+   "effect": {
+    "flag": "boon_parry_stack"
+   }
+  },
+  "long_rage": {
+   "name": "Long Rage",
+   "desc": "Berserk lasts twice as long.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "berserk"
+   ],
+   "effect": {
+    "flag": "boon_long_berserk"
+   }
+  },
+  "patient_knife": {
+   "name": "Patient Knife",
+   "desc": "Backstab works on wounded targets too.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "backstab"
+   ],
+   "effect": {
+    "flag": "boon_backstab_low"
+   }
+  },
+  "virulent": {
+   "name": "Virulent",
+   "desc": "Your poisons deal double damage.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "envenom"
+   ],
+   "effect": {
+    "flag": "boon_virulent"
+   }
+  },
+  "forked_bolt": {
+   "name": "Forked Bolt",
+   "desc": "Chain lightning jumps one extra time.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "chain lightning"
+   ],
+   "effect": {
+    "flag": "boon_chain_extra"
+   }
+  },
+  "deep_well": {
+   "name": "Deep Well",
+   "desc": "+2 mana regeneration each round.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "magic fist"
+   ],
+   "effect": {
+    "flag": "boon_mana_regen"
+   }
+  },
+  "eye_of_the_storm": {
+   "name": "Eye of the Storm",
+   "desc": "Storm dance no longer lowers parry.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "dance"
+   ],
+   "effect": {
+    "flag": "boon_storm_parry"
+   }
+  },
+  "bloodied_fury": {
+   "name": "Bloodied Fury",
+   "desc": "+25% damage while below 40% HP.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "flag": "boon_bloodied"
+   }
+  },
+  "opportunist": {
+   "name": "Opportunist",
+   "desc": "+30% damage against blinded, stunned or knocked-down enemies.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_opportunist"
+   }
+  },
+  "hard_to_pin": {
+   "name": "Hard to Pin",
+   "desc": "+10 to dodge and parry.",
+   "lines": [],
+   "refs": [
+    "dodge",
+    "parry"
+   ],
+   "effect": {
+    "skill_bonus": {
+     "dodge": 10,
+     "parry": 10
+    }
+   }
+  },
+  "second_skin": {
+   "name": "Second Skin",
+   "desc": "Start every fight warded (armor for 5 rounds).",
+   "lines": [],
+   "refs": [
+    "armor"
+   ],
+   "effect": {
+    "start_status": {
+     "armor": 5
+    }
+   }
+  },
+  "field_medic": {
+   "name": "Field Medic",
+   "desc": "Potions restore 50% more.",
+   "lines": [],
+   "refs": [
+    "potion"
+   ],
+   "effect": {
+    "flag": "boon_potion"
+   }
+  },
+  "scavenger": {
+   "name": "Scavenger",
+   "desc": "+50% gold from fights.",
+   "lines": [],
+   "refs": [
+    "gold"
+   ],
+   "effect": {
+    "run": "gold_mult"
+   }
+  },
+  "quick_study": {
+   "name": "Quick Study",
+   "desc": "+25% XP from fights.",
+   "lines": [],
+   "refs": [
+    "xp"
+   ],
+   "effect": {
+    "run": "xp_mult"
+   }
+  },
+  "catch_breath": {
+   "name": "Catch Your Breath",
+   "desc": "Recover 10% HP and mana after every fight.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "run": "post_fight_heal"
+   }
+  }
+ }
+}

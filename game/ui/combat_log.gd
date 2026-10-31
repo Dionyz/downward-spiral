@@ -6,7 +6,7 @@ const COLORS := {
 	"round": "#6f6a7a", "damage": "#e6e1d6", "parry": "#8fb3d9", "dodge": "#8fb3d9", "block": "#8fb3d9",
 	"miss": "#8d8798", "ability": "#d6a64f", "cast": "#9d7cf2", "ability_miss": "#8d8798", "resist": "#8d8798",
 	"status_applied": "#7fc8a9", "status_expired": "#6f6a7a", "stance": "#d6a64f", "heal": "#5fd35f",
-	"mana": "#5f9fd3", "stunned": "#e0b050", "death": "#ff4040", "fight_start": "#d6a64f", "fight_end": "#d6a64f",
+	"mana": "#5f9fd3", "stunned": "#e0b050", "phase": "#ff7a3d", "death": "#ff4040", "fight_start": "#d6a64f", "fight_end": "#d6a64f",
 }
 
 var player_name := "You"
@@ -33,7 +33,7 @@ func add_events(events: Array) -> void:
 		if ev.get("t") == "damage" and ev.get("dst") == player_name:
 			col = "#ff8c7a"
 		var t := text.replace("[", "[lb]")
-		if ev.get("t") in ["death", "fight_end"]:
+		if ev.get("t") in ["death", "fight_end", "phase"]:
 			append_text("[b][color=%s]%s[/color][/b]\n" % [col, t])
 		else:
 			append_text("[color=%s]%s[/color]\n" % [col, t])

@@ -30,7 +30,8 @@ static func room_count(rng: DSRng, floor_num: int) -> int:
 
 ## Generate a floor. Returns {"floor": n, "steps": [[room], [room, room], ...]}.
 ## "Rooms" counts steps along the path, so a fork adds a side-by-side alternative, not length.
-static func generate(rng: DSRng, floor_num: int) -> Dictionary:
+## `templates` = rooms.json ({names, details}); falls back to the built-in lists.
+static func generate(rng: DSRng, floor_num: int, templates: Dictionary = {}) -> Dictionary:
 	var f: Array = FLOORS.get(floor_num, [3, 3, "fight"])
 	var n := room_count(rng, floor_num)
 	var types := _assign_types(rng, n, str(f[2]))
@@ -41,11 +42,11 @@ static func generate(rng: DSRng, floor_num: int) -> Dictionary:
 		fork_at = rng.number_range(0, n - 2)
 	var id := 0
 	for i in n:
-		var step: Array = [_room(rng, types[i], id)]
+		var step: Array = [_room(rng, types[i], id, templates)]
 		id += 1
 		if i == fork_at:
 			var alt_type := _alt_type(rng, types, i)
-			step.append(_room(rng, alt_type, id))
+			step.append(_room(rng, alt_type, id, templates))
 			id += 1
 		steps.append(step)
 	return {"floor": floor_num, "steps": steps}
@@ -96,8 +97,10 @@ static func _alt_type(rng: DSRng, types: Array, i: int) -> String:
 	return t
 
 
-static func _room(rng: DSRng, t: String, id: int) -> Dictionary:
-	return {"id": id, "type": t, "name": str(rng.pick(NAMES)), "desc": str(rng.pick(DETAILS))}
+static func _room(rng: DSRng, t: String, id: int, templates: Dictionary = {}) -> Dictionary:
+	var names: Array = templates.get("names", NAMES)
+	var details: Array = templates.get("details", DETAILS)
+	return {"id": id, "type": t, "name": str(rng.pick(names)), "desc": str(rng.pick(details))}
 
 
 ## Every path through the floor (for tests): Array of Arrays of room types.

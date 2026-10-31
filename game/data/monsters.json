@@ -345,6 +345,180 @@
      "then": "lunging_lash"
     }
    ]
+  },
+  "carrion_knight": {
+   "name": "a carrion knight",
+   "hp": 46,
+   "dmg": [
+    3,
+    8
+   ],
+   "noun": "slash",
+   "dam_type": "slash",
+   "skills": {
+    "parry": 35,
+    "second attack": 45,
+    "third attack": 20
+   },
+   "ac": -300,
+   "floors": [
+    4,
+    5,
+    6
+   ],
+   "role": "heavy",
+   "abilities": {
+    "rotting_cleave": {
+     "handler": "monster_strike",
+     "min": 7,
+     "max": 13,
+     "dam_type": "slash",
+     "beats": 36,
+     "display": "rotting cleave"
+    }
+   },
+   "rules": [
+    {
+     "if": "chance",
+     "value": 30,
+     "then": "rotting_cleave"
+    }
+   ]
+  },
+  "wailing_shade": {
+   "name": "a wailing shade",
+   "hp": 30,
+   "dmg": [
+    3,
+    7
+   ],
+   "noun": "touch",
+   "dam_type": "negative",
+   "size": "medium",
+   "skills": {
+    "dodge": 55
+   },
+   "resist": [
+    "slash",
+    "pierce",
+    "bash"
+   ],
+   "vuln": [
+    "fire",
+    "lightning",
+    "other"
+   ],
+   "floors": [
+    5,
+    6
+   ],
+   "role": "normal",
+   "flying": true,
+   "abilities": {
+    "chilling_wail": {
+     "handler": "monster_status",
+     "status": "slowed",
+     "rounds": 2,
+     "skill": 45,
+     "beats": 36,
+     "display": "chilling wail"
+    }
+   },
+   "rules": [
+    {
+     "if": "chance",
+     "value": 25,
+     "then": "chilling_wail"
+    }
+   ]
+  },
+  "spiral_warden": {
+   "name": "the Spiral Warden",
+   "hp": 200,
+   "dmg": [
+    4,
+    9
+   ],
+   "size": "huge",
+   "noun": "crush",
+   "dam_type": "bash",
+   "skills": {
+    "parry": 30,
+    "second attack": 55,
+    "third attack": 30
+   },
+   "toughness": 2,
+   "no_stun": true,
+   "tags": [
+    "boss"
+   ],
+   "floors": [
+    6
+   ],
+   "role": "boss",
+   "abilities": {
+    "spiral_slam": {
+     "handler": "monster_strike",
+     "min": 8,
+     "max": 15,
+     "dam_type": "bash",
+     "beats": 24,
+     "display": "spiral slam"
+    }
+   },
+   "rules": [
+    {
+     "if": "chance",
+     "value": 30,
+     "then": "spiral_slam"
+    }
+   ],
+   "phases": [
+    {
+     "hp_below": 66,
+     "text": "The Spiral Warden's armor splits; something coils beneath it.",
+     "abilities": {
+      "coiling_lash": {
+       "handler": "monster_status",
+       "status": "bleeding",
+       "rounds": 3,
+       "dmg": 5,
+       "skill": 70,
+       "beats": 36,
+       "display": "coiling lash"
+      }
+     },
+     "rules": [
+      {
+       "if": "chance",
+       "value": 30,
+       "then": "coiling_lash"
+      }
+     ]
+    },
+    {
+     "hp_below": 33,
+     "text": "The Spiral Warden howls and the room begins to turn.",
+     "abilities": {
+      "descent": {
+       "handler": "monster_strike",
+       "min": 12,
+       "max": 20,
+       "dam_type": "negative",
+       "beats": 24,
+       "display": "the descent"
+      }
+     },
+     "rules": [
+      {
+       "if": "chance",
+       "value": 40,
+       "then": "descent"
+      }
+     ],
+     "speed": 1
+    }
+   ]
   }
  }
 }

@@ -1,0 +1,322 @@
+{
+ "_note": "Short text choices. Outcome ops: hp_pct, mana_pct, gold, xp, potion, boon, item (rarity), chance {pct, win:[ops], lose:[ops]}, text.",
+ "events": {
+  "drowned_altar": {
+   "title": "A drowned altar",
+   "text": "Black water fills a stone basin. Something glints at the bottom.",
+   "options": [
+    {
+     "label": "Reach in",
+     "ops": [
+      {
+       "chance": {
+        "pct": 55,
+        "win": [
+         {
+          "item": "rare"
+         },
+         {
+          "text": "Your fingers close on something cold and well made."
+         }
+        ],
+        "lose": [
+         {
+          "hp_pct": -20
+         },
+         {
+          "text": "Teeth. The water bites back."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "Leave it",
+     "ops": [
+      {
+       "text": "You leave the water undisturbed."
+      }
+     ]
+    }
+   ]
+  },
+  "hanged_peddler": {
+   "title": "A hanged peddler",
+   "text": "A peddler's corpse turns slowly on a rope. His pack is still full.",
+   "options": [
+    {
+     "label": "Search the pack",
+     "ops": [
+      {
+       "gold": 30
+      },
+      {
+       "potion": "hp"
+      },
+      {
+       "text": "Coins and a stoppered flask."
+      }
+     ]
+    },
+    {
+     "label": "Cut him down and pray",
+     "ops": [
+      {
+       "chance": {
+        "pct": 50,
+        "win": [
+         {
+          "boon": true
+         },
+         {
+          "text": "Something unseen is grateful."
+         }
+        ],
+        "lose": [
+         {
+          "text": "Nothing answers."
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "whispering_skull": {
+   "title": "A whispering skull",
+   "text": "A skull on a spike murmurs a bargain: your blood for its secrets.",
+   "options": [
+    {
+     "label": "Bleed for it",
+     "ops": [
+      {
+       "hp_pct": -15
+      },
+      {
+       "xp": 60
+      },
+      {
+       "text": "Its secrets are mostly about killing."
+      }
+     ]
+    },
+    {
+     "label": "Smash it",
+     "ops": [
+      {
+       "gold": 15
+      },
+      {
+       "text": "Gold teeth scatter across the floor."
+      }
+     ]
+    }
+   ]
+  },
+  "collapsed_armory": {
+   "title": "A collapsed armory",
+   "text": "Racks of rusted gear lie under fallen stone.",
+   "options": [
+    {
+     "label": "Dig (it'll take a toll)",
+     "ops": [
+      {
+       "hp_pct": -10
+      },
+      {
+       "item": "uncommon"
+      },
+      {
+       "text": "Most of it is ruined. Not all of it."
+      }
+     ]
+    },
+    {
+     "label": "Move on",
+     "ops": [
+      {
+       "text": "You step over the rubble."
+      }
+     ]
+    }
+   ]
+  },
+  "silent_well": {
+   "title": "A silent well",
+   "text": "No sound comes back when you drop a pebble.",
+   "options": [
+    {
+     "label": "Drink",
+     "ops": [
+      {
+       "chance": {
+        "pct": 60,
+        "win": [
+         {
+          "hp_pct": 25
+         },
+         {
+          "mana_pct": 25
+         },
+         {
+          "text": "The water is cold and clean."
+         }
+        ],
+        "lose": [
+         {
+          "hp_pct": -10
+         },
+         {
+          "text": "It tastes of iron and rot."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "Toss a coin",
+     "ops": [
+      {
+       "gold": -10
+      },
+      {
+       "chance": {
+        "pct": 50,
+        "win": [
+         {
+          "potion": "mp"
+         },
+         {
+          "potion": "hp"
+         },
+         {
+          "text": "Two flasks float up out of the dark."
+         }
+        ],
+        "lose": [
+         {
+          "text": "Nothing comes back."
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "chained_prisoner": {
+   "title": "A chained prisoner",
+   "text": "A gaunt figure in rusted chains begs you to free them.",
+   "options": [
+    {
+     "label": "Free them",
+     "ops": [
+      {
+       "chance": {
+        "pct": 65,
+        "win": [
+         {
+          "gold": 40
+         },
+         {
+          "text": "They press a purse into your hand and flee."
+         }
+        ],
+        "lose": [
+         {
+          "hp_pct": -15
+         },
+         {
+          "text": "The chains were the only thing holding it back."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "Walk away",
+     "ops": [
+      {
+       "text": "Their pleading follows you down the hall."
+      }
+     ]
+    }
+   ]
+  },
+  "bone_dice": {
+   "title": "A game of bone dice",
+   "text": "Two corpses sit over a game that never finished.",
+   "options": [
+    {
+     "label": "Finish the game (20 gold)",
+     "ops": [
+      {
+       "gold": -20
+      },
+      {
+       "chance": {
+        "pct": 50,
+        "win": [
+         {
+          "gold": 60
+         },
+         {
+          "text": "You win. The corpses do not object."
+         }
+        ],
+        "lose": [
+         {
+          "text": "You lose. The dice were weighted."
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "Take the dice",
+     "ops": [
+      {
+       "xp": 20
+      },
+      {
+       "text": "They're carved with tally marks of the dead."
+      }
+     ]
+    }
+   ]
+  },
+  "old_campfire": {
+   "title": "An old campfire",
+   "text": "Someone rested here not long ago. The embers are still warm.",
+   "options": [
+    {
+     "label": "Rest a moment",
+     "ops": [
+      {
+       "hp_pct": 15
+      },
+      {
+       "text": "You catch your breath."
+      }
+     ]
+    },
+    {
+     "label": "Search the camp",
+     "ops": [
+      {
+       "potion": "hp"
+      },
+      {
+       "text": "A forgotten flask."
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -120,6 +120,8 @@ static func line(ev: Dictionary) -> String:
 			return "%s %s %d mana." % [subj(src), v(src, "recover", "recovers"), int(ev.get("amount", 0))]
 		"stunned":
 			return "%s %s, unable to act." % [subj(src), v(src, "reel", "reels")]
+		"phase":
+			return "** %s **" % str(ev.get("text", ""))
 		"death":
 			return "%s %s DEAD!" % [subj(src), v(src, "are", "is")]
 		"fight_end":

@@ -3,14 +3,15 @@ extends RefCounted
 ## Loads game/data/*.json and deep-merges game/data/overrides/<same name>.json on top.
 ## Pure logic: FileAccess only, no Nodes. Tests can also build one from dictionaries.
 
-const FILES := ["classes", "abilities", "items", "monsters", "boons", "rooms", "balance"]
+const FILES := ["classes", "abilities", "items", "monsters", "boons", "events", "rooms", "balance"]
 
 var classes: Dictionary = {}     # line id -> line dict
 var abilities: Dictionary = {}   # ability name -> ability dict
 var items: Dictionary = {}
 var monsters: Dictionary = {}    # monster id -> monster dict
 var boons: Dictionary = {}       # boon id -> boon dict
-var rooms: Dictionary = {}
+var events: Dictionary = {}    # event id -> event dict
+var rooms: Dictionary = {}     # room text templates
 var balance: Dictionary = {}
 
 
@@ -41,6 +42,7 @@ func apply(raw: Dictionary) -> void:
 	items = raw.get("items", {})
 	monsters = raw.get("monsters", {}).get("monsters", {})
 	boons = raw.get("boons", {}).get("boons", {})
+	events = raw.get("events", {}).get("events", {})
 	rooms = raw.get("rooms", {})
 	balance = raw.get("balance", {})
 

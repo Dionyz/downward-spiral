@@ -1,0 +1,37 @@
+{
+ "_note": "Room name and one-line description templates for dungeon_gen.gd. Hand-authored, original text.",
+ "names": [
+  "A collapsed crypt",
+  "A flooded gallery",
+  "A root-choked hall",
+  "An ossuary",
+  "A chapel of rust",
+  "A narrow stair",
+  "A cistern",
+  "A fungal grotto",
+  "A burned library",
+  "A collapsed mine shaft",
+  "A shrine to nothing",
+  "A guardroom",
+  "A bone-strewn pit",
+  "A sunken courtyard",
+  "A drowned stair",
+  "A hall of empty niches",
+  "A smithy gone cold",
+  "A cracked reliquary"
+ ],
+ "details": [
+  "Water drips from the ceiling.",
+  "Something skitters out of sight.",
+  "The air tastes of ash.",
+  "Old blood darkens the flagstones.",
+  "A cold draft rises from below.",
+  "Candles burn with no one to tend them.",
+  "The walls are scratched with tally marks.",
+  "Roots hang like curtains.",
+  "Your footsteps echo too long.",
+  "Something large was dragged through here.",
+  "The floor slopes gently downward.",
+  "Faint chanting comes through the stone."
+ ]
+}

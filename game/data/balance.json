@@ -31,5 +31,44 @@
  ],
  "enemy_hit_cap_pct": 35,
  "rule_slots": 2,
- "rule_slot_bonus_level": 5
+ "rule_slot_bonus_level": 5,
+ "run": {
+  "floor_monster_level": {
+   "1": 1,
+   "2": 2,
+   "3": 4,
+   "4": 5,
+   "5": 7,
+   "6": 9
+  },
+  "elite_level_bonus": 1,
+  "boss_level": 10,
+  "xp_per_monster_level": 10,
+  "xp_mult": {
+   "normal": 1,
+   "elite": 3,
+   "boss": 5
+  },
+  "xp_to_next_per_level": 40,
+  "gold_per_monster_level": 3,
+  "gold_mult": {
+   "normal": 1,
+   "elite": 5,
+   "boss": 10
+  },
+  "potion_drop_pct": 20,
+  "potions_start": {
+   "hp": 2,
+   "mp": 2
+  },
+  "potion_max": 5,
+  "rest_heal_pct": 40,
+  "shrine_remove_cost_per_floor": 30,
+  "shrine_reroll_cost_per_floor": 20,
+  "reward_boon_chance": 40,
+  "elite_min_rarity": "rare",
+  "death_xp_pct": 50,
+  "extract_xp_pct": 100,
+  "extract_from_floor": 2
+ }
 }
