@@ -27,7 +27,7 @@ func _ready() -> void:
 	tab_row.add_theme_constant_override("separation", 8)
 	for s in DSRunState.SLOTS:
 		var ss: String = s
-		var b := UI.button(s.capitalize(), func(): _select(ss), 56)
+		var b := UI.button(s.capitalize() + (" ▲" if run.upgrade_slots().has(s) else ""), func(): _select(ss), 56)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.toggle_mode = true
 		tab_row.add_child(b)
@@ -110,11 +110,17 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 		run.equip_from_inventory(idx)
 		run.messages.clear()
 		Game.save_run()
+		for k in tabs.keys():
+			tabs[k].text = str(k).capitalize() + (" ▲" if run.upgrade_slots().has(k) else "")
 		_refresh()
 	, 48)
 	eb.custom_minimum_size.x = 110
 	head.add_child(eb)
 	v.add_child(head)
-	v.add_child(UI.label("%s · ilvl %d" % [str(it.get("rarity", "")).capitalize(), int(it.get("ilvl", 1))], 15, UI.DIM))
+	var sub := "%s · ilvl %d" % [str(it.get("rarity", "")).capitalize(), int(it.get("ilvl", 1))]
+	if DSRunState.is_pure_upgrade(it, eq):
+		v.add_child(UI.label(sub + "  ·  ▲ UPGRADE", 15, Color("#5fd35f")))
+	else:
+		v.add_child(UI.label(sub, 15, UI.DIM))
 	v.add_child(Cards.stat_flow(Cards.compare_lines(run.data, it, eq)))
 	return card

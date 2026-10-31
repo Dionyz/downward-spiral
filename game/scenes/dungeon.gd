@@ -258,7 +258,9 @@ func _refresh() -> void:
 	pot_mp.text = "Mana ×%d" % int(run.potions.get("mp", 0))
 	pot_mp.disabled = int(run.potions.get("mp", 0)) <= 0 or p.mana >= p.max_mana
 	speed_btn.text = "Speed %dx" % int(Game.speed)
-	gear_btn.text = "Gear (%d)" % run.inventory.size()
+	var ups := run.upgrade_slots()
+	gear_btn.text = ("Gear ▲ upgrade" if not ups.is_empty() else "Gear (%d)" % run.inventory.size())
+	_set_gear_glow(not ups.is_empty())
 	for c in log_strip.get_children():
 		c.queue_free()
 	var shown := _recent.slice(maxi(0, _recent.size() - LOG_LINES))
@@ -588,6 +590,26 @@ func _open_settings() -> void:
 	v.add_child(UI.button("Save and quit to title", func():
 		Game.save_run()
 		Game.goto("title"), 56))
+
+
+## Gear button pulses green while a pure upgrade is waiting in the bag.
+var _glow: Tween
+
+
+func _set_gear_glow(on: bool) -> void:
+	if on == (_glow != null and _glow.is_valid()):
+		return
+	if _glow != null:
+		_glow.kill()
+		_glow = null
+	if on:
+		gear_btn.add_theme_color_override("font_color", Color("#5fd35f"))
+		_glow = create_tween().set_loops()
+		_glow.tween_property(gear_btn, "modulate", Color(1.35, 1.6, 1.35), 0.6)
+		_glow.tween_property(gear_btn, "modulate", Color.WHITE, 0.6)
+	else:
+		gear_btn.remove_theme_color_override("font_color")
+		gear_btn.modulate = Color.WHITE
 
 
 func _toggle_speed() -> void:

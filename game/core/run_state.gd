@@ -483,6 +483,57 @@ func gain_items(found: Array) -> Array:
 
 
 ## Inventory items for `slot`, strongest first, with their inventory index: [{i, item}].
+## True if `it` is better than `eq` in every way: no stat lower, at least one higher, no flag or
+## legendary power lost. Sidegrades (better here, worse there) don't count.
+static func is_pure_upgrade(it: Dictionary, eq) -> bool:
+	if eq == null:
+		return true
+	var a := _upgrade_stats(it)
+	var b := _upgrade_stats(eq)
+	var better := false
+	for k in b.keys():
+		if float(a.get(k, 0)) < float(b[k]):
+			return false
+	for k in a.keys():
+		if float(a[k]) > float(b.get(k, 0)):
+			better = true
+	for f in eq.get("flags", []):
+		if not it.get("flags", []).has(f):
+			return false
+	if eq.has("passive") and str(it.get("passive", "")) != str(eq["passive"]):
+		return false
+	if it.has("passive") and not eq.has("passive"):
+		better = true
+	for f in it.get("flags", []):
+		if not eq.get("flags", []).has(f):
+			better = true
+	return better
+
+
+static func _upgrade_stats(it: Dictionary) -> Dictionary:
+	var s := {"min": int(it.get("min", 0)), "max": int(it.get("max", 0)), "armor": -int(it.get("ac", 0)),
+		"damroll": int(it.get("damroll", 0)), "hp": int(it.get("hp", 0)), "mana": int(it.get("mana", 0))}
+	if it.get("slot") == "weapon":
+		s["avg"] = (s["min"] + s["max"]) / 2.0
+		s.erase("min")
+		s.erase("max")
+	var sb: Dictionary = it.get("skill_bonus", {})
+	for k in sb.keys():
+		s["skill_" + str(k)] = int(sb[k])
+	return s
+
+
+## Slots that have a pure upgrade waiting in the bag.
+func upgrade_slots() -> Array:
+	var out: Array = []
+	for slot in SLOTS:
+		for it in inventory:
+			if it.get("slot") == slot and is_pure_upgrade(it, items.get(slot)):
+				out.append(slot)
+				break
+	return out
+
+
 func inventory_for(slot: String) -> Array:
 	var out: Array = []
 	for i in inventory.size():

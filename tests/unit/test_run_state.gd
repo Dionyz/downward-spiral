@@ -334,3 +334,16 @@ func test_every_class_uses_its_whole_kit():
 					used[str(ev.get("id", ev.get("ability")))] = true
 		for a in data.kit_abilities(line, 3, 10, "active"):
 			assert_true(used.has(a), "%s never used %s" % [line, a])
+
+
+func test_pure_upgrade_detection():
+	var eq := {"slot": "weapon", "min": 10, "max": 20, "damroll": 2, "flags": []}
+	assert_true(DSRunState.is_pure_upgrade({"slot": "weapon", "min": 12, "max": 20, "damroll": 2, "flags": []}, eq))
+	assert_false(DSRunState.is_pure_upgrade({"slot": "weapon", "min": 10, "max": 20, "damroll": 2, "flags": []}, eq), "identical is not an upgrade")
+	assert_false(DSRunState.is_pure_upgrade({"slot": "weapon", "min": 14, "max": 24, "damroll": 1, "flags": []}, eq), "sidegrade: more damage, less damroll")
+	assert_false(DSRunState.is_pure_upgrade({"slot": "weapon", "min": 14, "max": 24, "damroll": 2, "flags": []},
+		{"slot": "weapon", "min": 10, "max": 20, "damroll": 2, "flags": ["sharp"]}), "loses a flag")
+	assert_true(DSRunState.is_pure_upgrade({"slot": "armor", "ac": -5}, null), "empty slot")
+	var r := DSRunState.new_run(data, "warrior", 3)
+	r.inventory = [{"slot": "armor", "ac": -5, "flags": []}]
+	assert_true(r.upgrade_slots().has("armor"))
