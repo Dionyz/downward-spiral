@@ -10,8 +10,13 @@ func _ready() -> void:
 	var L: Dictionary = Game.data.classes.get(Game.line, {})
 	v.add_child(UI.label("Floor 1 · Fight %d of %d" % [Game.fight_index + 1, Game.fights_per_floor], 30, UI.ACCENT))
 	v.add_child(UI.label("%s · level %d" % [str(L.get("display", Game.line)), Game.level], 24))
-	v.add_child(UI.label("HP %d/%d   Mana %d/%d   Potions: %d HP, %d MP" % [p.hp, p.max_hp, p.mana, p.max_mana,
-		Game.potions["hp"], Game.potions["mp"]], 20, UI.DIM))
+	var res := "HP %d/%d" % [p.hp, p.max_hp]
+	if p.max_mana > 0:
+		res += "   Mana %d/%d" % [p.mana, p.max_mana]
+	res += "   Potions: %d HP" % Game.potions["hp"]
+	if p.max_mana > 0:
+		res += ", %d MP" % Game.potions["mp"]
+	v.add_child(UI.label(res, 20, UI.DIM))
 	v.add_child(UI.label("Abilities: " + ", ".join(PackedStringArray(p.actives)), 20, UI.DIM))
 	v.add_child(UI.label("Your character fights on its own. Rules let you tell it what to do first.", 18, UI.DIM))
 	var scroll := ScrollContainer.new()
@@ -23,6 +28,9 @@ func _ready() -> void:
 	v.add_child(scroll)
 	editor.setup(p.actives, Game.rules, Game.rule_slots())
 	v.add_child(UI.button("Fight", _fight, 80))
+	if Game.autoplay != "":
+		print("[autoplay] camp: fight %d, level %d, HP %d/%d, rules %s" % [Game.fight_index + 1, Game.level, p.hp, p.max_hp, str(editor.get_rules())])
+		Game.auto_next("camp_%d" % (Game.fight_index + 1), _fight)
 
 
 func _fight() -> void:

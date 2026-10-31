@@ -21,7 +21,7 @@ func test_rules_hold_over_1000_seeds():
 			for path in DSDungeonGen.paths(f):
 				if path[path.size() - 1] != spec[2]:
 					bad.append("%s: ends with %s" % [tag, path[path.size() - 1]])
-				var fights := path.filter(func(t): return t in ["fight", "elite", "boss"]).size()
+				var fights: int = path.filter(func(t): return t in ["fight", "elite", "boss"]).size()
 				if fights * 2 < path.size():
 					bad.append("%s: too few fights %s" % [tag, str(path)])
 				for i in range(1, path.size()):
@@ -42,3 +42,13 @@ func test_rooms_have_names():
 		for room in step:
 			assert_ne(room["name"], "")
 			assert_ne(room["desc"], "")
+
+
+func test_encounters_roll_1_to_4_monsters_from_the_floor_pool():
+	var data := DSData.load_dir("res://game/data")
+	assert_gt(DSEncounters.pool(data, 1).size(), 2)
+	var rng := DSRng.new(5)
+	for i in 50:
+		var foes := DSEncounters.roll_fight(data, rng, 1, 1)
+		assert_between(foes.size(), 1, 4)
+	assert_eq(DSEncounters.roll_fight(data, rng, 2, 2, "elite").size(), 1)

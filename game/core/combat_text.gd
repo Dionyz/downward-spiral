@@ -37,61 +37,91 @@ static func attack_word(ev: Dictionary) -> String:
 
 
 ## One line of log text for an event, or "" for events the log skips.
+const YOU := "You"
+
+
+## Subject at the start of a sentence: "You" / "A goblin cutter".
+static func subj(n: String) -> String:
+	return n if n == YOU else n.left(1).to_upper() + n.substr(1)
+
+
+## Object mid-sentence: "you" / "a goblin cutter".
+static func obj(n: String) -> String:
+	return "you" if n == YOU else n
+
+
+## Possessive at sentence start: "Your" / "A goblin cutter's".
+static func poss(n: String) -> String:
+	return "Your" if n == YOU else subj(n) + "'s"
+
+
+## Possessive mid-sentence: "your" / "a goblin cutter's".
+static func poss_obj(n: String) -> String:
+	return "your" if n == YOU else n + "'s"
+
+
+## Verb agreeing with the subject: v("You", "dodge", "dodges").
+static func v(n: String, second: String, third: String) -> String:
+	return second if n == YOU else third
+
+
 static func line(ev: Dictionary) -> String:
 	var src: String = ev.get("src", "")
 	var dst: String = ev.get("dst", "")
 	match ev.get("t", ""):
 		"fight_start":
-			return "-- %s faces %s --" % [src, ", ".join(PackedStringArray(ev.get("enemies", [])))]
+			return "-- %s %s %s --" % [subj(src), v(src, "face", "faces"), ", ".join(PackedStringArray(ev.get("enemies", [])))]
 		"round":
 			return "[Round %d]" % int(ev.get("n", 0))
 		"damage":
 			var amt := int(ev.get("amount", 0))
-			var who := src if src != "" else "Something"
 			var crit := " (critical!)" if ev.get("crit", false) else ""
-			if ev.get("dt", "") in ["poison", "bleed"]:
-				return "%s suffers %d from %s." % [dst, amt, ev.get("dt", "")]
-			return "%s's %s %s %s. [%d]%s" % [who, attack_word(ev), verb_for(amt, int(ev.get("max_hp", 1))), dst, amt, crit]
+			if ev.get("dt", "") in ["poison", "bleed", "thorns"]:
+				return "%s %s %d from %s." % [subj(dst), v(dst, "suffer", "suffers"), amt, ev.get("dt", "")]
+			var who := poss(src) if src != "" else "Something's"
+			return "%s %s %s %s. [%d]%s" % [who, attack_word(ev), verb_for(amt, int(ev.get("max_hp", 1))), obj(dst), amt, crit]
 		"miss":
-			if ev.has("evaded"):
-				return "%s slips clear of %s's attack (%s)." % [dst, src, ev.get("evaded", "")]
-			return "%s's %s misses %s." % [src, ev.get("dt", "attack"), dst]
+			return "%s %s misses %s." % [poss(src), ev.get("dt", "attack"), obj(dst)]
 		"parry":
-			return "%s turns aside %s's blow." % [src, dst]
+			return "%s %s %s blow." % [subj(src), v(src, "turn aside", "turns aside"), poss_obj(dst)]
 		"dodge":
 			if ev.get("how", "") == "sidestep":
-				return "%s slips past %s's swing." % [src, dst]
-			return "%s dodges %s's swing." % [src, dst]
+				return "%s %s past %s swing." % [subj(src), v(src, "slip", "slips"), poss_obj(dst)]
+			return "%s %s %s swing." % [subj(src), v(src, "dodge", "dodges"), poss_obj(dst)]
 		"block":
-			return "%s catches %s's blow on a shield." % [src, dst]
+			return "%s %s %s blow on a shield." % [subj(src), v(src, "catch", "catches"), poss_obj(dst)]
 		"ability", "cast":
 			var arg: String = ev.get("arg", "")
 			var nm: String = ev.get("ability", "")
 			if arg != "":
 				nm = "%s (%s)" % [nm, arg]
-			var verb := "casts" if ev.get("t") == "cast" else "uses"
+			var verb := v(src, "cast", "casts") if ev.get("t") == "cast" else v(src, "use", "uses")
 			if dst != "" and dst != src:
-				return "%s %s %s on %s." % [src, verb, nm, dst]
-			return "%s %s %s." % [src, verb, nm]
+				return "%s %s %s on %s." % [subj(src), verb, nm, obj(dst)]
+			return "%s %s %s." % [subj(src), verb, nm]
 		"ability_miss":
-			return "%s's %s fails." % [src, ev.get("ability", "")]
+			return "%s %s fails." % [poss(src), ev.get("ability", "")]
 		"resist":
-			return "%s shrugs off the %s." % [src, ev.get("ability", "")]
+			return "%s %s off the %s." % [subj(src), v(src, "shrug", "shrugs"), ev.get("ability", "")]
 		"status_applied":
-			var w: String = STATUS_WORDS.get(ev.get("status", ""), "is affected by %s" % ev.get("status", ""))
-			return "%s %s." % [dst, w]
+			var st: String = ev.get("status", "")
+			var w: String = STATUS_WORDS.get(st, "is affected by %s" % st)
+			if dst == YOU:
+				w = w.replace("is ", "are ").replace("falls", "fall").replace("speeds", "speed").replace("raises", "raise") \
+					.replace("flies", "fly").replace("roars", "roar").replace("coats", "coat").replace("begins", "begin")
+			return "%s %s." % [subj(dst), w]
 		"status_expired":
-			return "%s is no longer %s." % [src, ev.get("status", "")]
+			return "%s %s no longer %s." % [subj(src), v(src, "are", "is"), str(ev.get("status", "")).replace("_", " ")]
 		"stance":
-			return "%s shifts into the %s dance." % [src, ev.get("stance", "")]
+			return "%s %s into the %s dance." % [subj(src), v(src, "shift", "shifts"), ev.get("stance", "")]
 		"heal":
-			return "%s recovers %d HP." % [dst, int(ev.get("amount", 0))]
+			return "%s %s %d HP." % [subj(dst), v(dst, "recover", "recovers"), int(ev.get("amount", 0))]
 		"mana":
-			return "%s recovers %d mana." % [src, int(ev.get("amount", 0))]
+			return "%s %s %d mana." % [subj(src), v(src, "recover", "recovers"), int(ev.get("amount", 0))]
 		"stunned":
-			return "%s reels, unable to act." % src
+			return "%s %s, unable to act." % [subj(src), v(src, "reel", "reels")]
 		"death":
-			return "%s is DEAD!" % src
+			return "%s %s DEAD!" % [subj(src), v(src, "are", "is")]
 		"fight_end":
 			match ev.get("result", ""):
 				"win":

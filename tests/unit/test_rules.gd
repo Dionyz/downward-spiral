@@ -107,7 +107,7 @@ func test_monster_rules_fire():
 	var bolts := 0
 	for i in 6:
 		for ev in sim.step():
-			if ev.get("t") == "ability" and ev.get("ability") == "shadow_bolt":
+			if ev.get("t") == "ability" and ev.get("id") == "shadow_bolt":
 				bolts += 1
 	assert_gt(bolts, 1)
 

@@ -69,12 +69,13 @@ static func screen(root: Control) -> VBoxContainer:
 	return v
 
 
-static func label(text: String, size: int = 24, color: Color = TEXT) -> Label:
+static func label(text: String, size: int = 24, color: Color = TEXT, wrap: bool = true) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
-	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if wrap:
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	return l
 
 

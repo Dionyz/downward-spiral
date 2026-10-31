@@ -191,3 +191,14 @@ func test_shield_block_chance():
 	v.shield = {"block": 100}
 	v.skills["shield block"] = 100
 	assert_eq(sim.block_chance(atk, v), 66, "clamped to 66")
+
+
+# --- combat log text ------------------------------------------------------------
+
+func test_log_uses_second_person_for_the_player():
+	assert_eq(CombatText.line({"t": "dodge", "src": "You", "dst": "a rat"}), "You dodge a rat's swing.")
+	assert_eq(CombatText.line({"t": "dodge", "src": "a rat", "dst": "You"}), "A rat dodges your swing.")
+	assert_eq(CombatText.line({"t": "ability", "src": "You", "dst": "a rat", "ability": "bash"}), "You use bash on a rat.")
+	assert_eq(CombatText.line({"t": "status_applied", "dst": "You", "status": "blind"}), "You are blinded.")
+	var d := CombatText.line({"t": "damage", "src": "a rat", "dst": "You", "amount": 5, "max_hp": 100, "dt": "hit"})
+	assert_true(d.begins_with("A rat's strike") and d.find(" you. [5]") > 0, d)

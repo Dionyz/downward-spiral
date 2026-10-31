@@ -58,3 +58,15 @@ Play the prototype on desktop:
 ```bash
 godot --path .
 ```
+
+Smoke-test the whole UI headless (clicks through a run; add `--shots <dir>` under a display to save screenshots):
+
+```bash
+godot --headless --path . -- --autoplay warrior
+```
+
+Prototype-floor win rates per class:
+
+```bash
+godot --headless --path . -s tools/balance_floor.gd -- --runs 300
+```

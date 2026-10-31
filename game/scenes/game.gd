@@ -19,10 +19,17 @@ var potions := {"hp": 2, "mp": 2}
 var result: String = ""        # "", "win", "loss", "extract"
 var fights_won: int = 0
 var speed: float = 1.0
+## Headless smoke test: `godot --headless --path . -- --autoplay warrior` clicks through a whole run.
+var autoplay: String = ""
 
 
 func _ready() -> void:
 	data = DSData.load_dir("res://game/data")
+	var args := OS.get_cmdline_user_args()
+	var i := args.find("--autoplay")
+	if i >= 0:
+		autoplay = args[i + 1] if i + 1 < args.size() else "warrior"
+		speed = 64.0
 
 
 func new_run(p_line: String, p_seed: int = 0) -> void:
@@ -83,6 +90,22 @@ func _level_up() -> void:
 
 func rule_slots() -> int:
 	return DSFactory.rule_slots(data, level)
+
+
+## Autoplay step: wait a moment, optionally save a screenshot (--shots <dir>), then run `next`.
+var _shot_n := 0
+
+
+func auto_next(shot_name: String, next: Callable, delay: float = 0.4) -> void:
+	await get_tree().create_timer(delay).timeout
+	var args := OS.get_cmdline_user_args()
+	var i := args.find("--shots")
+	if i >= 0 and i + 1 < args.size():
+		await RenderingServer.frame_post_draw
+		_shot_n += 1
+		var path := "%s/%02d_%s.png" % [args[i + 1], _shot_n, shot_name]
+		get_viewport().get_texture().get_image().save_png(path)
+	next.call()
 
 
 func goto(scene: String) -> void:

@@ -16,3 +16,6 @@ func _ready() -> void:
 	var ver := UI.label("text prototype · milestone 4", 16, UI.DIM)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(ver)
+	if Game.autoplay != "":
+		print("[autoplay] title")
+		Game.auto_next("title", func(): Game.goto("class_select"))

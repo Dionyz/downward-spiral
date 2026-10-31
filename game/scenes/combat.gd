@@ -75,10 +75,10 @@ func _ready() -> void:
 func _add_enemy_row(e: Combatant) -> void:
 	var box := VBoxContainer.new()
 	var top := HBoxContainer.new()
-	var nm := UI.label(e.name, 20)
+	var nm := UI.label(e.name, 20, UI.TEXT, false)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(nm)
-	var st := UI.label("", 16, UI.DIM)
+	var st := UI.label("", 16, UI.DIM, false)
 	top.add_child(st)
 	box.add_child(top)
 	var b := UI.bar(UI.ENEMY_HP, 12)
@@ -92,6 +92,9 @@ func _tick() -> void:
 		return
 	log_view.add_events(sim.step())
 	_refresh()
+	if Game.autoplay != "" and sim.round_num == 3 and OS.get_cmdline_user_args().has("--shots"):
+		timer.paused = true
+		Game.auto_next("combat_mid_%d" % (Game.fight_index + 1), func(): timer.paused = false, 0.2)
 	if sim.over:
 		timer.stop()
 		_end()
@@ -114,7 +117,8 @@ func _refresh() -> void:
 	hp_pot.text = "HP potion (%d)" % Game.potions["hp"]
 	mp_pot.text = "MP potion (%d)" % Game.potions["mp"]
 	hp_pot.disabled = Game.potions["hp"] <= 0 or sim.over
-	mp_pot.disabled = Game.potions["mp"] <= 0 or sim.over or player.max_mana <= 0
+	mp_pot.disabled = Game.potions["mp"] <= 0 or sim.over
+	mp_pot.visible = player.max_mana > 0
 	speed_btn.text = "%dx" % int(Game.speed)
 
 
@@ -154,6 +158,9 @@ func _end() -> void:
 	Game.finish_fight(player, sim.result)
 	continue_btn.visible = true
 	continue_btn.text = "Continue" if sim.result == "win" else "See the end"
+	if Game.autoplay != "":
+		print("[autoplay] fight over: %s in %d rounds, HP %d/%d, log lines %d" % [sim.result, sim.round_num, player.hp, player.max_hp, log_view.get_line_count()])
+		Game.auto_next("combat_end_%d" % (Game.fight_index), _continue)
 
 
 func _continue() -> void:

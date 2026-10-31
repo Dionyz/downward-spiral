@@ -37,7 +37,9 @@ func _add_row(i: int, r: Dictionary) -> void:
 	var head := UI.label("Rule %d" % (i + 1), 18, UI.DIM)
 	box.add_child(head)
 	var top := HBoxContainer.new()
-	top.add_child(UI.label("IF", 22, UI.ACCENT))
+	var lif := UI.label("IF", 22, UI.ACCENT, false)
+	lif.custom_minimum_size = Vector2(64, 0)
+	top.add_child(lif)
 	var cond := OptionButton.new()
 	cond.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cond.custom_minimum_size = Vector2(0, 56)
@@ -51,7 +53,9 @@ func _add_row(i: int, r: Dictionary) -> void:
 	top.add_child(val)
 	box.add_child(top)
 	var bottom := HBoxContainer.new()
-	bottom.add_child(UI.label("THEN", 22, UI.ACCENT))
+	var lthen := UI.label("THEN", 22, UI.ACCENT, false)
+	lthen.custom_minimum_size = Vector2(64, 0)
+	bottom.add_child(lthen)
 	var then := OptionButton.new()
 	then.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	then.custom_minimum_size = Vector2(0, 56)

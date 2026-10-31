@@ -740,7 +740,7 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 	if cd > 0:
 		c.cooldowns[aname] = cd  # ticks down at the start of each round; usable again at 0
 	_emit({"t": "cast" if cost > 0 else "ability", "src": c.name, "dst": target.name if target != null else "",
-		"ability": aname, "arg": arg, "cost": cost})
+		"ability": str(a.get("display", aname)), "id": aname, "arg": arg, "cost": cost})
 	var p: Dictionary = a.get("params", {})
 	match a.get("handler", ""):
 		"bash":
@@ -1035,7 +1035,6 @@ func _h_spell_status(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 		v.remove_status(disp)
 	v.add_status(st, rounds + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
-	if st == "asleep":
 
 
 ## whirlwind, storm of blades: every opponent takes one swing plus bonus swings on a percent roll.
@@ -1092,7 +1091,7 @@ func _h_stance(c: Combatant, arg: String, p: Dictionary) -> void:
 func _h_monster_strike(c: Combatant, v: Combatant, aname: String, a: Dictionary) -> void:
 	var lo := int(a.get("min", c.dmg_min))
 	var hi := int(a.get("max", c.dmg_max))
-	apply_damage(c, v, rng.number_range(lo, hi), aname, str(a.get("dam_type", c.dam_type)), false)
+	apply_damage(c, v, rng.number_range(lo, hi), str(a.get("display", aname)), str(a.get("dam_type", c.dam_type)), false)
 
 
 func _h_monster_status(c: Combatant, v: Combatant, aname: String, a: Dictionary) -> void:

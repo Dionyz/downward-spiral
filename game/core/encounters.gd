@@ -10,7 +10,8 @@ static func pool(data: DSData, floor_num: int, kind: String = "normal") -> Array
 	ids.sort()
 	for id in ids:
 		var m: Dictionary = data.monsters[id]
-		if not floor_num in m.get("floors", []):
+		var floors: Array = m.get("floors", []).map(func(x): return int(x))
+		if not floors.has(floor_num):
 			continue
 		var is_elite: bool = m.get("role", "") == "elite"
 		if (kind == "elite") == is_elite:

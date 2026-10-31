@@ -15,3 +15,6 @@ func _ready() -> void:
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
 	v.add_child(UI.button("Title", func(): Game.goto("title"), 56))
+	if Game.autoplay != "":
+		print("[autoplay] run_end: %s, fights won %d, level %d" % [Game.result, Game.fights_won, Game.level])
+		Game.auto_next("run_end", func(): get_tree().quit())
