@@ -8,23 +8,27 @@ var gold_label: Label
 
 func _ready() -> void:
 	var v := UI.screen(self)
-	var t := UI.label("Upgrades", 40, UI.ACCENT)
+	var t := UI.label("The Trainer", 40, Color("#9d7cf2"))
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
-	var s := UI.label("Extra charges for boon picks, every run. Bought with gold you bring home.", 18, UI.DIM)
+	var s := UI.label("\"Gold buys strength.\" Power-ups apply to every character, every run.", 18, UI.DIM)
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)
 	gold_label = UI.label("", 24, UI.ACCENT)
 	gold_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(gold_label)
 	list = VBoxContainer.new()
-	list.add_theme_constant_override("separation", 14)
-	v.add_child(list)
-	v.add_child(UI.spacer())
-	v.add_child(UI.button("Back", func(): Game.goto("title"), 64))
+	list.add_theme_constant_override("separation", 10)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.add_child(list)
+	v.add_child(scroll)
+	v.add_child(UI.button("Back", func(): Game.goto("town"), 64))
 	_refresh()
 	if Game.autoplay != "":
-		Game.auto_next("upgrades", func(): Game.goto("title"))
+		Game.auto_next("upgrades", func(): Game.get_tree().quit())
 
 
 func _refresh() -> void:
@@ -33,7 +37,7 @@ func _refresh() -> void:
 		c.queue_free()
 	var defs: Dictionary = Game.data.meta.get("upgrades", {})
 	var per_run := DSMeta.charges(Game.data, Game.account)
-	var cap := int(Game.data.meta.get("upgrade_max", 5))
+	var pk := DSMeta.perks(Game.data, Game.account)
 	for id in DSMeta.UPGRADES:
 		var d: Dictionary = defs.get(id, {})
 		var card := PanelContainer.new()
@@ -44,11 +48,21 @@ func _refresh() -> void:
 		var n := UI.label(str(d.get("name", id)), 28, UI.ACCENT, false)
 		n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		head.add_child(n)
-		head.add_child(UI.label("%d per run" % int(per_run[id]), 20, UI.TEXT, false))
+		var now := ""
+		match id:
+			"vitality":
+				now = "+%d%% HP" % int(pk["hp_pct"])
+			"might":
+				now = "+%d%% damage" % int(pk["damage_pct"])
+			"provisions":
+				now = "+%d potions" % int(pk["potions"])
+			_:
+				now = "%d per run" % int(per_run[id])
+		head.add_child(UI.label(now, 20, UI.TEXT, false))
 		cv.add_child(head)
 		cv.add_child(UI.label(str(d.get("desc", "")), 18, UI.DIM))
 		var owned := DSMeta.owned(Game.account, id)
-		cv.add_child(UI.label("Bought %d of %d" % [owned, cap], 16, UI.DIM))
+		cv.add_child(UI.label("Bought %d of %d" % [owned, DSMeta.upgrade_cap(Game.data, id)], 16, UI.DIM))
 		var price := DSMeta.upgrade_price(Game.data, Game.account, id)
 		var uid: String = id
 		var b := UI.button("Maxed" if price < 0 else "Buy +1 for %d gold" % price, func(): _buy(uid), 56)

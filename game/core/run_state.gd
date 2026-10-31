@@ -19,6 +19,7 @@ var data: DSData
 var rng: DSRng
 var seed_value: int = 1
 var line: String = "warrior"
+var race: String = "human"
 var level: int = 1
 var xp: int = 0               # toward next level
 var xp_total: int = 0         # earned this run (converted to account XP at the end)
@@ -51,9 +52,12 @@ var banished: Array = []      # boons banished from the pool this run
 # ---------------------------------------------------------------------------
 
 ## `p_perks` = DSMeta.perks(...) for the player's account; omitted = everything unlocked, no bonuses.
-static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictionary = {}) -> DSRunState:
+## `p_race` = race id (races.json); `p_loadout` = gear the character brings ({weapon, armor, trinket}).
+static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictionary = {}, p_race: String = "human",
+		p_loadout: Dictionary = {}) -> DSRunState:
 	var r := DSRunState.new()
 	r.data = p_data
+	r.race = p_race if p_data.races.has(p_race) else "human"
 	r.perks = p_perks.duplicate(true) if not p_perks.is_empty() else DSMeta.all_unlocked(p_data)
 	r.seed_value = p_seed
 	r.rng = DSRng.new(p_seed)
@@ -62,7 +66,11 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 	r.potions = {"hp": int(ps.get("hp", 3)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
 	r.charges = _ints(r.perks.get("charges", DSMeta.charges(p_data, {})))
 	var L: Dictionary = p_data.classes.get(p_line, {})
-	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
+	for slot in SLOTS:
+		if p_loadout.get(slot) != null:
+			r.items[slot] = p_loadout[slot].duplicate(true)
+	if r.items["weapon"] == null:
+		r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
 	r._new_floor()
 	return r
 
@@ -70,7 +78,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 func to_dict() -> Dictionary:
 	_sync_from_world()
 	return {
-		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "level": level, "xp": xp,
+		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
 		"floor_num": floor_num, "world": world.to_dict() if world != null else {}, "phase": phase,
@@ -88,6 +96,7 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.rng = DSRng.new(r.seed_value)
 	r.rng.load_state(int(d.get("rng", 1)))
 	r.line = str(d.get("line", "warrior"))
+	r.race = str(d.get("race", "human"))
 	r.level = int(d.get("level", 1))
 	r.xp = int(d.get("xp", 0))
 	r.xp_total = int(d.get("xp_total", 0))
@@ -399,6 +408,7 @@ func make_player() -> Combatant:
 	if items["trinket"] != null:
 		opts["trinket"] = items["trinket"]
 	var p := DSFactory.make_player(data, line, tier(), level, opts)
+	DSFactory.apply_race(data, p, race)
 	DSFactory.apply_boons(data, p, boons)
 	p.flags["revives_used"] = int(stats.get("revives", 0))
 	if hp >= 0:
@@ -482,7 +492,6 @@ func gain_items(found: Array) -> Array:
 	return out
 
 
-## Inventory items for `slot`, strongest first, with their inventory index: [{i, item}].
 ## True if `it` is better than `eq` in every way: no stat lower, at least one higher, no flag or
 ## legendary power lost. Sidegrades (better here, worse there) don't count.
 static func is_pure_upgrade(it: Dictionary, eq) -> bool:
@@ -534,6 +543,7 @@ func upgrade_slots() -> Array:
 	return out
 
 
+## Inventory items for `slot`, strongest first, with their inventory index: [{i, item}].
 func inventory_for(slot: String) -> Array:
 	var out: Array = []
 	for i in inventory.size():
@@ -726,21 +736,8 @@ func end_run(kind: String) -> void:
 	phase = "over"
 
 
-## What the run banks into the account: death keeps 50% XP and no gold; extract/victory keep all.
+## What the run brings home: death keeps no gold (and no items, see DSAccount.bank_run).
 func banked() -> Dictionary:
-	var c := _cfg()
 	if result == "death":
-		return {"xp": int(xp_total * int(c.get("death_xp_pct", 50)) / 100.0), "gold": 0}
-	return {"xp": int(xp_total * int(c.get("extract_xp_pct", 100)) / 100.0), "gold": gold}
-
-
-static func bank_into(account: Dictionary, run: DSRunState) -> Dictionary:
-	var a := account.duplicate(true)
-	var b := run.banked()
-	a["xp"] = int(a.get("xp", 0)) + int(b["xp"])
-	a["gold"] = int(a.get("gold", 0)) + int(b["gold"])
-	a["runs"] = int(a.get("runs", 0)) + 1
-	var key: String = {"death": "deaths", "extract": "extracts", "victory": "victories"}.get(run.result, "other")
-	a[key] = int(a.get(key, 0)) + 1
-	a["best_floor"] = maxi(int(a.get("best_floor", 0)), run.floor_num)
-	return a
+		return {"gold": 0}
+	return {"gold": gold}

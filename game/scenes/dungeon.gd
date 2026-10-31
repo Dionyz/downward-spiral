@@ -479,7 +479,7 @@ func _show_floor_end() -> void:
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("Descend to floor %d" % (run.floor_num + 1), _descend, 72))
 	if run.can_extract():
-		v.add_child(UI.button("Extract (keep %d gold, %d XP)" % [run.gold, run.xp_total], func():
+		v.add_child(UI.button("Extract (keep %d gold and %d items)" % [run.gold, run.inventory.size() + run.items.values().filter(func(x): return x != null).size()], func():
 			run.extract()
 			Game.save_run()
 			Game.goto("run_end"), 60))

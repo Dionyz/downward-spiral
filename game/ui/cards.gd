@@ -157,3 +157,34 @@ static func stat_flow(lines: Array, size: int = 17) -> Control:
 		else:
 			flow.add_child(UI.label(line["text"], size, line["color"], false))
 	return box
+
+
+## Compact item card: icon, name, compared stats, and action buttons ([[label, callable, disabled?]]).
+static func item_row(data: DSData, it: Dictionary, eq, actions: Array, note: String = "") -> PanelContainer:
+	var card := PanelContainer.new()
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	card.add_child(v)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 8)
+	var col := rarity_color(data, str(it.get("rarity", "common")))
+	head.add_child(UI.icon("item_" + str(it.get("slot", "weapon")), 34, col))
+	var nm := UI.label(str(it.get("name", "?")), 19, col)
+	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(nm)
+	for a in actions:
+		var b := UI.button(str(a[0]), a[1], 44)
+		b.add_theme_font_size_override("font_size", 17)
+		b.custom_minimum_size.x = 90
+		b.disabled = a.size() > 2 and bool(a[2])
+		head.add_child(b)
+	v.add_child(head)
+	var sub := "%s %s · ilvl %d" % [str(it.get("rarity", "")).capitalize(), str(it.get("slot", "")), int(it.get("ilvl", 1))]
+	if note != "":
+		sub += " · " + note
+	if eq != null and DSRunState.is_pure_upgrade(it, eq):
+		v.add_child(UI.label(sub + "  ·  ▲ UPGRADE", 14, Color("#5fd35f")))
+	else:
+		v.add_child(UI.label(sub, 14, UI.DIM))
+	v.add_child(stat_flow(compare_lines(data, it, eq), 16))
+	return card

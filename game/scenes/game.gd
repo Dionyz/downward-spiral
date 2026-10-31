@@ -34,7 +34,7 @@ func _ready() -> void:
 		speed = 64.0
 		save_dir = "user://autoplay"
 		DirAccess.make_dir_recursive_absolute(save_dir)
-	account = _read(_path(ACCOUNT_SAVE))
+	account = DSAccount.migrate(_read(_path(ACCOUNT_SAVE)))
 	settings.merge(_read(_path(SETTINGS_SAVE)), true)
 	if autoplay == "":
 		speed = float(settings.get("speed", 1.0))
@@ -71,10 +71,12 @@ func _path(p: String) -> String:
 
 # --- runs -----------------------------------------------------------------
 
-func new_run(line: String, seed_value: int = 0) -> void:
+## Start a run for the current character (its loadout goes along, at risk).
+func new_run(seed_value: int = 0) -> void:
 	if seed_value == 0:
 		seed_value = int(Time.get_unix_time_from_system() * 1000.0) % 2147483646 + 1
-	run = DSRunState.new_run(data, line, seed_value, account_perks())
+	run = DSAccount.start_run(data, account, seed_value)
+	save_account()
 	save_run()
 
 
@@ -96,44 +98,48 @@ func save_run() -> void:
 		_write(_path(RUN_SAVE), run.to_dict())
 
 
-func account_level() -> int:
-	return DSMeta.level_for(data, int(account.get("xp", 0)))
+func save_account() -> void:
+	_write(_path(ACCOUNT_SAVE), account)
 
 
-func account_perks() -> Dictionary:
-	var p := DSMeta.perks(data, account_level())
-	p["charges"] = DSMeta.charges(data, account)
-	return p
+func character() -> Dictionary:
+	return DSAccount.current(account)
 
 
-## Spend banked gold on one level of a boon-offer upgrade (skip / reroll / banish).
+## Spend gold on one level of a town power-up.
 func buy_upgrade(id: String) -> bool:
 	var before := int(account.get("gold", 0))
 	account = DSMeta.buy_upgrade(data, account, id)
 	if int(account.get("gold", 0)) == before:
 		return false
-	_write(_path(ACCOUNT_SAVE), account)
+	save_account()
 	return true
 
 
-func class_unlocked(line: String) -> bool:
-	return autoplay != "" or account_perks()["classes"].has(line)
+## Bank the finished run into the account once, restock the shop, and clear the run save.
+var last_bank: Dictionary = {}
 
 
-## Bank the finished run into the account once, and clear the run save.
 func finish_run() -> Dictionary:
 	if run == null or run.phase != "over":
-		return {}
-	var b := run.banked()
+		return last_bank
 	if not run.room.get("banked", false):
-		var before := account_level()
-		account = DSRunState.bank_into(account, run)
-		b["level_before"] = before
-		b["level_after"] = account_level()
+		last_bank = DSAccount.bank_run(data, account, run)
 		run.room["banked"] = true
-		_write(_path(ACCOUNT_SAVE), account)
+		DSAccount.roll_shop(data, account, DSRng.new(int(Time.get_ticks_usec()) % 2147483646 + 1))
+		save_account()
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(_path(RUN_SAVE)))
-	return b
+	return last_bank
+
+
+## Autoplay: make sure a character of the requested class exists and is current.
+func autoplay_character() -> void:
+	for i in account["characters"].size():
+		if account["characters"][i]["line"] == autoplay:
+			account["current"] = i
+			return
+	DSAccount.create_character(data, account, "Auto " + autoplay.capitalize(), autoplay, "human")
+	save_account()
 
 
 # --- io -------------------------------------------------------------------

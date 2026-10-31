@@ -101,6 +101,39 @@ static func starting_weapon(data: DSData, wtype: String, ilvl: int) -> Dictionar
 		"flags": [], "affixes": [], "skill_bonus": {}, "damroll": 0, "hp": 0, "mana": 0, "name": names[0]}
 
 
+## Race: attributes, size, resistances and the racial perk (races.json).
+static func apply_race(data: DSData, c: Combatant, race: String) -> void:
+	var r: Dictionary = data.races.get(race, {})
+	if r.is_empty():
+		return
+	c.stats = r.get("attributes", c.stats).duplicate()
+	c.size = str(r.get("size", c.size))
+	for t in r.get("resist", []):
+		if not c.resist.has(t):
+			c.resist.append(t)
+	for t in r.get("vuln", []):
+		if not c.vuln.has(t):
+			c.vuln.append(t)
+	for t in r.get("immune", []):
+		if not c.immune.has(t):
+			c.immune.append(t)
+	var e: Dictionary = r.get("effect", {})
+	if int(e.get("hp_pct", 0)) != 0:
+		c.max_hp = int(c.max_hp * (1.0 + int(e["hp_pct"]) / 100.0))
+		c.hp = c.max_hp
+	if int(e.get("damage_pct", 0)) != 0:
+		c.flags["damage_mult"] = float(c.flags.get("damage_mult", 1.0)) * (1.0 + int(e["damage_pct"]) / 100.0)
+	if int(e.get("spell_pct", 0)) != 0:
+		c.flags["spell_mult"] = float(c.flags.get("spell_mult", 1.0)) * (1.0 + int(e["spell_pct"]) / 100.0)
+	var sb: Dictionary = e.get("skill_bonus", {})
+	for k in sb.keys():
+		if c.skills.has(k):
+			c.skills[k] = mini(100, int(c.skills[k]) + int(sb[k]))
+	var bs: Dictionary = e.get("stats", {})
+	for k in bs.keys():
+		c.flags[k] = int(c.flags.get(k, 0)) + int(bs[k])
+
+
 ## Add an item's flat bonuses to a combatant (weapon damage itself is read from c.weapon).
 static func apply_item_stats(c: Combatant, item: Dictionary) -> void:
 	c.ac += int(item.get("ac", 0))

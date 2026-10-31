@@ -1,0 +1,191 @@
+{
+ "_note": "Player races (character creation). Stats adapted from the MUD's race sheets (max natural stats minus 3); perks are this game's own. effect: hp_pct, damage_pct, spell_pct, skill_bonus, stats (boon stats, see boons.json), charges (extra per-run Skip/Reroll/Banish).",
+ "races": {
+  "human": {
+   "name": "Human",
+   "desc": "Even stats, no weaknesses.",
+   "size": "medium",
+   "attributes": {
+    "str": 15,
+    "int": 15,
+    "wis": 15,
+    "dex": 15,
+    "con": 15
+   },
+   "resist": [],
+   "vuln": [],
+   "immune": [],
+   "perk": "Adaptable: +1 Skip every run.",
+   "effect": {
+    "charges": {
+     "skip": 1
+    }
+   }
+  },
+  "dwarf": {
+   "name": "Dwarf",
+   "desc": "Tough and stubborn. Resists bashing blows.",
+   "size": "medium",
+   "attributes": {
+    "str": 17,
+    "int": 16,
+    "wis": 20,
+    "dex": 14,
+    "con": 20
+   },
+   "resist": [
+    "bash"
+   ],
+   "vuln": [],
+   "immune": [],
+   "perk": "Stout: +10% max HP.",
+   "effect": {
+    "hp_pct": 10
+   }
+  },
+  "high_elf": {
+   "name": "High Elf",
+   "desc": "Quick and gifted with magic. Resists dark magic.",
+   "size": "medium",
+   "attributes": {
+    "str": 15,
+    "int": 18,
+    "wis": 20,
+    "dex": 19,
+    "con": 15
+   },
+   "resist": [
+    "negative"
+   ],
+   "vuln": [],
+   "immune": [],
+   "perk": "Fleet of foot: +5 dodge, +10% spell damage.",
+   "effect": {
+    "skill_bonus": {
+     "dodge": 5
+    },
+    "spell_pct": 10
+   }
+  },
+  "halfling": {
+   "name": "Halfling",
+   "desc": "Small, nimble and hard to pin down.",
+   "size": "small",
+   "attributes": {
+    "str": 12,
+    "int": 17,
+    "wis": 17,
+    "dex": 21,
+    "con": 13
+   },
+   "resist": [],
+   "vuln": [],
+   "immune": [],
+   "perk": "Hard to hit: +15 dodge, but -10% max HP.",
+   "effect": {
+    "skill_bonus": {
+     "dodge": 15
+    },
+    "hp_pct": -10
+   }
+  },
+  "minotaur": {
+   "name": "Minotaur",
+   "desc": "Huge and brutal. Immune to poison, resists slashes, weak to piercing.",
+   "size": "huge",
+   "attributes": {
+    "str": 21,
+    "int": 10,
+    "wis": 11,
+    "dex": 15,
+    "con": 20
+   },
+   "resist": [
+    "slash"
+   ],
+   "vuln": [
+    "pierce"
+   ],
+   "immune": [
+    "poison"
+   ],
+   "perk": "Gore: +10% damage.",
+   "effect": {
+    "damage_pct": 10
+   }
+  },
+  "lizardman": {
+   "name": "Lizardman",
+   "desc": "Scaled hide turns aside blades.",
+   "size": "medium",
+   "attributes": {
+    "str": 16,
+    "int": 18,
+    "wis": 12,
+    "dex": 19,
+    "con": 16
+   },
+   "resist": [
+    "slash"
+   ],
+   "vuln": [],
+   "immune": [],
+   "perk": "Tail lash: hits have an 8% chance to stagger (freeze for a turn).",
+   "effect": {
+    "stats": {
+     "b_freeze": 8
+    }
+   }
+  },
+  "daemon": {
+   "name": "Daemon",
+   "desc": "Cruel and cunning. Immune to dark magic, resists piercing.",
+   "size": "large",
+   "attributes": {
+    "str": 13,
+    "int": 20,
+    "wis": 18,
+    "dex": 18,
+    "con": 17
+   },
+   "resist": [
+    "pierce"
+   ],
+   "vuln": [],
+   "immune": [
+    "negative"
+   ],
+   "perk": "Bloodthirsty: every kill heals 5% max HP.",
+   "effect": {
+    "stats": {
+     "b_kill_heal": 5
+    }
+   }
+  },
+  "golem": {
+   "name": "Golem",
+   "desc": "A living statue. Resists piercing, weak to lightning.",
+   "size": "large",
+   "attributes": {
+    "str": 21,
+    "int": 13,
+    "wis": 10,
+    "dex": 12,
+    "con": 21
+   },
+   "resist": [
+    "pierce"
+   ],
+   "vuln": [
+    "lightning"
+   ],
+   "immune": [],
+   "perk": "Made of stone: take 2 less damage from every hit.",
+   "effect": {
+    "stats": {
+     "b_dr_flat": 2
+    }
+   }
+  }
+ }
+}

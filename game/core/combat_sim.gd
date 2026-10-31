@@ -193,6 +193,8 @@ func _tick(c: Combatant) -> void:
 	if c.is_player and bstat(c, "b_regen") > 0 and c.is_alive() and c.hp < c.max_hp:
 		c.hp = mini(c.max_hp, c.hp + maxi(1, DSStats.idiv(c.max_hp * bstat(c, "b_regen"), 100)))
 	# Damage over time before durations drop.
+	if c.has_status("poisoned") and c.immune.has("poison"):
+		c.remove_status("poisoned")
 	if c.has_status("poisoned"):
 		var pd := int(c.status_data("poisoned").get("dmg", 1))
 		_raw_damage(null, c, pd, "poison")

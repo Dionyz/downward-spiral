@@ -16,14 +16,14 @@ func _ready() -> void:
 	v.add_child(s)
 	v.add_child(UI.spacer())
 	if Game.has_saved_run():
-		v.add_child(UI.button("Continue", _continue, 80))
-	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
-	v.add_child(UI.button("Upgrades  (%d gold)" % int(Game.account.get("gold", 0)), func(): Game.goto("upgrades"), 64))
+		v.add_child(UI.button("Continue run", _continue, 80))
+	if Game.has_saved_run():
+		var n := UI.label("Finish your run to return to town.", 16, UI.DIM)
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(n)
+	else:
+		v.add_child(UI.button("Enter town" if not Game.account["characters"].is_empty() else "Create a character", _town, 80))
 	v.add_child(UI.button("Settings and credits", func(): Game.goto("settings"), 56))
-	var lvl := Game.account_level()
-	var acct := UI.label("Account level %d · %d XP" % [lvl, int(Game.account.get("xp", 0))], 18, UI.DIM)
-	acct.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(acct)
 	var ver := UI.label("v1", 16, UI.DIM)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(ver)
@@ -33,9 +33,15 @@ func _ready() -> void:
 			print("[autoplay] resuming saved run")
 			Game.auto_next("title", _continue)
 		else:
-			Game.auto_next("title", func(): Game.goto("class_select"))
+			Game.auto_next("title", _town)
 
 
 func _continue() -> void:
 	if Game.load_run():
 		Game.goto("dungeon")
+
+
+func _town() -> void:
+	if Game.has_saved_run() and Game.autoplay == "":
+		return   # finish (or die in) the saved run first: its gear is out of the stash
+	Game.goto("town" if not Game.account["characters"].is_empty() or Game.autoplay != "" else "create")

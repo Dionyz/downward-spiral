@@ -146,10 +146,10 @@ func test_reroll_and_banish_charges():
 
 func test_charges_come_from_the_account():
 	var acct := {"upgrades": {"skip": 2, "banish": 1}}
-	var p := DSMeta.perks(data, 1)
-	p["charges"] = DSMeta.charges(data, acct)
-	var r := DSRunState.new_run(data, "warrior", 5, p)
+	var r := DSRunState.new_run(data, "warrior", 5, DSMeta.perks(data, acct, "dwarf"), "dwarf")
 	assert_eq(r.charges, {"skip": 3, "reroll": 0, "banish": 1})
+	var h := DSRunState.new_run(data, "warrior", 5, DSMeta.perks(data, acct, "human"), "human")
+	assert_eq(int(h.charges["skip"]), 4, "humans get +1 skip")
 
 
 func test_drink_potion():
@@ -180,12 +180,12 @@ func test_extract_and_death_banking():
 	r.gold = 120
 	r.xp_total = 300
 	r.extract()
-	assert_eq(r.banked(), {"xp": 300, "gold": 120})
+	assert_eq(r.banked(), {"gold": 120})
 	var d := DSRunState.new_run(data, "warrior", 3)
 	d.gold = 80
 	d.xp_total = 200
 	d.end_run("death")
-	assert_eq(d.banked(), {"xp": 100, "gold": 0})
+	assert_eq(d.banked(), {"gold": 0})
 
 
 func test_events_pause_and_resolve():

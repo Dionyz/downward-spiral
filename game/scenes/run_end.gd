@@ -1,5 +1,5 @@
 extends Control
-## End of a run: death, extraction or victory. Banks XP (and gold if kept) into the account.
+## End of a run: death, extraction or victory. Brings gold and loot home (or loses it), then town.
 
 
 func _ready() -> void:
@@ -12,40 +12,26 @@ func _ready() -> void:
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)
 	var L: Dictionary = Game.data.classes.get(run.line, {})
+	var ch := Game.character()
 	var lines := [
-		"%s · reached floor %d · level %d" % [str(L.get("display", run.line)), run.floor_num, run.level],
-		"Fights %d · Kills %d · Gold found %d" % [int(run.stats["fights"]), int(run.stats["kills"]), int(run.stats["gold_earned"])],
-		"Banked: %d account XP%s" % [int(bank.get("xp", 0)), (" and %d gold" % int(bank["gold"])) if int(bank.get("gold", 0)) > 0 else ""],
+		"%s the %s · reached floor %d · level %d" % [str(ch.get("name", "You")), str(L.get("display", run.line)), run.floor_num, run.level],
+		"Kills %d · Gold found %d" % [int(run.stats["kills"]), int(run.stats["gold_earned"])],
 	]
 	if run.result == "death":
-		lines.append("Death keeps half your XP and none of the gold.")
-	lines.append("Account: %d XP · %d gold · %d runs" % [int(Game.account.get("xp", 0)), int(Game.account.get("gold", 0)), int(Game.account.get("runs", 0))])
+		lines.append("Lost: %d gold and %d items you carried." % [run.gold, int(bank.get("lost", 0))])
+	else:
+		lines.append("Brought home: %d gold and %d items (equipped gear stays on, the rest is in the stash)." % [int(bank.get("gold", 0)), int(bank.get("items", 0))])
+	lines.append("Town purse: %d gold" % int(Game.account.get("gold", 0)))
 	for l in lines:
 		var s := UI.label(l, 20, UI.DIM)
 		s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(s)
-	var before := int(bank.get("level_before", 0))
-	var after := int(bank.get("level_after", 0))
-	if after > before and before > 0:
-		Game.sfx("level_up")
-		var up := UI.label("Account level %d!" % after, 30, UI.ACCENT)
-		up.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		v.add_child(up)
-		for i in range(before + 1, after + 1):
-			var u := UI.label(DSMeta.unlock_text(Game.data, i), 20, Color("#7fc8a9"))
-			u.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			v.add_child(u)
-	elif after > 0:
-		var nxt := DSMeta.next_threshold(Game.data, after)
-		if nxt > 0:
-			var n := UI.label("%d XP to account level %d: %s" % [nxt - int(Game.account.get("xp", 0)), after + 1, DSMeta.unlock_text(Game.data, after + 1)], 18, UI.DIM)
-			n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			v.add_child(n)
 	v.add_child(UI.spacer())
-	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
-	v.add_child(UI.button("Upgrades  (%d gold)" % int(Game.account.get("gold", 0)), func(): Game.goto("upgrades"), 56))
-	v.add_child(UI.button("Title", func(): Game.goto("title"), 56))
+	v.add_child(UI.button("Back to town", func(): Game.goto("town"), 80))
 	Hint.show(self, "run_end")
 	if Game.autoplay != "":
-		print("[autoplay] run_end: %s, floor %d, level %d, banked %s" % [run.result, run.floor_num, run.level, str(bank)])
-		Game.auto_next("run_end", func(): get_tree().quit())
+		print("[autoplay] run_end: %s, floor %d, level %d, bank %s" % [run.result, run.floor_num, run.level, str(bank)])
+		if OS.get_cmdline_user_args().has("--town"):
+			Game.auto_next("run_end", func(): Game.goto("stash"))
+		else:
+			Game.auto_next("run_end", func(): get_tree().quit())

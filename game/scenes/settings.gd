@@ -59,15 +59,10 @@ func _ready() -> void:
 		Game.save_settings()
 	, 56))
 
-	var lvl := Game.account_level()
 	inner.add_child(UI.label("Account", 26, UI.ACCENT))
-	var nxt := DSMeta.next_threshold(Game.data, lvl)
-	inner.add_child(UI.label("Level %d · %d XP%s" % [lvl, int(Game.account.get("xp", 0)), (" (next level at %d)" % nxt) if nxt > 0 else ""], 20))
+	inner.add_child(UI.label("%d characters · %d gold · %d items stashed" % [Game.account["characters"].size(), int(Game.account.get("gold", 0)), Game.account["stash"].size()], 20))
 	inner.add_child(UI.label("Runs %d · victories %d · extractions %d · deaths %d · best floor %d" % [int(Game.account.get("runs", 0)),
 		int(Game.account.get("victories", 0)), int(Game.account.get("extracts", 0)), int(Game.account.get("deaths", 0)), int(Game.account.get("best_floor", 0))], 18, UI.DIM))
-	for i in range(2, 11):
-		var col := UI.TEXT if i <= lvl else UI.DIM
-		inner.add_child(UI.label("%s Level %d: %s" % ["✓" if i <= lvl else "·", i, DSMeta.unlock_text(Game.data, i)], 18, col))
 	reset_btn = UI.button("Reset all progress", _reset, 56)
 	inner.add_child(reset_btn)
 
@@ -77,7 +72,7 @@ func _ready() -> void:
 	inner.add_child(UI.label("Sound effects synthesized for this game. Tests use GUT (MIT).", 18, UI.DIM))
 	inner.add_child(UI.label("Built with Godot Engine (MIT).", 18, UI.DIM))
 
-	v.add_child(UI.button("Back", func(): Game.goto("title"), 64))
+	v.add_child(UI.button("Back", func(): Game.goto("town" if not Game.account["characters"].is_empty() else "title"), 64))
 
 
 func _reset() -> void:
@@ -85,7 +80,7 @@ func _reset() -> void:
 		_confirm_reset = true
 		reset_btn.text = "Tap again to erase your account"
 		return
-	Game.account = {}
-	Game._write(Game._path(Game.ACCOUNT_SAVE), {})
+	Game.account = DSAccount.fresh()
+	Game.save_account()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(Game._path(Game.RUN_SAVE)))
 	Game.goto("settings")
