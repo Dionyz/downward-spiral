@@ -189,6 +189,9 @@ func _tick(c: Combatant) -> void:
 		c.cooldowns[k] = int(c.cooldowns[k]) - 1
 		if c.cooldowns[k] <= 0:
 			c.cooldowns.erase(k)
+	# Regeneration boon: a share of max HP back every turn.
+	if c.is_player and bstat(c, "b_regen") > 0 and c.is_alive() and c.hp < c.max_hp:
+		c.hp = mini(c.max_hp, c.hp + maxi(1, DSStats.idiv(c.max_hp * bstat(c, "b_regen"), 100)))
 	# Damage over time before durations drop.
 	if c.has_status("poisoned"):
 		var pd := int(c.status_data("poisoned").get("dmg", 1))
@@ -237,6 +240,21 @@ func _default_target(c: Combatant):
 	return player
 
 
+## How many enemies are fighting the player right now (map play: awake and close).
+var engaged_count: Callable
+
+
+func _engaged() -> int:
+	if engaged_count.is_valid():
+		return int(engaged_count.call())
+	return living_enemies().size()
+
+
+## Boon stat (summed over ranks) on a combatant: 0 if absent.
+static func bstat(c: Combatant, k: String) -> int:
+	return int(c.flags.get(k, 0)) if c != null else 0
+
+
 func opponents_of(c: Combatant, aname: String = "") -> Array:
 	if area_targets.is_valid():
 		return area_targets.call(c, aname)
@@ -263,6 +281,9 @@ func start_encounter() -> void:
 ## Map play: one melee attack (a full MUD attack round) against `victim`.
 func melee(ch: Combatant, victim: Combatant) -> void:
 	_multi_hit(ch, victim, HIT)
+	# Flurry boon: a chance for one more swing.
+	if ch.is_player and victim.is_alive() and ch.is_alive() and rng.number_percent() <= bstat(ch, "b_flurry"):
+		_one_hit(ch, victim, HIT, false)
 
 
 # ---------------------------------------------------------------------------
@@ -610,6 +631,22 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 		_emit({"t": "miss", "src": ch.name if ch != null else "", "dst": victim.name, "dt": dt})
 		return 0
 	var orig := dam
+	# Player boons that raise damage dealt.
+	if ch != null and ch.is_player:
+		dam += bstat(ch, "b_flat")
+		if bstat(ch, "b_duel") > 0 and _engaged() <= 1:
+			dam += DSStats.idiv(dam * bstat(ch, "b_duel"), 100)
+		if bstat(ch, "b_giant") > 0 and (victim.flags.get("elite", false) or victim.flags.get("boss", false)):
+			dam += DSStats.idiv(dam * bstat(ch, "b_giant"), 100)
+		if ch.flags.get("boon_heavy_hands", false) and dt in ["bash", "kick"]:
+			dam += DSStats.idiv(dam, 2)
+		if ch.flags.get("boon_assassins_mark", false) and dt in ["backstab", "circle"]:
+			dam += DSStats.idiv(dam, 2)
+		if bstat(ch, "b_crit") > 0 and not extra.get("crit", false) and dt not in PROC_DTS \
+				and rng.number_percent() <= bstat(ch, "b_crit"):
+			dam = DSStats.idiv(dam * 175, 100)
+			extra = extra.duplicate()
+			extra["crit"] = true
 	if spell:
 		dam -= DSStats.idiv(dam, 4)
 	if dam > 1 and victim.has_status("sanctuary"):
@@ -627,6 +664,17 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	# Spec: minimum 1 damage once something got through.
 	if dam < 1 and orig > 0 and not (dam_type in victim.immune):
 		dam = 1
+	# Player boons that lower damage taken.
+	if victim.is_player and dam > 0:
+		var pct := 0
+		if victim.hp_pct() < 40.0:
+			pct += bstat(victim, "b_dr_low")
+		if _engaged() >= 2:
+			pct += bstat(victim, "b_dr_pack")
+		if dt != HIT and ch != null:
+			pct += bstat(victim, "b_dr_special")
+		dam -= DSStats.idiv(dam * mini(pct, 75), 100)
+		dam = maxi(1, dam - bstat(victim, "b_dr_flat"))
 	var dtm := float(victim.flags.get("damage_taken_mult", 1.0))
 	if dtm != 1.0 and victim.is_player:
 		dam = maxi(1, int(dam * dtm))
@@ -634,7 +682,32 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	if ch != null and not ch.is_player and victim.is_player and not extra.get("uncapped", false):
 		var cap := int(victim.max_hp * float(balance.get("enemy_hit_cap_pct", 35)) / 100.0)
 		dam = mini(dam, maxi(1, cap))
-	return _raw_damage(ch, victim, dam, dt, extra)
+	var dealt := _raw_damage(ch, victim, dam, dt, extra)
+	if dealt > 0 and ch != null and ch.is_player and ch.is_alive() and dt not in PROC_DTS:
+		_on_hit_procs(ch, victim)
+	return dealt
+
+
+## Damage types made by boon procs: they never trigger more procs.
+const PROC_DTS := ["static", "explosion", "poison", "bleed", "thorns"]
+
+
+## Boon procs when the player lands a hit (Megabonk-style on-hit items).
+func _on_hit_procs(ch: Combatant, victim: Combatant) -> void:
+	if bstat(ch, "b_zap") > 0 and rng.number_percent() <= bstat(ch, "b_zap"):
+		var near := opponents_of(ch, "chain lightning").filter(func(f): return f.is_alive())
+		if not near.is_empty():
+			var t: Combatant = rng.pick(near)
+			apply_damage(ch, t, rng.number_range(3, 6 + ch.mud_level), "static", "lightning", false)
+	if victim.is_alive() and bstat(ch, "b_freeze") > 0 and not victim.no_stun and not victim.has_status("stunned") \
+			and rng.number_percent() <= bstat(ch, "b_freeze"):
+		victim.add_status("stunned", 2)
+		_emit({"t": "status_applied", "src": ch.name, "dst": victim.name, "status": "frozen", "rounds": 1})
+	if victim.is_alive() and bstat(ch, "b_poison") > 0 and rng.number_percent() <= bstat(ch, "b_poison"):
+		var had := victim.has_status("poisoned")
+		victim.add_status("poisoned", 3, {"dmg": maxi(2, DSStats.idiv(ch.mud_level, 4))})
+		if not had:
+			_emit({"t": "status_applied", "src": ch.name, "dst": victim.name, "status": "poisoned", "rounds": 3})
 
 
 ## Boss phases: when HP drops below a phase threshold, the monster gains new abilities and rules.
@@ -675,6 +748,14 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		"dt": dt, "hp": maxi(0, victim.hp), "max_hp": victim.max_hp}
 	ev.merge(extra)
 	_emit(ev)
+	# Life leech boon: bank fractions so small hits still add up.
+	if ch != null and ch.is_player and ch.is_alive() and dam > 0 and bstat(ch, "b_leech") > 0 and victim != ch:
+		var bank := float(ch.flags.get("leech_bank", 0.0)) + dam * bstat(ch, "b_leech") / 100.0
+		var heal := mini(int(bank), ch.max_hp - ch.hp)
+		ch.flags["leech_bank"] = bank - int(bank)
+		if heal > 0:
+			ch.hp += heal
+			_emit({"t": "heal", "src": ch.name, "dst": ch.name, "amount": heal, "source": "leech"})
 	# Damage wakes sleepers (DECISIONS.md D-016).
 	if victim.has_status("asleep") and dam > 0:
 		victim.remove_status("asleep")
@@ -687,6 +768,10 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": sw, "source": "second wind"})
 	if victim.hp > 0 and not victim.is_player:
 		_check_phase(victim)
+	if victim.hp <= 0 and victim.is_player and bstat(victim, "b_revive") > int(victim.flags.get("revives_used", 0)):
+		victim.flags["revives_used"] = int(victim.flags.get("revives_used", 0)) + 1
+		victim.hp = DSStats.idiv(victim.max_hp, 2)
+		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": victim.hp, "source": "revive"})
 	if victim.hp <= 0 and victim.flags.get("boon_last_stand", false) and not victim.flags.get("last_stand_used", false):
 		victim.flags["last_stand_used"] = true
 		victim.hp = 1
@@ -694,6 +779,15 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 	if victim.hp <= 0 and not victim.is_player and player != null and player.is_alive():
 		if player.flags.get("boon_momentum", false):
 			player.flags["momentum"] = int(player.flags.get("momentum", 0)) + 1
+		if bstat(player, "b_volatile") > 0 and dt != "explosion":
+			var boom := maxi(1, DSStats.idiv(victim.max_hp * bstat(player, "b_volatile"), 100))
+			for f in opponents_of(player):
+				if f != victim and f.is_alive():
+					apply_damage(player, f, boom, "explosion", "fire", false, {"uncapped": true})
+		if bstat(player, "b_kill_heal") > 0 and player.hp < player.max_hp:
+			var kh := mini(player.max_hp - player.hp, DSStats.idiv(player.max_hp * bstat(player, "b_kill_heal"), 100))
+			player.hp += kh
+			_emit({"t": "heal", "src": player.name, "dst": player.name, "amount": kh, "source": "bloodlust"})
 		if player.flags.get("boon_soul_siphon", false) and player.max_mana > 0:
 			player.mana = mini(player.max_mana, player.mana + DSStats.idiv(player.max_mana, 10))
 	if victim.hp <= 0:
@@ -846,6 +940,8 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 	else:
 		cd = DSStats.cooldown_rounds(int(a.get("beats", 0)), balance)
 	if cd > 0:
+		if cd > 1:
+			cd = maxi(1, cd - bstat(c, "b_cdr"))
 		c.cooldowns[aname] = cd + 1  # ticks at the start of each round: a cooldown of N skips N rounds
 	_emit({"t": "cast" if cost > 0 else "ability", "src": c.name, "dst": target.name if target != null else "",
 		"ability": str(a.get("display", aname)), "id": aname, "arg": arg, "cost": cost})

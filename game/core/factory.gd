@@ -172,6 +172,9 @@ static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
 		var e: Dictionary = b.get("effect", {})
 		if e.has("flag"):
 			c.flags[str(e["flag"])] = true
+		var bs: Dictionary = e.get("stats", {})
+		for k in bs.keys():
+			c.flags[k] = int(c.flags.get(k, 0)) + int(bs[k])
 		var sb: Dictionary = e.get("skill_bonus", {})
 		for k in sb.keys():
 			if c.skills.has(k):
@@ -182,8 +185,8 @@ static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
 			c.add_status(k, int(ss[k]), {"ac": int(params.get("ac", 0))})
 	if c.flags.get("boon_mana_regen", false):
 		c.mana_regen += 2
-	if c.flags.get("boon_thick_blood", false):
-		c.max_hp = int(c.max_hp * 1.15)
+	if int(c.flags.get("b_hp_pct", 0)) > 0:
+		c.max_hp = int(c.max_hp * (1.0 + int(c.flags["b_hp_pct"]) / 100.0))
 		c.hp = c.max_hp
 	if c.flags.get("boon_keen_edge", false) and c.weapon != null:
 		var w: Dictionary = c.weapon.duplicate(true)

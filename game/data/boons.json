@@ -1,5 +1,5 @@
 {
- "_note": "Boons change how abilities and fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. effect keys: flag (read by CombatSim), skill_bonus, run (read by DSRunState), start_status.",
+ "_note": "Boons change how fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. `max` = how many times it can be taken (ranks stack). effect keys: flag (read by CombatSim), stats (numbers added per rank, read by CombatSim), skill_bonus, run (read by DSRunState).",
  "boons": {
   "concussive_bash": {
    "name": "Concussive Bash",
@@ -25,32 +25,6 @@
    ],
    "effect": {
     "flag": "boon_parry_stack"
-   }
-  },
-  "long_rage": {
-   "name": "Long Rage",
-   "desc": "Berserk lasts twice as long.",
-   "lines": [
-    "warrior"
-   ],
-   "refs": [
-    "berserk"
-   ],
-   "effect": {
-    "flag": "boon_long_berserk"
-   }
-  },
-  "patient_knife": {
-   "name": "Patient Knife",
-   "desc": "Backstab works on wounded targets too.",
-   "lines": [
-    "thief"
-   ],
-   "refs": [
-    "backstab"
-   ],
-   "effect": {
-    "flag": "boon_backstab_low"
    }
   },
   "virulent": {
@@ -92,19 +66,6 @@
     "flag": "boon_mana_regen"
    }
   },
-  "eye_of_the_storm": {
-   "name": "Eye of the Storm",
-   "desc": "Storm dance no longer lowers parry.",
-   "lines": [
-    "knifer"
-   ],
-   "refs": [
-    "dance"
-   ],
-   "effect": {
-    "flag": "boon_storm_parry"
-   }
-  },
   "bloodied_fury": {
    "name": "Bloodied Fury",
    "desc": "+25% damage while below 40% HP.",
@@ -142,19 +103,6 @@
     }
    }
   },
-  "second_skin": {
-   "name": "Second Skin",
-   "desc": "Start every fight warded (armor for 5 rounds).",
-   "lines": [],
-   "refs": [
-    "armor"
-   ],
-   "effect": {
-    "start_status": {
-     "armor": 5
-    }
-   }
-  },
   "field_medic": {
    "name": "Field Medic",
    "desc": "Potions restore 50% more.",
@@ -164,39 +112,6 @@
    ],
    "effect": {
     "flag": "boon_potion"
-   }
-  },
-  "scavenger": {
-   "name": "Scavenger",
-   "desc": "+50% gold from fights.",
-   "lines": [],
-   "refs": [
-    "gold"
-   ],
-   "effect": {
-    "run": "gold_mult"
-   }
-  },
-  "quick_study": {
-   "name": "Quick Study",
-   "desc": "+25% XP from fights.",
-   "lines": [],
-   "refs": [
-    "xp"
-   ],
-   "effect": {
-    "run": "xp_mult"
-   }
-  },
-  "catch_breath": {
-   "name": "Catch Your Breath",
-   "desc": "Recover 10% HP and mana after every fight.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "run": "post_fight_heal"
    }
   },
   "war_mender": {
@@ -225,19 +140,6 @@
     "flag": "boon_stunning_kick"
    }
   },
-  "relentless_charge": {
-   "name": "Relentless Charge",
-   "desc": "Charge works on wounded targets too.",
-   "lines": [
-    "warrior"
-   ],
-   "refs": [
-    "charge"
-   ],
-   "effect": {
-    "flag": "boon_relentless_charge"
-   }
-  },
   "evasive_counter": {
    "name": "Evasive Counter",
    "desc": "After you dodge or sidestep, your next swing deals +50% damage.",
@@ -250,32 +152,6 @@
    ],
    "effect": {
     "flag": "boon_evasive_counter"
-   }
-  },
-  "grit_in_the_eyes": {
-   "name": "Grit in the Eyes",
-   "desc": "Dirt kicking blinds for 2 extra rounds.",
-   "lines": [
-    "thief"
-   ],
-   "refs": [
-    "dirt kicking"
-   ],
-   "effect": {
-    "flag": "boon_long_dirt"
-   }
-  },
-  "cutthroat": {
-   "name": "Cutthroat",
-   "desc": "Circle works on badly wounded targets too.",
-   "lines": [
-    "thief"
-   ],
-   "refs": [
-    "circle"
-   ],
-   "effect": {
-    "flag": "boon_cutthroat"
    }
   },
   "twin_throw": {
@@ -304,33 +180,6 @@
     "flag": "boon_empowered_fist"
    }
   },
-  "deep_slumber": {
-   "name": "Deep Slumber",
-   "desc": "Sleep lasts 2 extra rounds.",
-   "lines": [
-    "mage"
-   ],
-   "refs": [
-    "sleep"
-   ],
-   "effect": {
-    "flag": "boon_deep_sleep"
-   }
-  },
-  "lingering_ward": {
-   "name": "Lingering Ward",
-   "desc": "Shield and armor last twice as long.",
-   "lines": [
-    "mage"
-   ],
-   "refs": [
-    "shield",
-    "armor"
-   ],
-   "effect": {
-    "flag": "boon_lingering_ward"
-   }
-  },
   "soul_siphon": {
    "name": "Soul Siphon",
    "desc": "Each kill restores 10% of your mana.",
@@ -342,19 +191,6 @@
    ],
    "effect": {
     "flag": "boon_soul_siphon"
-   }
-  },
-  "mist_walker": {
-   "name": "Mist Walker",
-   "desc": "Mist dance only costs a third of your damage instead of two thirds.",
-   "lines": [
-    "knifer"
-   ],
-   "refs": [
-    "dance"
-   ],
-   "effect": {
-    "flag": "boon_mist_walker"
    }
   },
   "whirling_blades": {
@@ -412,15 +248,17 @@
   },
   "thick_blood": {
    "name": "Thick Blood",
-   "desc": "+15% max HP.",
+   "desc": "+10% max HP.",
    "lines": [],
    "refs": [
     "hp"
    ],
    "effect": {
-    "flag": "boon_thick_blood"
+    "stats": {
+     "b_hp_pct": 10
+    }
    },
-   "tier": 3
+   "max": 3
   },
   "first_blood": {
    "name": "First Blood",
@@ -503,6 +341,287 @@
    ],
    "effect": {
     "flag": "boon_keen_edge"
+   },
+   "tier": 3
+  },
+  "whetstone": {
+   "name": "Whetstone",
+   "desc": "+2 damage on every hit you land.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_flat": 2
+    }
+   },
+   "max": 3
+  },
+  "vampiric_edge": {
+   "name": "Vampiric Edge",
+   "desc": "Heal for 6% of all damage you deal.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_leech": 6
+    }
+   },
+   "max": 3
+  },
+  "iron_skin": {
+   "name": "Iron Skin",
+   "desc": "Take 2 less damage from every hit.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_dr_flat": 2
+    }
+   },
+   "max": 3
+  },
+  "last_bastion": {
+   "name": "Last Bastion",
+   "desc": "Below 40% HP, take 30% less damage.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_dr_low": 30
+    }
+   }
+  },
+  "back_to_the_wall": {
+   "name": "Back to the Wall",
+   "desc": "While 2 or more enemies fight you, take 15% less damage.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_dr_pack": 15
+    }
+   },
+   "max": 2
+  },
+  "duelist": {
+   "name": "Duelist",
+   "desc": "+20% damage while only one enemy is fighting you.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_duel": 20
+    }
+   },
+   "max": 2
+  },
+  "giant_slayer": {
+   "name": "Giant Slayer",
+   "desc": "+30% damage to elites and bosses.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_giant": 30
+    }
+   },
+   "tier": 2
+  },
+  "warded": {
+   "name": "Warded",
+   "desc": "Take 25% less damage from spells and special attacks.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_dr_special": 25
+    }
+   },
+   "tier": 2
+  },
+  "bloodlust": {
+   "name": "Bloodlust",
+   "desc": "Every kill heals 8% of your max HP.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_kill_heal": 8
+    }
+   },
+   "max": 2
+  },
+  "heavy_hands": {
+   "name": "Heavy Hands",
+   "desc": "Bash and kick deal +50% damage.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "bash",
+    "kick"
+   ],
+   "effect": {
+    "flag": "boon_heavy_hands"
+   }
+  },
+  "assassins_mark": {
+   "name": "Assassin's Mark",
+   "desc": "Backstab and circle deal +50% damage.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "backstab",
+    "circle"
+   ],
+   "effect": {
+    "flag": "boon_assassins_mark"
+   }
+  },
+  "static_charge": {
+   "name": "Static Charge",
+   "desc": "Your hits have a 15% chance to zap a nearby enemy with lightning.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_zap": 15
+    }
+   },
+   "max": 3
+  },
+  "frostbite": {
+   "name": "Frostbite",
+   "desc": "Your hits have an 8% chance to freeze the target for a turn.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_freeze": 8
+    }
+   },
+   "max": 3
+  },
+  "rot_touch": {
+   "name": "Rot Touch",
+   "desc": "Your hits have a 15% chance to poison the target.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_poison": 15
+    }
+   },
+   "max": 2
+  },
+  "volatile": {
+   "name": "Volatile",
+   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_volatile": 20
+    }
+   },
+   "tier": 2,
+   "max": 2
+  },
+  "keen_eye": {
+   "name": "Keen Eye",
+   "desc": "8% chance for any hit to crit for +75% damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_crit": 8
+    }
+   },
+   "max": 3
+  },
+  "flurry": {
+   "name": "Flurry",
+   "desc": "Each melee round has a 20% chance to strike one extra time.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "stats": {
+     "b_flurry": 20
+    }
+   },
+   "max": 2
+  },
+  "quickened": {
+   "name": "Quickened",
+   "desc": "Abilities with long cooldowns come back a turn sooner.",
+   "lines": [],
+   "refs": [
+    "bash"
+   ],
+   "effect": {
+    "stats": {
+     "b_cdr": 1
+    }
+   },
+   "tier": 2,
+   "max": 2
+  },
+  "troll_blood": {
+   "name": "Troll Blood",
+   "desc": "Regenerate 1% of your max HP every turn.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_regen": 1
+    }
+   },
+   "max": 2
+  },
+  "second_life": {
+   "name": "Second Life",
+   "desc": "Once per run, a killing blow leaves you at half HP instead.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "stats": {
+     "b_revive": 1
+    }
    },
    "tier": 3
   }

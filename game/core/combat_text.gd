@@ -128,6 +128,8 @@ static func line(ev: Dictionary) -> String:
 			return "%s %s %s%s." % [subj(YOU), "pick up", ev.get("name", "something"), " and equip it" if ev.get("equipped", false) else ""]
 		"chest":
 			return "You open a chest."
+		"shrine":
+			return str(ev.get("text", "The shrine blesses you."))
 		"wake":
 			return "%s wakes up." % subj(src)
 		"encounter":

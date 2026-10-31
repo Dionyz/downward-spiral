@@ -182,6 +182,8 @@ func _play(evs: Array) -> void:
 			var col: String = CombatLog.COLORS.get(t, "#e6e1d6")
 			if t == "damage" and dst == pname:
 				col = "#ff8c7a"
+			if t == "shrine":
+				col = "#9d7cf2"
 			if t == "pickup":
 				col = Cards.rarity_color(run.data, str(ev.get("rarity", "common"))).to_html(false)
 			_recent.append([line, col])
@@ -214,6 +216,9 @@ func _play(evs: Array) -> void:
 				Game.sfx("death")
 			"pickup":
 				grid.float_text(pname, str(ev.get("name", "")), Cards.rarity_color(run.data, str(ev.get("rarity", "common"))), 14)
+			"shrine":
+				grid.float_text(pname, "blessed", Color("#9d7cf2"), 18)
+				Game.sfx("heal")
 			"wake":
 				grid.float_text(src, "!", UI.WARN, 22)
 	for m in run.messages:
@@ -381,6 +386,12 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 	var n := UI.label(str(b.get("name", id)), 28, UI.ACCENT)
 	n.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(n)
+	var mx := run.boon_max(id)
+	if mx > 1:
+		var have := run.boon_rank(id)
+		var rk := UI.label(("Rank %d of %d" % [have + 1, mx]) + ("  (stacks)" if have == 0 else "  (upgrade)"), 16, Color("#7fc8a9"))
+		rk.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(rk)
 	var d := UI.label(str(b.get("desc", "")), 19)
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(d)

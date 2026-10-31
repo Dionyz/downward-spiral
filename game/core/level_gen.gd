@@ -111,8 +111,8 @@ static func generate(data: DSData, rng: DSRng, floor_num: int) -> Dictionary:
 		plan.append("shrine")
 	if rng.number_percent() <= int(cfg.get("campfire_pct", 60)):
 		plan.append("campfire")
-	if rng.number_percent() <= int(cfg.get("event_pct", 60)):
-		plan.append("event")
+	if rng.number_percent() <= int(cfg.get("shrine2_pct", 40)):
+		plan.append("shrine")
 	for t in plan:
 		var room: Dictionary = cells[rng.pick(others)]
 		var p := _random_floor(rng, room, used)

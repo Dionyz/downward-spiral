@@ -75,6 +75,8 @@ static func create(p_run, p_level: Dictionary, p_rng: DSRng) -> DSWorld:
 
 func _add_monster(id: String, ml: int, pos: Vector2i, idx: int, state: String, elite: bool, boss: bool, hp: int) -> void:
 	var c := DSFactory.make_monster(data, id, ml, idx)
+	c.flags["elite"] = elite
+	c.flags["boss"] = boss
 	if hp >= 0:
 		c.hp = clampi(hp, 1, c.max_hp)
 	var m: Dictionary = data.monsters.get(id, {})
@@ -90,6 +92,7 @@ func _attach_player() -> void:
 	sim.enemies = monsters.map(func(m): return m["c"])
 	sim.range_check = _range_ok
 	sim.area_targets = _area
+	sim.engaged_count = func(): return awake_hostiles(2).size()
 	# Display names stay unique on the map.
 	var counts := {}
 	for m in monsters:
@@ -108,6 +111,7 @@ func refresh_player() -> void:
 	var sts := player.statuses.duplicate(true)
 	var stance := player.stance
 	var fl := player.flags.duplicate()
+	run.stats["revives"] = int(fl.get("revives_used", 0))
 	player = run.make_player()
 	player.cooldowns = cds
 	for k in sts.keys():
@@ -620,7 +624,7 @@ func _interact() -> void:
 				_emit({"t": "heal", "src": player.name, "dst": player.name, "amount": player.hp - before, "source": "campfire"})
 			"shrine":
 				o["used"] = true
-				pending = {"kind": "boon", "source": "shrine"}
+				_emit({"t": "shrine", "text": run.shrine_blessing()})
 			"event":
 				o["used"] = true
 				pending = {"kind": "event"}

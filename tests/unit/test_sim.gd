@@ -214,3 +214,47 @@ func test_legendary_second_wind_fires_once():
 	sim.apply_damage(m, p, int(p.max_hp * 0.4), "hit", "bash", false, {"uncapped": true})
 	assert_true(p.flags.get("second_wind_used", false))
 	assert_gt(p.hp_pct(), 45.0, "~60% -> ~21% -> healed +30%")
+
+
+func _duel(boon_ids: Array, seed: int = 3) -> CombatSim:
+	var p := H.dummy("You", true)
+	DSFactory.apply_boons(data, p, boon_ids)
+	var e := H.dummy("orc")
+	var sim := CombatSim.new(DSRng.new(seed), data)
+	sim.begin(p, [e])
+	return sim
+
+
+func test_flat_damage_and_damage_reduction():
+	var sim := _duel(["whetstone", "whetstone", "iron_skin"])
+	var p := sim.player
+	var e: Combatant = sim.enemies[0]
+	var before := e.hp
+	sim.apply_damage(p, e, 10, "hit", "none", false)
+	var plain := _duel([])
+	var e2: Combatant = plain.enemies[0]
+	plain.apply_damage(plain.player, e2, 10, "hit", "none", false)
+	assert_eq((before - e.hp) - (e2.max_hp - e2.hp), 4, "+2 per Whetstone rank")
+	var hp0 := p.hp
+	sim.apply_damage(e, p, 10, "hit", "none", false)
+	var hp1 := plain.player.hp
+	plain.apply_damage(e2, plain.player, 10, "hit", "none", false)
+	assert_eq((hp0 - p.hp), (hp1 - plain.player.hp) - 2, "Iron Skin takes 2 off")
+
+
+func test_life_leech_heals():
+	var sim := _duel(["vampiric_edge", "vampiric_edge", "vampiric_edge"])
+	var p := sim.player
+	p.hp = 50
+	for i in 5:
+		sim.apply_damage(p, sim.enemies[0], 20, "hit", "none", false)
+	assert_gt(p.hp, 50, "18% of damage dealt comes back")
+
+
+func test_second_life_revives_once():
+	var sim := _duel(["second_life"])
+	var p := sim.player
+	sim.apply_damage(sim.enemies[0], p, 99999, "hit", "none", false, {"uncapped": true})
+	assert_eq(p.hp, p.max_hp / 2)
+	sim.apply_damage(sim.enemies[0], p, 99999, "hit", "none", false, {"uncapped": true})
+	assert_false(p.is_alive(), "only once")

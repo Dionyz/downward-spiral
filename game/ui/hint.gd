@@ -7,7 +7,7 @@ extends RefCounted
 const TEXT := {
 	"welcome": ["Welcome to the Spiral", "Six floors down, a boss at the bottom. Your character explores and fights on its own; you pick its boons and drink its potions.\n\nPick a class to begin. More classes unlock as your account levels up."],
 	"dungeon": ["The floor", "Each floor is a fresh maze. Your character explores it on its own, picks up loot, opens chests and fights whatever wakes up, turn by turn, using its whole kit.\n\nYou drink the potions: tap Potion when things get rough. Tap the log to read the full blow-by-blow. Gear opens your bag."],
-	"boon": ["Boons", "Level-ups, shrines and elite kills each grant a boon: pick one of three. Boons change how your abilities work for the rest of the run.\n\nSkip, Reroll and Banish are limited per run. Buy more between runs under Upgrades with the gold you bring home."],
+	"boon": ["Boons", "Level-ups and elite kills each grant a boon: pick one of three. Boons last the rest of the run; some stack, so taking one again ranks it up.\n\nSkip, Reroll and Banish are limited per run. Buy more between runs under Upgrades with the gold you bring home."],
 	"event": ["Something strange", "Events are gambles. Read carefully: some choices cost HP or gold, some pay off."],
 	"floor_end": ["Descend or extract", "From floor 2 on you can extract: you keep all your gold and XP. Dying keeps only half your XP and none of your gold.\n\nXP raises your account level, which unlocks classes and perks."],
 	"run_end": ["Your account", "Every run banks XP into your account, win or lose. Account levels unlock new classes, extra starting potions, new boons and small permanent bonuses."],

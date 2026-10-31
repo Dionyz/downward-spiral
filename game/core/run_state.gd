@@ -177,6 +177,7 @@ func _sync_from_world() -> void:
 	if world != null and world.player != null:
 		hp = world.player.hp
 		mana = world.player.mana
+		stats["revives"] = int(world.player.flags.get("revives_used", 0))
 
 
 func _sync_to_world() -> void:
@@ -244,10 +245,6 @@ func on_kill(c: Combatant, elite: bool, boss: bool) -> Array:
 	stats["kills"] = int(stats["kills"]) + 1
 	var gx := c.level * int(cfg.get("xp_per_monster_level", 10)) * int(cfg.get("xp_mult", {}).get(kind, 1))
 	var gg := (c.level * int(cfg.get("gold_per_monster_level", 3)) + rng.number_range(0, 3)) * int(cfg.get("gold_mult", {}).get(kind, 1))
-	if boons.has("quick_study"):
-		gx += DSStats.idiv(gx, 4)
-	if boons.has("scavenger"):
-		gg += DSStats.idiv(gg, 2)
 	gold += gg
 	stats["gold_earned"] = int(stats["gold_earned"]) + gg
 	_sync_from_world()
@@ -257,8 +254,6 @@ func on_kill(c: Combatant, elite: bool, boss: bool) -> Array:
 		pending_boons += 1
 	if lv > 0:
 		_sync_to_world()
-	if boons.has("catch_breath") and world != null:
-		world.player.hp = mini(world.player.max_hp, world.player.hp + world.player.max_hp / 10)
 	var drops: Array = []
 	if elite or rng.number_percent() <= int(cfg.get("loot_drop_pct", 25)):
 		drops.append_array(_fight_loot(elite))
@@ -271,6 +266,44 @@ func on_kill(c: Combatant, elite: bool, boss: bool) -> Array:
 		world.pending = {"kind": "stairs"}
 		world.heading_down = true
 	return drops
+
+
+## A shrine: an automatic blessing, picked at random from what would help right now.
+## Returns the line describing it.
+func shrine_blessing() -> String:
+	_sync_from_world()
+	var p: Combatant = world.player if world != null else make_player()
+	var opts: Array = ["gold", "item", "xp"]
+	if p.hp < p.max_hp * 0.8 or (p.max_mana > 0 and p.mana < p.max_mana * 0.6):
+		opts.append("mend")
+		opts.append("mend")
+	if int(potions.get("hp", 0)) < int(_cfg().get("potion_max", 5)):
+		opts.append("potion")
+	match str(rng.pick(opts)):
+		"mend":
+			p.hp = mini(p.max_hp, p.hp + int(p.max_hp * 0.4))
+			if p.max_mana > 0:
+				p.mana = mini(p.max_mana, p.mana + int(p.max_mana * 0.4))
+			_sync_from_world()
+			return "Warm light mends your wounds."
+		"potion":
+			_add_potion("hp")
+			return "A healing potion rests on the altar."
+		"gold":
+			var g := 15 * floor_num + rng.number_range(0, 10)
+			gold += g
+			stats["gold_earned"] = int(stats["gold_earned"]) + g
+			return "Offerings glitter at the shrine: %d gold." % g
+		"item":
+			var got := gain_items([_roll_item("rare")])
+			_sync_to_world()
+			return "The shrine yields %s%s." % [got[0]["item"].get("name", "?"), " (equipped)" if got[0]["equipped"] else ""]
+		_:
+			var lv := add_xp(25 * floor_num)
+			pending_boons += lv
+			if lv > 0:
+				_sync_to_world()
+			return "Old whispers teach you: +%d XP." % (25 * floor_num)
 
 
 ## A chest: `balance.run.treasure_items` items, the first at least uncommon.
@@ -367,6 +400,7 @@ func make_player() -> Combatant:
 		opts["trinket"] = items["trinket"]
 	var p := DSFactory.make_player(data, line, tier(), level, opts)
 	DSFactory.apply_boons(data, p, boons)
+	p.flags["revives_used"] = int(stats.get("revives", 0))
 	if hp >= 0:
 		p.hp = clampi(hp, 1, p.max_hp)
 	if mana >= 0:
@@ -458,8 +492,17 @@ func inventory_for(slot: String) -> Array:
 	return out
 
 
+## Boons with `max` > 1 can be taken again; each rank stacks.
+func boon_rank(id: String) -> int:
+	return boons.count(id)
+
+
+func boon_max(id: String) -> int:
+	return int(data.boons.get(id, {}).get("max", 1))
+
+
 func add_boon(id: String) -> void:
-	if not boons.has(id) and data.boons.has(id):
+	if data.boons.has(id) and boon_rank(id) < boon_max(id):
 		boons.append(id)
 		if id == "deep_pockets":
 			_add_potion("hp")
@@ -565,7 +608,7 @@ func available_boons() -> Array:
 	for id in ids:
 		var b: Dictionary = data.boons[id]
 		var lines: Array = b.get("lines", [])
-		if boons.has(id) or banished.has(id):
+		if boon_rank(id) >= boon_max(id) or banished.has(id):
 			continue
 		if int(b.get("tier", 1)) > int(perks.get("boon_tier", 99)):
 			continue

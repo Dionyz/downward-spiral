@@ -240,14 +240,52 @@ func test_inventory_holds_500():
 	assert_gt(r.gold, g0)
 
 
-func test_forty_boons_six_per_class_sixteen_shared():
-	assert_eq(data.boons.size(), 40)
+func test_boon_pool_shape():
 	var per := {}
 	for id in data.boons.keys():
 		var lines: Array = data.boons[id].get("lines", [])
 		var key := "shared" if lines.is_empty() else str(lines[0])
 		per[key] = int(per.get(key, 0)) + 1
-	assert_eq(per, {"shared": 16, "warrior": 6, "thief": 6, "mage": 6, "knifer": 6})
+	assert_gte(int(per["shared"]), 20)
+	for l in ["warrior", "thief", "mage", "knifer"]:
+		assert_gte(int(per.get(l, 0)), 4, l)
+
+
+func test_boon_stats_are_implemented():
+	var src := FileAccess.get_file_as_string("res://game/core/combat_sim.gd") + FileAccess.get_file_as_string("res://game/core/factory.gd")
+	for id in data.boons.keys():
+		for k in data.boons[id].get("effect", {}).get("stats", {}).keys():
+			assert_true(src.contains('"%s"' % k), "%s: stat %s is read somewhere" % [id, k])
+
+
+func test_boons_stack_up_to_max():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	for i in 5:
+		r.add_boon("whetstone")
+	assert_eq(r.boon_rank("whetstone"), 3, "capped at max")
+	assert_false(r.available_boons().has("whetstone"))
+	assert_eq(int(r.make_player().flags["b_flat"]), 6, "+2 per rank")
+	r.add_boon("last_bastion")
+	r.add_boon("last_bastion")
+	assert_eq(r.boon_rank("last_bastion"), 1)
+
+
+func test_shrines_bless_automatically():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	var o := {"type": "shrine", "pos": r.world.ppos + Vector2i(1, 0), "used": false}
+	r.world.objects.append(o)
+	r.world.ppos = o["pos"]
+	r.world._interact()
+	assert_true(o["used"])
+	assert_true(r.world.pending.is_empty(), "no dialogue, no pick")
+	assert_true(r.world.events.any(func(e): return e.get("t") == "shrine" and str(e.get("text", "")) != ""))
+
+
+func test_levels_have_no_events():
+	for s in range(1, 40):
+		var lvl := DSLevelGen.generate(data, DSRng.new(s), 1 + s % 6)
+		for ob in lvl["objects"]:
+			assert_ne(ob["type"], "event")
 
 
 func test_every_boon_flag_is_implemented():
