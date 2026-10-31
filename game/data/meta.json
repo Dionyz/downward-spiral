@@ -22,8 +22,8 @@
    "text": "Thief unlocked. New boons enter the pool."
   },
   "3": {
-   "rule_slots": 1,
-   "text": "Start every run with a third rule slot."
+   "potions": 1,
+   "text": "Start every run with an extra HP potion."
   },
   "4": {
    "classes": [
@@ -55,7 +55,7 @@
    "potions": 1,
    "hp_pct": 2,
    "damage_pct": 2,
-   "text": "Start every run with an extra HP potion. +2% HP and damage."
+   "text": "Another starting HP potion. +2% HP and damage."
   },
   "9": {
    "hp_pct": 2,

@@ -74,3 +74,58 @@ static func boon_card(data: DSData, id: String, on_take: Callable, take_label: S
 	v.add_child(UI.label(str(b.get("desc", "")), 18))
 	v.add_child(UI.button(take_label, on_take, 52))
 	return card
+
+
+## Numbers that matter on an item, as {label: value}, for side-by-side comparison.
+static func item_stats(it) -> Dictionary:
+	var s := {}
+	if it == null:
+		return s
+	if it.get("slot") == "weapon":
+		s["Min damage"] = int(it.get("min", 0))
+		s["Max damage"] = int(it.get("max", 0))
+	if int(it.get("ac", 0)) != 0:
+		s["Armor (AC)"] = -int(it.get("ac", 0))
+	if int(it.get("damroll", 0)) != 0:
+		s["Damroll"] = int(it.get("damroll", 0))
+	if int(it.get("hp", 0)) != 0:
+		s["HP"] = int(it.get("hp", 0))
+	if int(it.get("mana", 0)) != 0:
+		s["Mana"] = int(it.get("mana", 0))
+	var sb: Dictionary = it.get("skill_bonus", {})
+	for k in sb.keys():
+		s[str(k).capitalize()] = int(sb[k])
+	return s
+
+
+## Stat-by-stat comparison of `it` against what's equipped: [{text, color}].
+## Green = better than equipped, red = worse, plain = same or new.
+static func compare_lines(data: DSData, it: Dictionary, equipped) -> Array:
+	var a := item_stats(it)
+	var b := item_stats(equipped)
+	var keys: Array = a.keys()
+	for k in b.keys():
+		if not keys.has(k):
+			keys.append(k)
+	var out: Array = []
+	for k in keys:
+		var va := int(a.get(k, 0))
+		var vb := int(b.get(k, 0))
+		var diff := va - vb
+		var col := UI.TEXT
+		var tail := ""
+		if equipped != null and diff != 0:
+			col = Color("#5fd35f") if diff > 0 else Color("#ff8c7a")
+			tail = "  (%s%d)" % ["+" if diff > 0 else "", diff]
+		out.append({"text": "%s %d%s" % [k, va, tail], "color": col})
+	for f in it.get("flags", []):
+		var had: bool = equipped != null and equipped.get("flags", []).has(f)
+		out.append({"text": str(f).capitalize(), "color": UI.TEXT if had else Color("#5fd35f")})
+	if equipped != null:
+		for f in equipped.get("flags", []):
+			if not it.get("flags", []).has(f):
+				out.append({"text": "loses %s" % str(f).capitalize(), "color": Color("#ff8c7a")})
+	if it.has("passive"):
+		var lp: Dictionary = data.items.get("legendary_passives", {}).get(it["passive"], {})
+		out.append({"text": "★ %s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e")})
+	return out

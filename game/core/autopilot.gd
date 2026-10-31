@@ -1,8 +1,8 @@
 class_name DSAutopilot
 extends RefCounted
 ## Plays a run with simple, fixed choices. Used by tests, the balance script and UI autoplay.
-## Potions: HP below 30%, MP below 15%. Rewards: best item by power or the first boon.
-## Rest: heal below 70% HP, else train (keep current kit). Floors: always descend.
+## Potions: HP below 30%, MP below 15%. Gear: strongest per slot after every room. Boons: the first offered.
+## Rest: heal. Floors: always descend.
 
 
 ## Fight the current room to the end. Returns the sim.
@@ -25,25 +25,15 @@ static func fight(run: DSRunState, log_all: bool = false) -> CombatSim:
 	return sim
 
 
-## Best offer index: highest-power item that beats what's equipped, else first boon, else -1.
-static func pick_offer(run: DSRunState, offers: Array) -> int:
-	var best := -1
-	var best_gain := 0
-	for i in offers.size():
-		var o: Dictionary = offers[i]
-		if o.get("kind") == "item":
-			var it: Dictionary = o["item"]
-			var cur = run.items.get(it.get("slot", ""))
-			var gain := int(it.get("power", 0)) - (0 if cur == null else int(DSLoot.power(cur)))
-			if gain > best_gain:
-				best_gain = gain
-				best = i
-	if best >= 0:
-		return best
-	for i in offers.size():
-		if offers[i].get("kind") == "boon":
-			return i
-	return -1
+## Equip the strongest item (by DSLoot.power) in each slot from the bag.
+static func equip_best(run: DSRunState) -> void:
+	for slot in DSRunState.SLOTS:
+		var cands := run.inventory_for(slot)
+		if cands.is_empty():
+			continue
+		var cur = run.items.get(slot)
+		if cur == null or DSLoot.power(cands[0]["item"]) > DSLoot.power(cur):
+			run.equip_from_inventory(int(cands[0]["i"]))
 
 
 ## Advance one step of the run (one room, one reward, or one floor transition).
@@ -55,22 +45,13 @@ static func advance(run: DSRunState) -> void:
 			match run.room.get("type", ""):
 				"fight", "elite", "boss":
 					fight(run)
-				"treasure":
-					var i := pick_offer(run, run.room.get("offers", []))
-					if i >= 0:
-						run.take_offer(i)
-					else:
-						run.skip()
 				"shrine":
 					if run.room.get("offers", []).is_empty():
 						run.skip()
 					else:
 						run.take_offer(0)
 				"rest":
-					if run.make_player().hp_pct() < 70.0:
-						run.rest_heal()
-					else:
-						run.rest_train(run.actives, run.rules)
+					run.rest_heal()
 				"event":
 					run.event_choose(0)
 					if run.phase == "room":
@@ -78,13 +59,13 @@ static func advance(run: DSRunState) -> void:
 				_:
 					run.skip()
 		"reward":
-			var j := pick_offer(run, run.room.get("reward", {}).get("offers", []))
-			if j >= 0:
-				run.take_offer(j)
-			else:
+			if run.room.get("reward", {}).get("offers", []).is_empty():
 				run.skip()
+			else:
+				run.take_offer(0)
 		"floor_end":
 			run.descend()
+	equip_best(run)
 
 
 ## Play until the run ends (or `max_steps`). Returns the run.

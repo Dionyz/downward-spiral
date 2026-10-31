@@ -21,7 +21,7 @@ static func next_threshold(data: DSData, level: int) -> int:
 
 ## Everything unlocked at or below `level`.
 static func perks(data: DSData, level: int) -> Dictionary:
-	var out := {"level": level, "classes": [str(data.meta.get("starting_class", "warrior"))], "rule_slots": 0,
+	var out := {"level": level, "classes": [str(data.meta.get("starting_class", "warrior"))],
 		"hp_pct": 0, "damage_pct": 0, "boon_tier": 1, "legendary_tier": 1, "potions": 0}
 	var lv: Dictionary = data.meta.get("levels", {})
 	for i in range(2, level + 1):
@@ -29,7 +29,7 @@ static func perks(data: DSData, level: int) -> Dictionary:
 		for c in u.get("classes", []):
 			if not out["classes"].has(c):
 				out["classes"].append(c)
-		for k in ["rule_slots", "hp_pct", "damage_pct", "potions"]:
+		for k in ["hp_pct", "damage_pct", "potions"]:
 			out[k] = int(out[k]) + int(u.get(k, 0))
 		for k in ["boon_tier", "legendary_tier"]:
 			out[k] = maxi(int(out[k]), int(u.get(k, 0)))

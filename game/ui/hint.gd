@@ -6,15 +6,20 @@ extends RefCounted
 
 const TEXT := {
 	"welcome": ["Welcome to the Spiral", "Six floors down, a boss at the bottom. Your character explores and fights on its own; you make the choices between rooms.\n\nPick a class to begin. More classes unlock as your account levels up."],
-	"dungeon": ["The floor map", "Each row is a room. Your character walks the path by itself. When the path splits, you choose.\n\nTap Rules any time to change how your character fights, and Gear to see what you carry."],
-	"fight": ["Fights play themselves", "Every round your character checks its rules top to bottom and uses the first one that applies. If none does, it picks something sensible on its own.\n\nYou can drink potions at any time. Log shows the full blow-by-blow."],
-	"rules": ["Rules", "Each rule reads IF something THEN use an ability. Example: IF My HP below 40% THEN berserk.\n\nRules are checked top to bottom every round, so put the important ones first. You get a third slot at level 5."],
-	"reward": ["Pick one", "Items replace what you wear in that slot; the green or red number shows whether it's stronger. Boons change how your abilities work for the rest of the run."],
-	"rest": ["A place to rest", "Rest restores HP and mana. Train lets you choose which four abilities to carry and set your rules, without healing."],
+	"dungeon": ["The floor map", "Your character walks the floor on its own, room by room, and fights whatever it finds. When the path splits, tap the room you want.
+
+Gear opens your bag: compare and swap what you carry between rooms."],
+	"fight": ["Fights play themselves", "Your character uses its whole kit on its own: openers, crowd control, buffs and finishers when they make sense.
+
+You can drink potions at any time. Log shows the full blow-by-blow."],
+	"reward": ["Loot and boons", "Loot drops straight into your bag (or onto you, if that slot was empty). Compare and equip it any time with Gear.
+
+Then choose one of three boons: each changes how your abilities work for the rest of the run."],
+	"rest": ["A place to rest", "Resting restores HP and mana. It's also a good moment to check Gear."],
 	"shrine": ["Shrines", "Take a boon for free, or spend gold to re-roll the offer or remove a boon you don't want."],
 	"event": ["Something strange", "Events are gambles. Read carefully: some choices cost HP or gold, some pay off."],
 	"floor_end": ["Descend or extract", "From floor 2 on you can extract: you keep all your gold and XP. Dying keeps only half your XP and none of your gold.\n\nXP raises your account level, which unlocks classes and perks."],
-	"run_end": ["Your account", "Every run banks XP into your account, win or lose. Account levels unlock new classes, a third starting rule slot, new boons and small permanent bonuses."],
+	"run_end": ["Your account", "Every run banks XP into your account, win or lose. Account levels unlock new classes, extra starting potions, new boons and small permanent bonuses."],
 }
 
 

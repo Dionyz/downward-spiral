@@ -1,9 +1,10 @@
 class_name DSRules
 extends RefCounted
-## Player (and monster) combat rules: IF <condition> THEN <ability>, checked top to bottom.
+## Combat priorities for classes and monsters: IF <condition> THEN <ability>, checked top to bottom.
 ## A rule whose ability is on cooldown, short of mana or otherwise unusable is skipped.
+## Players don't edit these: each class has a built-in list (overrides/classes.json "ai").
 ##
-## Rule shape: {"if": "<condition>", "value": <number|string>, "then": "<ability ref>"}
+## Rule shape: {"if": "<condition>", "value": <number|string>, "and": [<more conditions>], "then": "<ability ref>"}
 ## Ability refs may carry an argument: "dance:mist".
 
 const CONDITIONS := {
@@ -33,6 +34,15 @@ func choose(sim, me, rules: Array, foes: Array) -> Dictionary:
 		var r: Dictionary = rules[i]
 		var target = _condition_target(sim, me, r, living)
 		if target == null:
+			continue
+		# Extra conditions that must also hold: [{"if", "value", "not"?}]. "not": true inverts one.
+		var ok := true
+		for extra in r.get("and", []):
+			var hit = _condition_target(sim, me, extra, living)
+			if (hit != null) == bool(extra.get("not", false)):
+				ok = false
+				break
+		if not ok:
 			continue
 		var ref: String = r.get("then", "")
 		if ref == "":

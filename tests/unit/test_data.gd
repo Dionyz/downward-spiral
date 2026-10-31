@@ -35,9 +35,10 @@ func test_every_kit_ability_exists():
 				assert_false(data.ability(n).is_empty(), "%s kit references missing ability %s" % [line, n])
 
 
-func test_default_rules_reference_kit_abilities():
+func test_class_ai_references_kit_abilities():
 	for line in data.classes.keys():
-		for r in data.classes[line].get("default_rules", []):
+		assert_gt(data.classes[line].get("ai", []).size(), 3, "%s has a built-in priority list" % line)
+		for r in data.classes[line].get("ai", []):
 			var n := str(CombatSim.split_ref(r["then"])[0])
 			assert_false(data.ability(n).is_empty(), "%s default rule uses missing %s" % [line, n])
 			assert_true(r.get("if") in DSRules.CONDITIONS, "%s rule condition %s" % [line, r.get("if")])

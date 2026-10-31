@@ -18,13 +18,32 @@
     "ac_base": -150,
     "shield_block_value": 35,
     "damage_pct": -35,
-    "damage_taken_pct": 42
+    "damage_taken_pct": 29
    },
-   "default_rules": [
+   "color": "#d9a441",
+   "ai": [
     {
      "if": "hp_below",
      "value": 40,
      "then": "berserk"
+    },
+    {
+     "if": "missing_buff",
+     "value": "warcry",
+     "then": "warcry"
+    },
+    {
+     "if": "always",
+     "then": "charge"
+    },
+    {
+     "if": "always",
+     "then": "bash"
+    },
+    {
+     "if": "enemy_lacks_status",
+     "value": "knocked_down",
+     "then": "trip"
     },
     {
      "if": "enemy_lacks_status",
@@ -32,16 +51,15 @@
      "then": "dirt kicking"
     },
     {
-     "if": "always",
-     "then": "bash"
+     "if": "enemy_has_status",
+     "value": "knocked_down",
+     "then": "kick"
     },
     {
-     "if": "missing_buff",
-     "value": "warcry",
-     "then": "warcry"
+     "if": "always",
+     "then": "kick"
     }
-   ],
-   "color": "#d9a441"
+   ]
   },
   "thief": {
    "stats": {
@@ -57,29 +75,69 @@
     },
     "ac_base": -80,
     "damage_pct": 15,
-    "damage_taken_pct": 28
+    "damage_taken_pct": 38
    },
-   "default_rules": [
+   "color": "#7fc8a9",
+   "ai": [
+    {
+     "if": "missing_buff",
+     "value": "envenomed",
+     "then": "envenom"
+    },
     {
      "if": "always",
      "then": "backstab"
-    },
-    {
-     "if": "enemy_lacks_status",
-     "value": "blind",
-     "then": "dirt kicking"
     },
     {
      "if": "always",
      "then": "circle"
     },
     {
-     "if": "missing_buff",
-     "value": "envenomed",
-     "then": "envenom"
+     "if": "enemy_lacks_status",
+     "value": "knocked_down",
+     "then": "trip",
+     "and": [
+      {
+       "if": "enemies_at_least",
+       "value": 2
+      }
+     ]
+    },
+    {
+     "if": "enemy_hp_below",
+     "value": 30,
+     "then": "toss daggers"
+    },
+    {
+     "if": "enemy_lacks_status",
+     "value": "blind",
+     "and": [
+      {
+       "if": "enemies_at_least",
+       "value": 2
+      }
+     ],
+     "then": "dirt kicking"
+    },
+    {
+     "if": "enemy_has_status",
+     "value": "blind",
+     "then": "kick"
+    },
+    {
+     "if": "enemy_lacks_status",
+     "value": "blind",
+     "then": "gouge"
+    },
+    {
+     "if": "always",
+     "then": "toss daggers"
+    },
+    {
+     "if": "always",
+     "then": "kick"
     }
-   ],
-   "color": "#7fc8a9"
+   ]
   },
   "mage": {
    "stats": {
@@ -98,18 +156,54 @@
     },
     "ac_base": -50,
     "spell_pct": 150,
-    "damage_taken_pct": 8
+    "damage_taken_pct": 29
    },
-   "default_rules": [
+   "color": "#9d7cf2",
+   "ai": [
+    {
+     "if": "hp_below",
+     "value": 70,
+     "then": "sanctuary"
+    },
     {
      "if": "missing_buff",
      "value": "shield",
      "then": "shield"
     },
     {
-     "if": "hp_below",
-     "value": 60,
-     "then": "sanctuary"
+     "if": "missing_buff",
+     "value": "haste",
+     "and": [
+      {
+       "if": "mana_below",
+       "value": 50,
+       "not": true
+      }
+     ],
+     "then": "haste"
+    },
+    {
+     "if": "missing_buff",
+     "value": "armor",
+     "and": [
+      {
+       "if": "mana_below",
+       "value": 50,
+       "not": true
+      }
+     ],
+     "then": "armor"
+    },
+    {
+     "if": "enemies_at_least",
+     "value": 3,
+     "and": [
+      {
+       "if": "enemy_lacks_status",
+       "value": "asleep"
+      }
+     ],
+     "then": "sleep"
     },
     {
      "if": "enemies_at_least",
@@ -118,10 +212,41 @@
     },
     {
      "if": "always",
+     "and": [
+      {
+       "if": "enemies_at_least",
+       "value": 2,
+       "not": true
+      },
+      {
+       "if": "mana_below",
+       "value": 30,
+       "not": true
+      }
+     ],
+     "then": "implosion"
+    },
+    {
+     "if": "enemy_lacks_status",
+     "value": "slowed",
+     "and": [
+      {
+       "if": "mana_below",
+       "value": 40,
+       "not": true
+      }
+     ],
+     "then": "slow"
+    },
+    {
+     "if": "always",
      "then": "magic fist"
+    },
+    {
+     "if": "always",
+     "then": "kick"
     }
-   ],
-   "color": "#9d7cf2"
+   ]
   },
   "knifer": {
    "stats": {
@@ -137,13 +262,47 @@
     },
     "ac_base": -80,
     "damage_pct": 10,
-    "damage_taken_pct": 18
+    "damage_taken_pct": 17
    },
-   "default_rules": [
+   "color": "#ff7a3d",
+   "ai": [
+    {
+     "if": "hp_below",
+     "value": 35,
+     "then": "dance:cobra"
+    },
+    {
+     "if": "enemies_at_least",
+     "value": 3,
+     "and": [
+      {
+       "if": "hp_below",
+       "value": 35,
+       "not": true
+      }
+     ],
+     "then": "dance:storm"
+    },
     {
      "if": "missing_buff",
      "value": "stance_predator",
+     "and": [
+      {
+       "if": "hp_below",
+       "value": 35,
+       "not": true
+      },
+      {
+       "if": "enemies_at_least",
+       "value": 3,
+       "not": true
+      }
+     ],
      "then": "dance:predator"
+    },
+    {
+     "if": "always",
+     "then": "storm of blades"
     },
     {
      "if": "enemies_at_least",
@@ -152,16 +311,33 @@
     },
     {
      "if": "enemy_lacks_status",
+     "value": "stunned",
+     "then": "transfix"
+    },
+    {
+     "if": "enemy_has_status",
+     "value": "stunned",
+     "then": "kick"
+    },
+    {
+     "if": "enemy_lacks_status",
      "value": "blind",
      "then": "blinding strike"
     },
     {
-     "if": "enemy_has_status",
-     "value": "blind",
+     "if": "always",
      "then": "cross slash"
+    },
+    {
+     "if": "enemy_lacks_status",
+     "value": "knocked_down",
+     "then": "trip"
+    },
+    {
+     "if": "always",
+     "then": "kick"
     }
-   ],
-   "color": "#ff7a3d"
+   ]
   }
  }
 }

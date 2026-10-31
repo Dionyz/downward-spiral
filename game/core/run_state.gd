@@ -6,12 +6,13 @@ extends RefCounted
 ## Phases:
 ##   "path"      between rooms; at_fork() says whether the player must pick a room
 ##   "room"      inside a room (fight not finished / choice not made yet)
-##   "reward"    after a won fight (or an event that found an item): pick 1 of the offers or skip
+##   "reward"    after a won fight: loot already landed in the inventory; pick 1 of 3 boons (or skip)
 ##   "floor_end" floor cleared; descend() or extract() (extract from floor 2 on)
 ##   "over"      run ended; result is "death", "extract" or "victory"
 
 const FLOORS := 6
 const SLOTS := ["weapon", "armor", "trinket"]
+const INVENTORY_MAX := 500
 
 var data: DSData
 var rng: DSRng
@@ -24,12 +25,9 @@ var gold: int = 0
 var hp: int = -1              # -1 = full
 var mana: int = -1
 var potions := {"hp": 2, "mp": 2}
-var items := {"weapon": null, "armor": null, "trinket": null}
+var items := {"weapon": null, "armor": null, "trinket": null}   # equipped, one per slot
+var inventory: Array = []     # everything else you carry (max INVENTORY_MAX)
 var boons: Array = []
-var rules: Array = []
-var rules_custom: bool = false  # false = rules follow the class defaults as you level
-var actives_custom: bool = false  # false = loadout follows the class priority order as you level
-var actives: Array = []
 var floor_num: int = 1
 var floor_data: Dictionary = {}
 var step: int = 0
@@ -57,8 +55,6 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 	r.potions = {"hp": int(ps.get("hp", 2)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
 	var L: Dictionary = p_data.classes.get(p_line, {})
 	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
-	r.actives = DSFactory.default_actives(p_data, p_line, r.tier(), 1)
-	r.rules = DSFactory.default_rules(p_data, p_line, r.tier(), 1, r.rule_slots())
 	r._new_floor()
 	return r
 
@@ -67,8 +63,8 @@ func to_dict() -> Dictionary:
 	return {
 		"version": 1, "seed": seed_value, "rng": rng.save_state(), "line": line, "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
-		"items": items.duplicate(true), "boons": boons.duplicate(), "rules": rules.duplicate(true),
-		"actives": actives.duplicate(), "rules_custom": rules_custom, "actives_custom": actives_custom, "floor_num": floor_num, "floor_data": floor_data.duplicate(true),
+		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
+		"floor_num": floor_num, "floor_data": floor_data.duplicate(true),
 		"step": step, "room": room.duplicate(true), "phase": phase, "result": result, "stats": stats.duplicate(), "perks": perks.duplicate(true),
 	}
 
@@ -89,10 +85,7 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.potions = _normalize(d.get("potions", {}))
 	r.items = _normalize(d.get("items", r.items))
 	r.boons = _normalize(d.get("boons", []))
-	r.rules = _normalize(d.get("rules", []))
-	r.actives = _normalize(d.get("actives", []))
-	r.rules_custom = bool(d.get("rules_custom", false))
-	r.actives_custom = bool(d.get("actives_custom", false))
+	r.inventory = _normalize(d.get("inventory", []))
 	r.floor_num = int(d.get("floor_num", 1))
 	r.floor_data = _normalize(d.get("floor_data", {}))
 	r.step = int(d.get("step", 0))
@@ -140,9 +133,10 @@ func _has_mana() -> bool:
 # Player
 # ---------------------------------------------------------------------------
 
-## A fresh Combatant reflecting the run: level, gear, boons, rules, current HP/mana.
+## A fresh Combatant reflecting the run: level, gear, boons, current HP/mana.
+## The character carries every ability it knows and fights by its class's built-in priorities.
 func make_player() -> Combatant:
-	var opts := {"rules": rules, "actives": actives, "weapon": items["weapon"],
+	var opts := {"rules": DSFactory.class_ai(data, line, tier(), level), "actives": known_actives(), "weapon": items["weapon"],
 		"meta_hp_pct": int(perks.get("hp_pct", 0)), "meta_damage_pct": int(perks.get("damage_pct", 0))}
 	if items["armor"] != null:
 		opts["armor"] = items["armor"]
@@ -163,11 +157,7 @@ func tier() -> int:
 	return int(data.balance.get("unlock_tier", 3))
 
 
-func rule_slots() -> int:
-	return mini(int(data.balance.get("max_rule_slots", 4)), DSFactory.rule_slots(data, level) + int(perks.get("rule_slots", 0)))
-
-
-## Every active the character knows at its level (for swapping at rest rooms).
+## Every active the character knows at its level (all are used in fights).
 func known_actives() -> Array:
 	return data.kit_abilities(line, tier(), level, "active")
 
@@ -214,6 +204,12 @@ func enter(choice: int = 0) -> Dictionary:
 		return {}
 	room = options[clampi(choice, 0, options.size() - 1)].duplicate(true)
 	room["chosen"] = choice
+	# Remember which room was taken at each step (the map draws the walked path).
+	var taken: Array = floor_data.get("taken", [])
+	while taken.size() <= step:
+		taken.append(0)
+	taken[step] = choice
+	floor_data["taken"] = taken
 	stats["rooms"] = int(stats["rooms"]) + 1
 	match room["type"]:
 		"fight", "elite", "boss":
@@ -227,9 +223,10 @@ func enter(choice: int = 0) -> Dictionary:
 			room["monster_level"] = lvl
 			room["fight_seed"] = rng.next_int()
 		"treasure":
-			room["offers"] = []
-			for i in 3:
-				room["offers"].append({"kind": "item", "item": _roll_item("")})
+			var found: Array = []
+			for i in int(_cfg().get("treasure_items", 3)):
+				found.append(_roll_item("uncommon" if i == 0 else ""))
+			room["loot"] = gain_items(found)
 		"shrine":
 			room["offers"] = _boon_offers(3)
 		"event":
@@ -286,24 +283,24 @@ func finish_fight(p: Combatant, foes: Array, fight_result: String, potions_left:
 		var kind_p := "mp" if _has_mana() and rng.number_percent() <= 40 else "hp"
 		if _add_potion(kind_p):
 			reward["potion"] = kind_p
-	if kind == "boss":
-		reward["offers"] = []
+	if kind != "boss":
+		reward["loot"] = gain_items(_fight_loot(kind == "elite"))
+		reward["offers"] = _boon_offers(3)
 	else:
-		reward["offers"] = _reward_offers(kind == "elite")
+		reward["loot"] = []
+		reward["offers"] = []
 	room["reward"] = reward
 	phase = "reward"
 	return reward
 
 
-## Take reward/treasure/shrine offer `i`.
+## Take boon offer `i` (after a fight, or at a shrine).
 func take_offer(i: int) -> void:
 	var offers: Array = room.get("reward", {}).get("offers", []) if phase == "reward" else room.get("offers", [])
 	if i < 0 or i >= offers.size():
 		return
 	var o: Dictionary = offers[i]
-	if o.get("kind") == "item":
-		equip(o["item"])
-	elif o.get("kind") == "boon":
+	if o.get("kind") == "boon":
 		add_boon(str(o["id"]))
 	complete_room()
 
@@ -314,6 +311,7 @@ func skip() -> void:
 		complete_room()
 
 
+## Put `item` in its slot. Whatever was there goes back into the inventory.
 func equip(item: Dictionary) -> void:
 	var slot: String = item.get("slot", "weapon")
 	var old = items.get(slot)
@@ -325,7 +323,54 @@ func equip(item: Dictionary) -> void:
 		hp = clampi(hp + after.max_hp - before.max_hp, 1, after.max_hp)
 	if mana >= 0:
 		mana = clampi(mana + after.max_mana - before.max_mana, 0, after.max_mana)
-	messages.append("Equipped %s%s." % [item.get("name", "?"), "" if old == null else " (replacing %s)" % old.get("name", "?")])
+	if old != null:
+		inventory.append(old)
+	messages.append("Equipped %s." % item.get("name", "?"))
+
+
+## Equip inventory item `i` (swapping out what that slot held). Allowed between rooms.
+func equip_from_inventory(i: int) -> bool:
+	if i < 0 or i >= inventory.size() or phase in ["over"]:
+		return false
+	var it: Dictionary = inventory[i]
+	inventory.remove_at(i)
+	equip(it)
+	return true
+
+
+## Add found items: an empty slot is filled straight away, everything else goes to the inventory.
+## Past INVENTORY_MAX the weakest carried item is sold for gold. Returns [{item, equipped}].
+func gain_items(found: Array) -> Array:
+	var out: Array = []
+	for it in found:
+		var slot: String = it.get("slot", "weapon")
+		if items.get(slot) == null:
+			equip(it)
+			out.append({"item": it, "equipped": true})
+			continue
+		inventory.append(it)
+		out.append({"item": it, "equipped": false})
+		if inventory.size() > INVENTORY_MAX:
+			var worst := 0
+			for j in inventory.size():
+				if DSLoot.power(inventory[j]) < DSLoot.power(inventory[worst]):
+					worst = j
+			var sold: Dictionary = inventory[worst]
+			inventory.remove_at(worst)
+			var price := maxi(1, DSStats.idiv(DSLoot.power(sold), 20))
+			gold += price
+			messages.append("Bag full: sold %s for %d gold." % [sold.get("name", "?"), price])
+	return out
+
+
+## Inventory items for `slot`, strongest first, with their inventory index: [{i, item}].
+func inventory_for(slot: String) -> Array:
+	var out: Array = []
+	for i in inventory.size():
+		if inventory[i].get("slot", "") == slot:
+			out.append({"i": i, "item": inventory[i]})
+	out.sort_custom(func(a, b): return DSLoot.power(a["item"]) > DSLoot.power(b["item"]))
+	return out
 
 
 func add_boon(id: String) -> void:
@@ -375,33 +420,6 @@ func rest_heal() -> void:
 	complete_room()
 
 
-## Swap equipped abilities (max 4, from known_actives) and set rules, at no HP cost.
-func rest_train(new_actives: Array, new_rules: Array) -> void:
-	if room.get("type") != "rest" or phase != "room":
-		return
-	var known := known_actives()
-	var cap := int(data.balance.get("max_actives", 4))
-	var picked: Array = []
-	for a in new_actives:
-		if known.has(a) and not picked.has(a) and picked.size() < cap:
-			picked.append(a)
-	if not picked.is_empty():
-		if picked != actives:
-			actives_custom = true
-		actives = picked
-	set_rules(new_rules)
-	messages.append("You drill your technique.")
-	complete_room()
-
-
-## Rules can be edited between any rooms (DECISIONS.md D-037).
-func set_rules(new_rules: Array) -> void:
-	var trimmed := new_rules.slice(0, rule_slots()).duplicate(true)
-	if JSON.stringify(trimmed) != JSON.stringify(rules):
-		rules_custom = true
-	rules = trimmed
-
-
 # --- event ---
 
 func event_def() -> Dictionary:
@@ -419,10 +437,10 @@ func event_choose(i: int) -> Array:
 	var found_item = null
 	for op in opts[i].get("ops", []):
 		found_item = _apply_op(op, lines, found_item)
-	room["outcome"] = lines
 	if found_item != null:
-		room["reward"] = {"gold": 0, "xp": 0, "levels": 0, "offers": [{"kind": "item", "item": found_item}]}
-		phase = "reward"
+		var got := gain_items([found_item])
+		lines.append("Found %s%s." % [found_item.get("name", "?"), " (equipped)" if got[0]["equipped"] else " (in your bag)"])
+	room["outcome"] = lines
 	return lines
 
 
@@ -487,8 +505,7 @@ func xp_to_next() -> int:
 	return int(_cfg().get("xp_to_next_per_level", 40)) * level
 
 
-## Add XP; returns levels gained. Level-ups raise max HP/mana (current goes up by the same amount)
-## and auto-equip newly learned actives into free slots.
+## Add XP; returns levels gained. Level-ups raise max HP/mana (current goes up by the same amount).
 func add_xp(amount: int) -> int:
 	xp += amount
 	xp_total += amount
@@ -504,22 +521,10 @@ func add_xp(amount: int) -> int:
 			hp += after.max_hp - before.max_hp
 		if mana >= 0:
 			mana += after.max_mana - before.max_mana
-		var cap := int(data.balance.get("max_actives", 4))
-		var learned: Array = []
 		for a in known_actives():
 			if not before_known.has(a):
-				learned.append(a)
-		for a in learned:
-			messages.append("Learned %s." % a)
-		if not actives_custom:
-			actives = DSFactory.default_actives(data, line, tier(), level)
-		else:
-			for a in learned:
-				if not actives.has(a) and actives.size() < cap:
-					actives.append(a)
+				messages.append("Learned %s." % a)
 		messages.append("Level %d!" % level)
-		if not rules_custom:
-			rules = DSFactory.default_rules(data, line, tier(), level, rule_slots())
 	if level >= 10:
 		xp = 0
 	return gained
@@ -554,22 +559,20 @@ func _boon_offers(n: int) -> Array:
 	return out
 
 
-func _reward_offers(elite: bool) -> Array:
-	var out: Array = []
-	var boon_pool := available_boons()
-	rng.shuffle(boon_pool)
-	var min_rar := str(_cfg().get("elite_min_rarity", "rare")) if elite else ""
+## Loot from a won fight: `balance.run.loot_per_fight` items (elites more, and at least rare).
+func _fight_loot(elite: bool) -> Array:
+	var c := _cfg()
+	var n := int(c.get("loot_per_elite", 2)) if elite else int(c.get("loot_per_fight", 1))
+	var min_rar := str(c.get("elite_min_rarity", "rare")) if elite else ""
 	var order: Array = data.items.get("rarity_order", [])
-	for i in 3:
-		if not boon_pool.is_empty() and rng.number_percent() <= int(_cfg().get("reward_boon_chance", 40)):
-			out.append({"kind": "boon", "id": boon_pool.pop_back()})
-		else:
-			var rar := ""
-			if min_rar != "":
-				rar = DSLoot.roll_rarity(data, rng, 0.08 * float(item_level() - 1))
-				if order.find(rar) < order.find(min_rar):
-					rar = min_rar
-			out.append({"kind": "item", "item": _roll_item(rar)})
+	var out: Array = []
+	for i in n:
+		var rar := ""
+		if min_rar != "":
+			rar = DSLoot.roll_rarity(data, rng, 0.08 * float(item_level() - 1))
+			if order.find(rar) < order.find(min_rar):
+				rar = min_rar
+		out.append(_roll_item(rar))
 	return out
 
 

@@ -816,7 +816,7 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 	else:
 		cd = DSStats.cooldown_rounds(int(a.get("beats", 0)), balance)
 	if cd > 0:
-		c.cooldowns[aname] = cd  # ticks down at the start of each round; usable again at 0
+		c.cooldowns[aname] = cd + 1  # ticks at the start of each round: a cooldown of N skips N rounds
 	_emit({"t": "cast" if cost > 0 else "ability", "src": c.name, "dst": target.name if target != null else "",
 		"ability": str(a.get("display", aname)), "id": aname, "arg": arg, "cost": cost})
 	var p: Dictionary = a.get("params", {})

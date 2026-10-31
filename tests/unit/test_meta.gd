@@ -31,15 +31,6 @@ func test_permanent_bonuses_capped_at_ten_percent():
 	assert_eq(int(p["hp_pct"]), 10)
 
 
-func test_third_starting_rule_slot():
-	var r1 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 1))
-	var r3 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 3))
-	assert_eq(r1.rule_slots(), 2)
-	assert_eq(r3.rule_slots(), 3)
-	r3.level = 5
-	assert_eq(r3.rule_slots(), 4, "max 4 rule slots")
-
-
 func test_perks_change_the_player():
 	var base := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 1)).make_player()
 	var vet := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 10)).make_player()
@@ -66,5 +57,11 @@ func test_locked_legendaries_stay_out():
 func test_perks_survive_save():
 	var r := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 5))
 	var r2 := DSRunState.from_dict(data, JSON.parse_string(JSON.stringify(r.to_dict())))
-	assert_eq(r2.rule_slots(), r.rule_slots())
+	assert_eq(r2.potions, r.potions)
 	assert_eq(int(r2.perks["hp_pct"]), int(r.perks["hp_pct"]))
+
+
+func test_account_potion_perks():
+	var r1 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 1))
+	var r3 := DSRunState.new_run(data, "warrior", 1, DSMeta.perks(data, 3))
+	assert_eq(int(r3.potions["hp"]), int(r1.potions["hp"]) + 1)

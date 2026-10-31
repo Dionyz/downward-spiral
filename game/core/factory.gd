@@ -67,49 +67,24 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 	if opts.has("actives"):
 		c.actives = opts["actives"].duplicate()
 	else:
-		c.actives = default_actives(data, line, tier, level)
+		c.actives = data.kit_abilities(line, tier, level, "active")
 	if opts.has("rules"):
 		c.rules = opts["rules"].duplicate(true)
 	else:
-		c.rules = default_rules(data, line, tier, level, int(opts.get("rule_slots", rule_slots(data, level))))
+		c.rules = class_ai(data, line, tier, level)
 	return c
 
 
-## Rule slots: balance.rule_slots (2), +1 from balance.rule_slot_bonus_level (5).
-static func rule_slots(data: DSData, level: int) -> int:
-	var n := int(data.balance.get("rule_slots", 2))
-	if level >= int(data.balance.get("rule_slot_bonus_level", 5)):
-		n += 1
-	return n
-
-
-## Equipped actives when the player hasn't chosen: starting actives, then signature unlocks, max 4.
-static func default_actives(data: DSData, line: String, tier: int, level: int) -> Array:
+## The class's built-in fighting priorities (overrides/classes.json "ai"), limited to abilities it
+## knows at `level`. Checked top to bottom each round; the first usable one fires. DECISIONS.md D-060.
+static func class_ai(data: DSData, line: String, tier: int, level: int) -> Array:
 	var L: Dictionary = data.classes.get(line, {})
 	var out: Array = []
-	for n in L.get("starting_actives", []):
-		if data.unlock_level(n, line, tier) <= level and data.unlock_level(n, line, tier) >= 1:
-			out.append(n)
-	for n in L.get("signature", []):
-		if out.size() >= int(data.balance.get("max_actives", 4)):
-			break
-		var ul := data.unlock_level(n, line, tier)
-		if ul >= 1 and ul <= level and data.ability(n).get("kind", "") == "active":
-			out.append(n)
-	return out
-
-
-## Class default rules, trimmed to rule slots and to abilities the character has.
-static func default_rules(data: DSData, line: String, tier: int, level: int, slots: int) -> Array:
-	var L: Dictionary = data.classes.get(line, {})
-	var out: Array = []
-	for r in L.get("default_rules", []):
-		if out.size() >= slots:
-			break
+	for r in L.get("ai", []):
 		var aname := str(CombatSim.split_ref(str(r.get("then", "")))[0])
 		var ul := data.unlock_level(aname, line, tier)
 		if ul >= 1 and ul <= level:
-			out.append(r.duplicate())
+			out.append(r.duplicate(true))
 	return out
 
 

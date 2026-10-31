@@ -120,16 +120,6 @@ func test_rest_heals_40_percent():
 	assert_eq(r.phase, "path")
 
 
-func test_rest_train_swaps_abilities():
-	var r := DSRunState.new_run(data, "warrior", 3)
-	r.level = 5
-	r.room = {"type": "rest"}
-	r.phase = "room"
-	r.rest_train(["kick", "trip", "not_an_ability"], [{"if": "always", "then": "trip"}])
-	assert_eq(r.actives, ["kick", "trip"])
-	assert_eq(r.rules, [{"if": "always", "then": "trip"}])
-
-
 func test_shrine_remove_and_reroll_cost_gold():
 	var r := DSRunState.new_run(data, "warrior", 3)
 	r.boons = ["opportunist"]
@@ -190,7 +180,11 @@ func test_reward_offers_after_a_win():
 		pass_test("died in the first fight on this seed")
 		return
 	assert_eq(r.phase, "reward")
-	assert_eq(r.room["reward"]["offers"].size(), 3)
+	var offers: Array = r.room["reward"]["offers"]
+	assert_eq(offers.size(), 3)
+	for o in offers:
+		assert_eq(o["kind"], "boon", "fight rewards offer boons only")
+	assert_eq(r.room["reward"]["loot"].size(), 1, "loot is awarded automatically")
 	assert_gt(r.gold, 0)
 
 
@@ -239,9 +233,89 @@ func test_every_boon_survives_a_fight():
 		var r := DSRunState.new_run(data, line, 77)
 		r.level = 8
 		r.boons = [id]
-		r.actives = r.known_actives().slice(0, 4)
 		var p := r.make_player()
 		var foes := DSEncounters.build(data, ["goblin_cutter", "orc_brute"], 6)
 		var sim := CombatSim.new(DSRng.new(5), data)
 		sim.run(p, foes)
 		assert_true(sim.over, "fight with %s ends" % id)
+
+
+func test_loot_fills_empty_slots_then_the_bag():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	assert_null(r.items["armor"])
+	var a1 := DSLoot.roll_item(data, DSRng.new(1), 2, "armor", "common")
+	var a2 := DSLoot.roll_item(data, DSRng.new(2), 2, "armor", "rare")
+	var got := r.gain_items([a1, a2])
+	assert_true(got[0]["equipped"], "empty armor slot filled")
+	assert_false(got[1]["equipped"], "second armor goes to the bag")
+	assert_eq(r.inventory.size(), 1)
+
+
+func test_equip_from_inventory_swaps():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	var old_weapon: Dictionary = r.items["weapon"]
+	var w := DSLoot.roll_item(data, DSRng.new(5), 3, "weapon", "epic", "warrior")
+	r.gain_items([w])
+	assert_eq(r.inventory.size(), 1)
+	assert_true(r.equip_from_inventory(0))
+	assert_eq(r.items["weapon"]["name"], w["name"])
+	assert_eq(r.inventory.size(), 1)
+	assert_eq(r.inventory[0]["name"], old_weapon["name"], "old weapon goes back to the bag")
+
+
+func test_inventory_holds_500():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	var rng := DSRng.new(9)
+	var batch: Array = []
+	for i in 510:
+		batch.append(DSLoot.roll_item(data, rng, 2, "trinket", "common"))
+	var g0 := r.gold
+	r.gain_items(batch)
+	assert_eq(r.inventory.size(), DSRunState.INVENTORY_MAX)
+	assert_gt(r.gold, g0, "overflow sold for gold")
+
+
+func test_inventory_for_sorts_strongest_first():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	var rng := DSRng.new(4)
+	r.gain_items([DSLoot.roll_item(data, rng, 1, "weapon", "common", "warrior"), DSLoot.roll_item(data, rng, 8, "weapon", "legendary", "warrior")])
+	var w := r.inventory_for("weapon")
+	assert_eq(w.size(), 2)
+	assert_gt(DSLoot.power(w[0]["item"]), DSLoot.power(w[1]["item"]))
+
+
+func test_inventory_survives_save():
+	var r := DSRunState.new_run(data, "mage", 3)
+	r.gain_items([DSLoot.roll_item(data, DSRng.new(1), 2, "weapon", "rare", "mage")])
+	var r2 := DSRunState.from_dict(data, JSON.parse_string(JSON.stringify(r.to_dict())))
+	assert_eq(JSON.stringify(r2.inventory), JSON.stringify(r.inventory))
+
+
+func test_treasure_awards_loot_without_choosing():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	r.floor_data = {"floor": 1, "steps": [[{"id": 0, "type": "treasure", "name": "x", "desc": "y"}]]}
+	r.step = 0
+	r.phase = "path"
+	r.enter(0)
+	assert_eq(r.room["loot"].size(), 3)
+
+
+func test_every_class_uses_its_whole_kit():
+	# Across many fights at level 10 every known active fires at least once.
+	for line in ["warrior", "thief", "mage", "knifer"]:
+		var used := {}
+		for s in 40:
+			var p := DSFactory.make_player(data, line, 3, 10)
+			var foes := DSEncounters.build(data, ["goblin_cutter", "orc_brute", "ghoul", "cave_spider"].slice(0, 1 + s % 4), 8)
+			for f in foes:
+				# Long fights so the whole rotation gets a chance to come up.
+				f.max_hp *= 6
+				f.hp = f.max_hp
+			p.max_hp *= 2
+			p.hp = p.max_hp
+			var sim := CombatSim.new(DSRng.new(100 + s), data)
+			for ev in sim.run(p, foes):
+				if ev.get("t") in ["ability", "cast"] and ev.get("src") == p.name:
+					used[str(ev.get("id", ev.get("ability")))] = true
+		for a in data.kit_abilities(line, 3, 10, "active"):
+			assert_true(used.has(a), "%s never used %s" % [line, a])

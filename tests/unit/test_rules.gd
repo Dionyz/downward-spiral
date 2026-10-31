@@ -73,13 +73,27 @@ func test_unequipped_ability_never_fires():
 	assert_true(DSRules.new().choose(sim, p, p.rules, [m]).is_empty())
 
 
-func test_default_rules_exist_for_every_class():
+func test_class_ai_covers_the_whole_kit():
+	# Every active a class knows at level 10 appears in its built-in priorities.
 	for line in ["warrior", "thief", "mage", "knifer"]:
-		var p := DSFactory.make_player(data, line, 1, 1)
-		assert_gt(p.rules.size(), 0, "%s has default rules at level 1" % line)
-		assert_true(p.rules.size() <= 2, "two rule slots at run start")
-		var p5 := DSFactory.make_player(data, line, 1, 5)
-		assert_eq(p5.rules.size(), 3, "%s gets a third rule slot at level 5" % line)
+		var ai := DSFactory.class_ai(data, line, 3, 10)
+		var refs := ai.map(func(r): return str(CombatSim.split_ref(str(r["then"]))[0]))
+		for a in data.kit_abilities(line, 3, 10, "active"):
+			assert_true(refs.has(a), "%s AI never mentions %s" % [line, a])
+
+
+func test_and_conditions():
+	var sim := CombatSim.new(DSRng.new(1), data)
+	var p := DSFactory.make_player(data, "warrior", 3, 5)
+	var m := _brute([])
+	sim.begin(p, [m])
+	var rules := [{"if": "always", "and": [{"if": "hp_below", "value": 50}], "then": "berserk"},
+		{"if": "always", "then": "kick"}]
+	assert_eq(DSRules.new().choose(sim, p, rules, [m]).get("ability"), "kick", "and-condition false")
+	p.hp = 10
+	assert_eq(DSRules.new().choose(sim, p, rules, [m]).get("ability"), "berserk")
+	var nots := [{"if": "always", "and": [{"if": "hp_below", "value": 50, "not": true}], "then": "kick"}]
+	assert_true(DSRules.new().choose(sim, p, nots, [m]).is_empty(), "not-condition blocks at low HP")
 
 
 func test_enemy_has_status_targets_the_matching_enemy():
