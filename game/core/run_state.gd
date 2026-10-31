@@ -497,6 +497,29 @@ func boon_rank(id: String) -> int:
 	return boons.count(id)
 
 
+## Boon text with live numbers for this character ({zap}, {poison}, ... in boons.json).
+func boon_desc(id: String) -> String:
+	var t := str(data.boons.get(id, {}).get("desc", ""))
+	if not t.contains("{"):
+		return t
+	var p: Combatant = world.player if world != null and world.player != null else make_player()
+	var ml := p.mud_level
+	var foe_hp := 0
+	if world != null:
+		for m in world.monsters:
+			foe_hp = maxi(foe_hp, int(m["c"].max_hp)) if not m["boss"] and not m["elite"] else foe_hp
+	return t.format({
+		"zap": "%d-%d" % [3, 6 + ml],
+		"poison": str(maxi(2, DSStats.idiv(ml, 4))),
+		"boom": str(maxi(1, DSStats.idiv(foe_hp * 20, 100))),
+		"kill_heal": str(DSStats.idiv(p.max_hp * 8, 100)),
+		"regen": str(maxi(1, DSStats.idiv(p.max_hp, 100))),
+		"thorns": str(maxi(1, DSStats.idiv(ml, 5))),
+		"half": str(DSStats.idiv(p.max_hp, 2)),
+		"thick": str(DSStats.idiv(p.max_hp, 10)),
+	})
+
+
 func boon_max(id: String) -> int:
 	return int(data.boons.get(id, {}).get("max", 1))
 

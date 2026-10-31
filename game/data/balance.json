@@ -96,7 +96,7 @@
   "monsters_per_floor": 1.5,
   "sight": 7,
   "combat_radius": 9,
-  "regen_every": 3,
+  "regen_every": 15,
   "shrine2_pct": 40
  },
  "ability_range": {

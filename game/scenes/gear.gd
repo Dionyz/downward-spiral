@@ -60,7 +60,7 @@ func _select(s: String) -> void:
 func _refresh() -> void:
 	var p := run.make_player()
 	var w = run.items.get("weapon")
-	var dmg := "%d-%d" % [int(w.get("min", 0)), int(w.get("max", 0))] if w != null else "-"
+	var dmg := "%s avg" % Cards._num((int(w.get("min", 0)) + int(w.get("max", 0))) / 2.0) if w != null else "-"
 	summary.text = "HP %d · Weapon %s · Armor %d · Damroll %d · %d boons" % [p.max_hp, dmg, -p.ac, p.damroll, run.boons.size()]
 	bag_label.text = "Bag %d/%d" % [run.inventory.size(), DSRunState.INVENTORY_MAX]
 	for c in equipped_box.get_children():
@@ -82,8 +82,7 @@ func _refresh() -> void:
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(nm)
 		cv.add_child(row)
-		for line in Cards.compare_lines(run.data, eq, null):
-			cv.add_child(UI.label(line["text"], 18, line["color"]))
+		cv.add_child(Cards.stat_flow(Cards.compare_lines(run.data, eq, null), 18))
 	equipped_box.add_child(card)
 	var items := run.inventory_for(slot)
 	if items.is_empty():
@@ -107,14 +106,15 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 	head.add_child(nm)
 	var delta := DSLoot.power(it) - (0 if eq == null else DSLoot.power(eq))
 	head.add_child(UI.label(("+%d" % delta) if delta >= 0 else str(delta), 20, Color("#5fd35f") if delta >= 0 else Color("#ff8c7a"), false))
-	v.add_child(head)
-	v.add_child(UI.label("%s %s · item level %d" % [str(it.get("rarity", "")).capitalize(), slot, int(it.get("ilvl", 1))], 15, UI.DIM))
-	for line in Cards.compare_lines(run.data, it, eq):
-		v.add_child(UI.label(line["text"], 17, line["color"]))
-	v.add_child(UI.button("Equip", func():
+	var eb := UI.button("Equip", func():
 		run.equip_from_inventory(idx)
 		run.messages.clear()
 		Game.save_run()
 		_refresh()
-	, 52))
+	, 48)
+	eb.custom_minimum_size.x = 110
+	head.add_child(eb)
+	v.add_child(head)
+	v.add_child(UI.label("%s · ilvl %d" % [str(it.get("rarity", "")).capitalize(), int(it.get("ilvl", 1))], 15, UI.DIM))
+	v.add_child(Cards.stat_flow(Cards.compare_lines(run.data, it, eq)))
 	return card

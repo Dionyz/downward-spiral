@@ -1,5 +1,5 @@
 {
- "_note": "Boons change how fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. `max` = how many times it can be taken (ranks stack). effect keys: flag (read by CombatSim), stats (numbers added per rank, read by CombatSim), skill_bonus, run (read by DSRunState).",
+ "_note": "Boons change how fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. `max` = how many times it can be taken (ranks stack). effect keys: flag (read by CombatSim), stats (numbers added per rank, read by CombatSim), skill_bonus, run (read by DSRunState). desc may hold {tokens} filled in with live numbers by DSRunState.boon_desc().",
  "boons": {
   "concussive_bash": {
    "name": "Concussive Bash",
@@ -248,7 +248,7 @@
   },
   "thick_blood": {
    "name": "Thick Blood",
-   "desc": "+10% max HP.",
+   "desc": "+10% max HP (+{thick} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -322,7 +322,7 @@
   },
   "spiked_hide": {
    "name": "Spiked Hide",
-   "desc": "Enemies that hit you in melee take damage back.",
+   "desc": "Enemies that hit you in melee take {thorns} damage back.",
    "lines": [],
    "refs": [
     "damage"
@@ -457,7 +457,7 @@
   },
   "bloodlust": {
    "name": "Bloodlust",
-   "desc": "Every kill heals 8% of your max HP.",
+   "desc": "Every kill heals 8% of your max HP ({kill_heal} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -499,7 +499,7 @@
   },
   "static_charge": {
    "name": "Static Charge",
-   "desc": "Your hits have a 15% chance to zap a nearby enemy with lightning.",
+   "desc": "Your hits have a 15% chance to zap a nearby enemy for {zap} lightning damage.",
    "lines": [],
    "refs": [
     "damage"
@@ -527,7 +527,7 @@
   },
   "rot_touch": {
    "name": "Rot Touch",
-   "desc": "Your hits have a 15% chance to poison the target.",
+   "desc": "Your hits have a 15% chance to poison the target: {poison} damage a turn for 3 turns.",
    "lines": [],
    "refs": [
     "damage"
@@ -541,7 +541,7 @@
   },
   "volatile": {
    "name": "Volatile",
-   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you.",
+   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you (about {boom} against foes like these).",
    "lines": [],
    "refs": [
     "damage"
@@ -599,7 +599,7 @@
   },
   "troll_blood": {
    "name": "Troll Blood",
-   "desc": "Regenerate 1% of your max HP every turn.",
+   "desc": "Regenerate 1% of your max HP every turn ({regen} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -613,7 +613,7 @@
   },
   "second_life": {
    "name": "Second Life",
-   "desc": "Once per run, a killing blow leaves you at half HP instead.",
+   "desc": "Once per run, a killing blow leaves you at half HP ({half} HP) instead.",
    "lines": [],
    "refs": [
     "hp"

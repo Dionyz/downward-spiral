@@ -33,8 +33,15 @@ func _ready() -> void:
 	run = Game.run
 	var v := UI.screen(self)
 	v.add_theme_constant_override("separation", 6)
+	var top := HBoxContainer.new()
 	header = UI.label("", 22, UI.ACCENT, false)
-	v.add_child(header)
+	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.clip_text = true
+	top.add_child(header)
+	var set_btn := UI.button("Settings", _open_settings, 44)
+	set_btn.add_theme_font_size_override("font_size", 18)
+	top.add_child(set_btn)
+	v.add_child(top)
 	var bars := HBoxContainer.new()
 	bars.add_theme_constant_override("separation", 10)
 	var bv := VBoxContainer.new()
@@ -146,12 +153,13 @@ func _turn() -> void:
 	if Game.autoplay != "" and run.inventory.size() != bag:
 		DSAutopilot.equip_best(run)
 	grid.set_move_time(_turn_time() * 0.9)
+	grid.sync_tokens()      # move first, so hits animate from where everyone ends up
 	_play(evs)
-	grid.sync_tokens()
 	grid.redraw()
 	_refresh()
 	if run.floor_num != floor_before:
 		grid.setup(run)
+	_check_low_hp()
 	if run.phase == "explore":
 		if _shots_left > 0 and run.world.turn % 40 == 0:
 			_shot("f%d_t%d" % [run.floor_num, run.world.turn], func(): timer.start(_turn_time()))
@@ -244,11 +252,12 @@ func _refresh() -> void:
 	mana_bar.value = p.mana
 	hp_label.text = "%d/%d" % [maxi(0, p.hp), p.max_hp]
 	pot_hp.text = "Potion ×%d" % int(run.potions.get("hp", 0))
+	pot_hp.add_theme_color_override("font_color", UI.WARN if p.hp_pct() < 30.0 and not pot_hp.disabled else UI.TEXT)
 	pot_hp.disabled = int(run.potions.get("hp", 0)) <= 0 or p.hp >= p.max_hp
 	pot_mp.visible = p.max_mana > 0
 	pot_mp.text = "Mana ×%d" % int(run.potions.get("mp", 0))
 	pot_mp.disabled = int(run.potions.get("mp", 0)) <= 0 or p.mana >= p.max_mana
-	speed_btn.text = "%dx" % int(Game.speed)
+	speed_btn.text = "Speed %dx" % int(Game.speed)
 	gear_btn.text = "Gear (%d)" % run.inventory.size()
 	for c in log_strip.get_children():
 		c.queue_free()
@@ -392,7 +401,7 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 		var rk := UI.label(("Rank %d of %d" % [have + 1, mx]) + ("  (stacks)" if have == 0 else "  (upgrade)"), 16, Color("#7fc8a9"))
 		rk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(rk)
-	var d := UI.label(str(b.get("desc", "")), 19)
+	var d := UI.label(run.boon_desc(id), 19)
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(d)
 	return btn
@@ -511,6 +520,74 @@ func _drink(kind: String) -> void:
 	grid.sync_tokens()
 	_refresh()
 	Game.save_run()
+
+
+## Dropping under 30% HP slows the game to 1x once, so there's time to reach for a potion.
+## It re-arms when HP climbs back above 50%.
+var _low_hp_armed := true
+
+
+func _check_low_hp() -> void:
+	if run.world == null or Game.autoplay != "":
+		return
+	var pct := run.world.player.hp_pct()
+	if pct >= 50.0:
+		_low_hp_armed = true
+	elif pct < 30.0 and _low_hp_armed and run.world.player.is_alive():
+		_low_hp_armed = false
+		if Game.speed > 1.0:
+			Game.speed = 1.0
+			_recent.append(["Low health! Slowed to 1x.", "#ff7a3d"])
+			grid.float_text(run.world.player.name, "LOW HP", UI.WARN, 20)
+			_refresh()
+
+
+## In-run settings: volume, and a way back to the title (the run is saved).
+func _open_settings() -> void:
+	_paused = true
+	timer.stop()
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 90
+	add_child(layer)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dim)
+	var m := MarginContainer.new()
+	m.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right"]:
+		m.add_theme_constant_override("margin_" + side, 32)
+	layer.add_child(m)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	m.add_child(col)
+	var card := PanelContainer.new()
+	col.add_child(card)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 14)
+	card.add_child(v)
+	v.add_child(UI.label("Settings", 30, UI.ACCENT))
+	v.add_child(UI.label("Sound volume", 20, UI.DIM))
+	var vol := HSlider.new()
+	vol.min_value = 0.0
+	vol.max_value = 1.0
+	vol.step = 0.05
+	vol.value = float(Game.settings.get("sfx_volume", 0.8))
+	vol.custom_minimum_size = Vector2(0, 48)
+	vol.value_changed.connect(func(x):
+		Game.settings["sfx_volume"] = x
+		Game.save_settings()
+		Game.sfx("hit"))
+	v.add_child(vol)
+	v.add_child(UI.button("Resume", func():
+		layer.queue_free()
+		_paused = false
+		_resume(), 60))
+	v.add_child(UI.button("Save and quit to title", func():
+		Game.save_run()
+		Game.goto("title"), 56))
 
 
 func _toggle_speed() -> void:

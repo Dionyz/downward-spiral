@@ -17,6 +17,12 @@ var tokens := {}                 # combatant name -> {node, icon, bar, color}
 var fx_layer: Control
 var _move_time := 0.2
 var _cam_tween: Tween
+var _fading := {}                # tokens on their way out: name -> token
+
+
+## A live or fading token by name, or {}.
+func _tok(nm: String) -> Dictionary:
+	return tokens.get(nm, _fading.get(nm, {}))
 
 
 func _ready() -> void:
@@ -88,9 +94,15 @@ func cell_center(p: Vector2i) -> Vector2:
 # --- tokens ---------------------------------------------------------------
 
 func _make_token(nm: String, icon_name: String, col: Color, ring: Color) -> Dictionary:
+	# `node` moves between tiles; `body` (inside it) does the lunges, so the two never fight.
 	var node := Control.new()
 	node.size = Vector2(tile, tile)
 	node.z_index = 3
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var body := Control.new()
+	body.size = Vector2(tile, tile)
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.add_child(body)
 	var bg := Panel.new()
 	var st := StyleBoxFlat.new()
 	st.bg_color = Color("#14121a")
@@ -99,18 +111,20 @@ func _make_token(nm: String, icon_name: String, col: Color, ring: Color) -> Dict
 	st.set_corner_radius_all(int(tile / 2))
 	bg.add_theme_stylebox_override("panel", st)
 	bg.size = Vector2(tile, tile)
-	node.add_child(bg)
+	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(bg)
 	var ic := UI.icon(icon_name, int(tile) - 4, col)
 	ic.size = Vector2(tile - 4, tile - 4)
 	ic.position = Vector2(2, 2)
-	node.add_child(ic)
+	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(ic)
 	var bar := ColorRect.new()
 	bar.color = Color("#c0392b")
 	bar.size = Vector2(tile, 3)
 	bar.position = Vector2(0, tile - 1)
-	node.add_child(bar)
+	body.add_child(bar)
 	content.add_child(node)
-	return {"node": node, "icon": ic, "bar": bar, "color": col}
+	return {"node": node, "body": body, "icon": ic, "bar": bar, "color": col, "target": node.position, "tw": null}
 
 
 ## Create/remove tokens to match who is alive and visible; snap or glide to positions.
@@ -131,8 +145,16 @@ func sync_tokens(snap: bool = false) -> void:
 		want[m["c"].name] = {"pos": m["pos"], "icon": "mon_" + m["id"], "col": col, "ring": ring, "c": m["c"]}
 	for k in tokens.keys():
 		if not want.has(k):
-			tokens[k]["node"].queue_free()
+			# Fade out (dead or out of sight) but keep it findable for this turn's hit effects.
+			var gone: Dictionary = tokens[k]
 			tokens.erase(k)
+			_fading[k] = gone
+			var tw := create_tween()
+			tw.tween_property(gone["node"], "modulate:a", 0.0, 0.45).set_delay(0.15)
+			tw.tween_callback(func():
+				if _fading.get(k) == gone:
+					_fading.erase(k)
+				gone["node"].queue_free())
 	for k in want.keys():
 		var wv: Dictionary = want[k]
 		if not tokens.has(k) or tokens[k]["node"].size.x != tile:
@@ -147,11 +169,17 @@ func sync_tokens(snap: bool = false) -> void:
 		t["bar"].size.x = tile * clampf(float(c.hp) / float(maxi(1, c.max_hp)), 0.0, 1.0)
 		t["bar"].visible = c.hp < c.max_hp
 		var target := cell_center(wv["pos"]) - Vector2(tile, tile) / 2.0
-		if snap or t["node"].position.distance_to(target) > tile * 3.0:
+		if t["tw"] != null and t["tw"].is_valid() and t["target"] != target:
+			t["tw"].kill()
+		if snap or t["node"].position.distance_to(target) > tile * 8.0:
 			t["node"].position = target
-		elif t["node"].position != target:
+		elif t["target"] != target or t["node"].position != target:
+			# Long moves (charge) glide a little slower so you can follow them.
+			var dur := _move_time * clampf(t["node"].position.distance_to(target) / tile, 1.0, 2.0)
 			var tw := create_tween()
-			tw.tween_property(t["node"], "position", target, _move_time)
+			tw.tween_property(t["node"], "position", target, dur)
+			t["tw"] = tw
+		t["target"] = target
 	_camera(snap)
 
 
@@ -162,24 +190,25 @@ func set_move_time(sec: float) -> void:
 # --- effects ----------------------------------------------------------------
 
 func flash(nm: String, col: Color) -> void:
-	if not tokens.has(nm):
+	var t := _tok(nm)
+	if t.is_empty():
 		return
-	var ic: TextureRect = tokens[nm]["icon"]
-	var base: Color = tokens[nm]["color"]
+	var ic: TextureRect = t["icon"]
+	var base: Color = t["color"]
 	var tw := create_tween()
 	tw.tween_property(ic, "modulate", col, 0.05)
 	tw.tween_property(ic, "modulate", base, 0.2)
 
 
 func float_text(nm: String, text: String, col: Color, fsize: int = 18) -> void:
-	if not tokens.has(nm):
+	var t := _tok(nm)
+	if t.is_empty():
 		return
-	var node: Control = tokens[nm]["node"]
 	var l := UI.label(text, fsize, col, false)
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.add_theme_constant_override("outline_size", 5)
 	fx_layer.add_child(l)
-	l.position = node.position + Vector2(tile * 0.1 + randf_range(-6, 6), -tile * 0.4)
+	l.position = t["target"] + Vector2(tile * 0.1 + randf_range(-6, 6), -tile * 0.4)
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(l, "position:y", l.position.y - tile * 1.6, 0.8).set_ease(Tween.EASE_OUT)
 	tw.tween_property(l, "modulate:a", 0.0, 0.8).set_delay(0.3)
@@ -187,15 +216,18 @@ func float_text(nm: String, text: String, col: Color, fsize: int = 18) -> void:
 
 
 func lunge(src: String, dst: String) -> void:
-	if not tokens.has(src) or not tokens.has(dst) or src == dst:
+	var a := _tok(src)
+	var b := _tok(dst)
+	if a.is_empty() or b.is_empty() or src == dst:
 		return
-	var a: Control = tokens[src]["node"]
-	var b: Control = tokens[dst]["node"]
-	var home := a.position
-	var dir := (b.position - a.position).normalized() * tile * 0.3
+	var body: Control = a["body"]
+	var dir: Vector2 = (b["target"] - a["target"])
+	if dir.length() > tile * 1.5:
+		return   # ranged: no lunge across the room
+	dir = dir.normalized() * tile * 0.3
 	var tw := create_tween()
-	tw.tween_property(a, "position", home + dir, 0.05)
-	tw.tween_property(a, "position", home, 0.1)
+	tw.tween_property(body, "position", dir, 0.05)
+	tw.tween_property(body, "position", Vector2.ZERO, 0.1)
 
 
 func shake(amount: float) -> void:

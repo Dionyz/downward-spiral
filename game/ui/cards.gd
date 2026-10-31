@@ -76,56 +76,84 @@ static func boon_card(data: DSData, id: String, on_take: Callable, take_label: S
 	return card
 
 
-## Numbers that matter on an item, as {label: value}, for side-by-side comparison.
-static func item_stats(it) -> Dictionary:
-	var s := {}
+## Numbers that matter on an item, in display order: [[short label, value]].
+## Weapons lead with average damage (what you actually feel), then the range.
+static func item_stats(it) -> Array:
+	var s: Array = []
 	if it == null:
 		return s
 	if it.get("slot") == "weapon":
-		s["Min damage"] = int(it.get("min", 0))
-		s["Max damage"] = int(it.get("max", 0))
+		s.append(["Avg dmg", (int(it.get("min", 0)) + int(it.get("max", 0))) / 2.0])
 	if int(it.get("ac", 0)) != 0:
-		s["Armor (AC)"] = -int(it.get("ac", 0))
+		s.append(["Armor", -int(it.get("ac", 0))])
 	if int(it.get("damroll", 0)) != 0:
-		s["Damroll"] = int(it.get("damroll", 0))
+		s.append(["Damroll", int(it.get("damroll", 0))])
 	if int(it.get("hp", 0)) != 0:
-		s["HP"] = int(it.get("hp", 0))
+		s.append(["HP", int(it.get("hp", 0))])
 	if int(it.get("mana", 0)) != 0:
-		s["Mana"] = int(it.get("mana", 0))
+		s.append(["Mana", int(it.get("mana", 0))])
 	var sb: Dictionary = it.get("skill_bonus", {})
 	for k in sb.keys():
-		s[str(k).capitalize()] = int(sb[k])
+		s.append([str(k).capitalize(), int(sb[k])])
 	return s
 
 
-## Stat-by-stat comparison of `it` against what's equipped: [{text, color}].
-## Green = better than equipped, red = worse, plain = same or new.
+static func _num(v) -> String:
+	if typeof(v) == TYPE_FLOAT and v != floorf(v):
+		return "%.1f" % v
+	return str(int(v))
+
+
+## Compact stat chips for `it`, compared with what's equipped: [{text, color}].
+## Green = better than equipped, red = worse, plain = same (or nothing to compare).
 static func compare_lines(data: DSData, it: Dictionary, equipped) -> Array:
 	var a := item_stats(it)
-	var b := item_stats(equipped)
-	var keys: Array = a.keys()
-	for k in b.keys():
-		if not keys.has(k):
-			keys.append(k)
+	var b := {}
+	for e in item_stats(equipped):
+		b[e[0]] = e[1]
+	var seen := {}
 	var out: Array = []
-	for k in keys:
-		var va := int(a.get(k, 0))
-		var vb := int(b.get(k, 0))
+	for e in a:
+		var k: String = e[0]
+		seen[k] = true
+		var va: float = float(e[1])
+		var vb: float = float(b.get(k, 0))
 		var diff := va - vb
 		var col := UI.TEXT
 		var tail := ""
-		if equipped != null and diff != 0:
+		if equipped != null and absf(diff) > 0.01:
 			col = Color("#5fd35f") if diff > 0 else Color("#ff8c7a")
-			tail = "  (%s%d)" % ["+" if diff > 0 else "", diff]
-		out.append({"text": "%s %d%s" % [k, va, tail], "color": col})
+			tail = " (%s%s)" % ["+" if diff > 0 else "", _num(diff)]
+		var text := "%s %s%s" % [k, _num(e[1]), tail]
+		if k == "Avg dmg":
+			text += "  [%d-%d]" % [int(it.get("min", 0)), int(it.get("max", 0))]
+		out.append({"text": text, "color": col})
+	for k in b.keys():
+		if not seen.has(k):
+			out.append({"text": "%s -%s" % [k, _num(b[k])], "color": Color("#ff8c7a")})
 	for f in it.get("flags", []):
 		var had: bool = equipped != null and equipped.get("flags", []).has(f)
 		out.append({"text": str(f).capitalize(), "color": UI.TEXT if had else Color("#5fd35f")})
 	if equipped != null:
 		for f in equipped.get("flags", []):
 			if not it.get("flags", []).has(f):
-				out.append({"text": "loses %s" % str(f).capitalize(), "color": Color("#ff8c7a")})
+				out.append({"text": "no %s" % str(f).capitalize(), "color": Color("#ff8c7a")})
 	if it.has("passive"):
 		var lp: Dictionary = data.items.get("legendary_passives", {}).get(it["passive"], {})
-		out.append({"text": "★ %s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e")})
+		out.append({"text": "★ %s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e"), "wide": true})
 	return out
+
+
+## Lay stat chips out several per line, wrapping when they don't fit.
+static func stat_flow(lines: Array, size: int = 17) -> Control:
+	var box := VBoxContainer.new()
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 18)
+	flow.add_theme_constant_override("v_separation", 2)
+	box.add_child(flow)
+	for line in lines:
+		if line.get("wide", false):
+			box.add_child(UI.label(line["text"], size, line["color"]))
+		else:
+			flow.add_child(UI.label(line["text"], size, line["color"], false))
+	return box
