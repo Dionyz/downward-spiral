@@ -31,7 +31,9 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 	c.ac = int(st.get("ac_base", 0))
 	c.damroll = int(st.get("damroll_base", 0)) + int(st.get("damroll_per_level", 0)) * (level - 1)
 	c.melee_fail = 0
-	c.flags["damage_mult"] = 1.0 + float(opts.get("meta_damage_pct", 0)) / 100.0
+	c.flags["damage_mult"] = (1.0 + float(opts.get("meta_damage_pct", 0)) / 100.0) * (1.0 + float(st.get("damage_pct", 0)) / 100.0)
+	c.flags["spell_mult"] = 1.0 + float(st.get("spell_pct", 0)) / 100.0
+	c.flags["damage_taken_mult"] = 1.0 + float(st.get("damage_taken_pct", 0)) / 100.0
 
 	var bonuses: Dictionary = opts.get("bonuses", {})
 	for n in data.kit_abilities(line, tier, level):
@@ -169,6 +171,8 @@ static func make_monster(data: DSData, id: String, level: int, idx: int = 0) -> 
 	c.melee_fail = 40
 	c.tags = m.get("tags", []).duplicate()
 	c.flags["speed"] = int(m.get("speed", 0))
+	if m.has("steady"):
+		c.flags["steady"] = int(m["steady"])
 	if m.get("flying", false):
 		c.flags["flying"] = true
 	c.monster_abilities = {}
@@ -203,3 +207,13 @@ static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
 			c.add_status(k, int(ss[k]), {"ac": int(params.get("ac", 0))})
 	if c.flags.get("boon_mana_regen", false):
 		c.mana_regen += 2
+	if c.flags.get("boon_thick_blood", false):
+		c.max_hp = int(c.max_hp * 1.15)
+		c.hp = c.max_hp
+	if c.flags.get("boon_keen_edge", false) and c.weapon != null:
+		var w: Dictionary = c.weapon.duplicate(true)
+		if not w["flags"].has("sharp"):
+			w["flags"].append("sharp")
+		c.weapon = w
+		if c.offhand != null:
+			c.offhand = w

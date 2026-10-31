@@ -27,6 +27,8 @@ var potions := {"hp": 2, "mp": 2}
 var items := {"weapon": null, "armor": null, "trinket": null}
 var boons: Array = []
 var rules: Array = []
+var rules_custom: bool = false  # false = rules follow the class defaults as you level
+var actives_custom: bool = false  # false = loadout follows the class priority order as you level
 var actives: Array = []
 var floor_num: int = 1
 var floor_data: Dictionary = {}
@@ -52,8 +54,8 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int) -> DSRunState:
 	r.potions = {"hp": int(ps.get("hp", 2)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
 	var L: Dictionary = p_data.classes.get(p_line, {})
 	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
-	r.actives = DSFactory.default_actives(p_data, p_line, 1, 1)
-	r.rules = DSFactory.default_rules(p_data, p_line, 1, 1, DSFactory.rule_slots(p_data, 1))
+	r.actives = DSFactory.default_actives(p_data, p_line, r.tier(), 1)
+	r.rules = DSFactory.default_rules(p_data, p_line, r.tier(), 1, DSFactory.rule_slots(p_data, 1))
 	r._new_floor()
 	return r
 
@@ -63,7 +65,7 @@ func to_dict() -> Dictionary:
 		"version": 1, "seed": seed_value, "rng": rng.save_state(), "line": line, "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "boons": boons.duplicate(), "rules": rules.duplicate(true),
-		"actives": actives.duplicate(), "floor_num": floor_num, "floor_data": floor_data.duplicate(true),
+		"actives": actives.duplicate(), "rules_custom": rules_custom, "actives_custom": actives_custom, "floor_num": floor_num, "floor_data": floor_data.duplicate(true),
 		"step": step, "room": room.duplicate(true), "phase": phase, "result": result, "stats": stats.duplicate(),
 	}
 
@@ -86,6 +88,8 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.boons = _normalize(d.get("boons", []))
 	r.rules = _normalize(d.get("rules", []))
 	r.actives = _normalize(d.get("actives", []))
+	r.rules_custom = bool(d.get("rules_custom", false))
+	r.actives_custom = bool(d.get("actives_custom", false))
 	r.floor_num = int(d.get("floor_num", 1))
 	r.floor_data = _normalize(d.get("floor_data", {}))
 	r.step = int(d.get("step", 0))
@@ -137,7 +141,7 @@ func make_player() -> Combatant:
 		opts["armor"] = items["armor"]
 	if items["trinket"] != null:
 		opts["trinket"] = items["trinket"]
-	var p := DSFactory.make_player(data, line, 1, level, opts)
+	var p := DSFactory.make_player(data, line, tier(), level, opts)
 	DSFactory.apply_boons(data, p, boons)
 	if hp >= 0:
 		p.hp = clampi(hp, 1, p.max_hp)
@@ -146,13 +150,19 @@ func make_player() -> Combatant:
 	return p
 
 
+## Unlock schedule tier. Promotions are out, so every character uses one tier all run
+## (balance.unlock_tier, default 3: the spec's v1 classes are the top-tier lines). DECISIONS.md D-045.
+func tier() -> int:
+	return int(data.balance.get("unlock_tier", 3))
+
+
 func rule_slots() -> int:
 	return DSFactory.rule_slots(data, level)
 
 
 ## Every active the character knows at its level (for swapping at rest rooms).
 func known_actives() -> Array:
-	return data.kit_abilities(line, 1, level, "active")
+	return data.kit_abilities(line, tier(), level, "active")
 
 
 func monster_level() -> int:
@@ -314,6 +324,8 @@ func equip(item: Dictionary) -> void:
 func add_boon(id: String) -> void:
 	if not boons.has(id) and data.boons.has(id):
 		boons.append(id)
+		if id == "deep_pockets":
+			_add_potion("hp")
 		messages.append("Boon: %s." % data.boons[id].get("name", id))
 
 
@@ -367,6 +379,8 @@ func rest_train(new_actives: Array, new_rules: Array) -> void:
 		if known.has(a) and not picked.has(a) and picked.size() < cap:
 			picked.append(a)
 	if not picked.is_empty():
+		if picked != actives:
+			actives_custom = true
 		actives = picked
 	set_rules(new_rules)
 	messages.append("You drill your technique.")
@@ -375,7 +389,10 @@ func rest_train(new_actives: Array, new_rules: Array) -> void:
 
 ## Rules can be edited between any rooms (DECISIONS.md D-037).
 func set_rules(new_rules: Array) -> void:
-	rules = new_rules.slice(0, rule_slots()).duplicate(true)
+	var trimmed := new_rules.slice(0, rule_slots()).duplicate(true)
+	if JSON.stringify(trimmed) != JSON.stringify(rules):
+		rules_custom = true
+	rules = trimmed
 
 
 # --- event ---
@@ -450,7 +467,7 @@ func _heal_pct(hp_pct: int, mana_pct: int) -> void:
 
 
 func _add_potion(kind: String) -> bool:
-	var cap := int(_cfg().get("potion_max", 5))
+	var cap := int(_cfg().get("potion_max", 5)) + (2 if boons.has("deep_pockets") else 0)
 	if int(potions.get(kind, 0)) >= cap:
 		return false
 	potions[kind] = int(potions.get(kind, 0)) + 1
@@ -472,6 +489,7 @@ func add_xp(amount: int) -> int:
 	while level < 10 and xp >= xp_to_next():
 		xp -= xp_to_next()
 		var before := make_player()
+		var before_known := known_actives()
 		level += 1
 		gained += 1
 		var after := make_player()
@@ -480,11 +498,21 @@ func add_xp(amount: int) -> int:
 		if mana >= 0:
 			mana += after.max_mana - before.max_mana
 		var cap := int(data.balance.get("max_actives", 4))
-		for a in DSFactory.default_actives(data, line, 1, level):
-			if not actives.has(a) and actives.size() < cap:
-				actives.append(a)
-				messages.append("Learned %s." % a)
+		var learned: Array = []
+		for a in known_actives():
+			if not before_known.has(a):
+				learned.append(a)
+		for a in learned:
+			messages.append("Learned %s." % a)
+		if not actives_custom:
+			actives = DSFactory.default_actives(data, line, tier(), level)
+		else:
+			for a in learned:
+				if not actives.has(a) and actives.size() < cap:
+					actives.append(a)
 		messages.append("Level %d!" % level)
+		if not rules_custom:
+			rules = DSFactory.default_rules(data, line, tier(), level, rule_slots())
 	if level >= 10:
 		xp = 0
 	return gained

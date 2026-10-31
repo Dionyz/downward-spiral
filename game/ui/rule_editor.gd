@@ -85,6 +85,8 @@ func _fill_values(row: Dictionary, current) -> void:
 	if key in PCT_CONDS:
 		for p in PCT_VALUES:
 			opts.append("%d%%" % p)
+	elif key == "enemies_at_least":
+		opts = ["2", "3", "4"]
 	elif key in ["enemy_has_status", "enemy_lacks_status"]:
 		opts = DSRules.ENEMY_STATUSES.duplicate()
 	elif key == "missing_buff":
@@ -96,7 +98,7 @@ func _fill_values(row: Dictionary, current) -> void:
 		return
 	var idx := 0
 	if current != null:
-		var want := ("%d%%" % int(current)) if key in PCT_CONDS else str(current)
+		var want := ("%d%%" % int(current)) if key in PCT_CONDS else str(int(current) if key == "enemies_at_least" else current)
 		idx = maxi(0, opts.find(want))
 	elif key in PCT_CONDS:
 		idx = 3
@@ -114,6 +116,6 @@ func get_rules() -> Array:
 		var val: OptionButton = row["value"]
 		if val.visible and val.selected >= 0:
 			var txt := val.get_item_text(val.selected)
-			r["value"] = int(txt.trim_suffix("%")) if key in PCT_CONDS else txt
+			r["value"] = int(txt.trim_suffix("%")) if key in PCT_CONDS or key == "enemies_at_least" else txt
 		out.append(r)
 	return out

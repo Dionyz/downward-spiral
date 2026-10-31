@@ -3,8 +3,8 @@
  "lines": {
   "warrior": {
    "stats": {
-    "hp_base": 150,
-    "hp_per_level": 32,
+    "hp_base": 130,
+    "hp_per_level": 22,
     "mana_base": 0,
     "mana_per_level": 0,
     "size": "medium",
@@ -16,7 +16,9 @@
      "wis": 11
     },
     "ac_base": -150,
-    "shield_block_value": 55
+    "shield_block_value": 35,
+    "damage_pct": -20,
+    "damage_taken_pct": 40
    },
    "default_rules": [
     {
@@ -52,7 +54,9 @@
      "int": 13,
      "wis": 11
     },
-    "ac_base": -80
+    "ac_base": -80,
+    "damage_pct": 15,
+    "damage_taken_pct": 6
    },
    "default_rules": [
     {
@@ -77,11 +81,11 @@
   },
   "mage": {
    "stats": {
-    "hp_base": 90,
-    "hp_per_level": 18,
+    "hp_base": 140,
+    "hp_per_level": 32,
     "mana_base": 60,
     "mana_per_level": 14,
-    "mana_regen": 2,
+    "mana_regen": 5,
     "size": "medium",
     "attributes": {
      "str": 11,
@@ -90,7 +94,9 @@
      "int": 19,
      "wis": 16
     },
-    "ac_base": -50
+    "ac_base": -50,
+    "spell_pct": 150,
+    "damage_taken_pct": 0
    },
    "default_rules": [
     {
@@ -100,16 +106,16 @@
     },
     {
      "if": "hp_below",
-     "value": 50,
+     "value": 60,
      "then": "sanctuary"
     },
     {
-     "if": "always",
-     "then": "magic fist"
+     "if": "enemies_at_least",
+     "value": 2,
+     "then": "chain lightning"
     },
     {
-     "if": "mana_below",
-     "value": 30,
+     "if": "always",
      "then": "magic fist"
     }
    ]
@@ -126,7 +132,9 @@
      "int": 12,
      "wis": 11
     },
-    "ac_base": -80
+    "ac_base": -80,
+    "damage_pct": 10,
+    "damage_taken_pct": 0
    },
    "default_rules": [
     {
@@ -135,7 +143,8 @@
      "then": "dance:predator"
     },
     {
-     "if": "always",
+     "if": "enemies_at_least",
+     "value": 2,
      "then": "whirlwind"
     },
     {

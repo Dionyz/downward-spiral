@@ -205,3 +205,43 @@ func test_boss_has_phases():
 	assert_true(m.monster_abilities.has("coiling_lash"))
 	sim.apply_damage(p, m, int(m.max_hp * 0.3), "hit", "slash", false)
 	assert_eq(int(m.flags.get("phase", 0)), 2)
+
+
+func test_forty_boons_six_per_class_sixteen_shared():
+	assert_eq(data.boons.size(), 40)
+	var per := {}
+	for id in data.boons.keys():
+		var lines: Array = data.boons[id].get("lines", [])
+		var key := "shared" if lines.is_empty() else str(lines[0])
+		per[key] = int(per.get(key, 0)) + 1
+	assert_eq(per, {"shared": 16, "warrior": 6, "thief": 6, "mage": 6, "knifer": 6})
+
+
+func test_every_boon_flag_is_implemented():
+	# Every flag a boon sets must be read somewhere in game/core.
+	var src := ""
+	for f in DirAccess.get_files_at("res://game/core"):
+		if f.ends_with(".gd"):
+			src += FileAccess.get_file_as_string("res://game/core/" + f)
+	for id in data.boons.keys():
+		var e: Dictionary = data.boons[id].get("effect", {})
+		if e.has("flag"):
+			assert_true(src.find('"%s"' % e["flag"]) >= 0, "boon %s flag %s is never read" % [id, e["flag"]])
+		if e.has("run"):
+			assert_true(src.find('"%s"' % id) >= 0 or src.find('"%s"' % e["run"]) >= 0, "boon %s run effect unused" % id)
+
+
+func test_every_boon_survives_a_fight():
+	# Smoke: each boon, on its class (or warrior for shared ones), through a real fight.
+	for id in data.boons.keys():
+		var lines: Array = data.boons[id].get("lines", [])
+		var line := "warrior" if lines.is_empty() else str(lines[0])
+		var r := DSRunState.new_run(data, line, 77)
+		r.level = 8
+		r.boons = [id]
+		r.actives = r.known_actives().slice(0, 4)
+		var p := r.make_player()
+		var foes := DSEncounters.build(data, ["goblin_cutter", "orc_brute"], 6)
+		var sim := CombatSim.new(DSRng.new(5), data)
+		sim.run(p, foes)
+		assert_true(sim.over, "fight with %s ends" % id)

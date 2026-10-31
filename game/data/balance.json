@@ -20,9 +20,9 @@
  "max_rounds": 200,
  "potion_pct": 35,
  "monster_scaling": {
-  "hp_linear": 0.9,
-  "hp_quadratic": 0.12,
-  "dmg_linear": 0.3
+  "hp_linear": 1.1,
+  "hp_quadratic": 0.15,
+  "dmg_linear": 0.38
  },
  "promotions": false,
  "fight_size": [
@@ -70,5 +70,20 @@
   "death_xp_pct": 50,
   "extract_xp_pct": 100,
   "extract_from_floor": 2
- }
+ },
+ "group_scale": {
+  "2": [
+   0.85,
+   0.85
+  ],
+  "3": [
+   0.72,
+   0.72
+  ],
+  "4": [
+   0.62,
+   0.62
+  ]
+ },
+ "unlock_tier": 3
 }

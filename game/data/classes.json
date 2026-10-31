@@ -40,6 +40,13 @@
     "third attack",
     "stun"
    ],
+   "starting_passives": [
+    "enhanced damage",
+    "parry",
+    "shield block",
+    "second attack",
+    "third attack"
+   ],
    "starting_actives": [
     "bash",
     "kick"
@@ -94,6 +101,11 @@
     "parry",
     "critical hit"
    ],
+   "starting_passives": [
+    "dodge",
+    "second attack",
+    "dual wield"
+   ],
    "starting_actives": [
     "backstab",
     "dirt kicking"
@@ -141,18 +153,19 @@
     }
    ],
    "passives": [],
+   "starting_passives": [],
    "starting_actives": [
     "magic fist",
     "shield"
    ],
    "signature": [
-    "armor",
-    "sleep",
-    "slow",
-    "implosion",
     "chain lightning",
     "sanctuary",
-    "haste"
+    "implosion",
+    "sleep",
+    "armor",
+    "haste",
+    "slow"
    ],
    "starting_weapon": "dagger",
    "offhand": null
@@ -194,6 +207,12 @@
     "second attack",
     "dual wield",
     "third attack"
+   ],
+   "starting_passives": [
+    "dodge",
+    "parry",
+    "second attack",
+    "dual wield"
    ],
    "starting_actives": [
     "whirlwind",

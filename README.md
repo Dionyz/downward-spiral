@@ -11,7 +11,8 @@ Single-player Android roguelike: auto-exploration and rule-driven auto combat th
 | 3. Rules | Done (telegraphs dropped by owner). |
 | 4. Playable text prototype | Done on desktop (Android export deferred by owner). |
 | 5. Run loop | Done: 6 floors, all room types, rewards, items, boons, events, boss, extraction, death, save/resume. |
-| 6–8 | Not started. |
+| 6. All four classes | Done: 40 boons, boss, 1,000-run balance within 6.7 points. |
+| 7–8 | In progress. |
 
 ## Layout
 

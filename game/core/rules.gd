@@ -12,6 +12,7 @@ const CONDITIONS := {
 	"hp_below": "My HP below X%",
 	"mana_below": "My mana below X%",
 	"enemy_hp_below": "Enemy HP below X%",
+	"enemies_at_least": "At least N enemies standing",
 	"enemy_has_status": "Enemy has status",
 	"enemy_lacks_status": "Enemy doesn't have status",
 	"missing_buff": "I don't have buff",
@@ -63,6 +64,8 @@ func _condition_target(sim, me, r: Dictionary, living: Array):
 				if f.hp_pct() < float(v):
 					return f
 			return null
+		"enemies_at_least":
+			return first if living.size() >= int(v) else null
 		"enemy_has_status":
 			for f in living:
 				if f.has_status(str(v)):
@@ -91,6 +94,8 @@ static func describe(r: Dictionary) -> String:
 	var lhs := label
 	if label.find("X") >= 0 and v != null:
 		lhs = label.replace("X", str(v))
+	elif label.find(" N ") >= 0 and v != null:
+		lhs = label.replace(" N ", " %s " % str(v))
 	elif v != null and cond in ["enemy_has_status", "enemy_lacks_status", "missing_buff"]:
 		lhs = "%s: %s" % [label, str(v)]
 	return "IF %s THEN %s" % [lhs, str(r.get("then", "?"))]

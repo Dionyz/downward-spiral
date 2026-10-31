@@ -206,6 +206,7 @@ func test_legendary_second_wind_fires_once():
 	var sim := CombatSim.new(DSRng.new(3), data)
 	var p := DSFactory.make_player(data, "warrior", 1, 1, {"rules": [], "actives": []})
 	p.flags["passives"] = ["second_wind"]
+	p.flags["damage_taken_mult"] = 1.0
 	var m := H.dummy("mob")
 	sim.begin(p, [m])
 	sim.apply_damage(m, p, int(p.max_hp * 0.4), "hit", "bash", false, {"uncapped": true})

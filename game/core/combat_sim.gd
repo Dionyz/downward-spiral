@@ -50,6 +50,10 @@ func begin(p: Combatant, foes: Array) -> Array:
 	events = []
 	history = []
 	player.flags["second_wind_used"] = false
+	player.flags["last_stand_used"] = false
+	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false)
+	player.flags["momentum"] = 0
+	player.flags["counter_ready"] = false
 	_emit({"t": "fight_start", "src": player.name, "enemies": foes.map(func(e): return e.name)})
 	if _has_passive(player, "pale_ward"):
 		player.add_status("sanctuary", 3)
@@ -343,6 +347,17 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 		dam += DSStats.idiv(dam, 4)
 	if ch.flags.get("boon_opportunist", false) and (not victim.can_see() or victim.is_stunned() or victim.has_status("knocked_down")):
 		dam += DSStats.idiv(dam * 3, 10)
+	if ch.flags.get("boon_executioners_eye", false) and victim.hp_pct() < 30.0:
+		dam += DSStats.idiv(dam, 5)
+	if ch.flags.get("counter_ready", false):
+		dam += DSStats.idiv(dam, 2)
+		ch.flags["counter_ready"] = false
+	if ch.flags.get("first_blood_ready", false):
+		dam *= 2
+		ch.flags["first_blood_ready"] = false
+	var mom := int(ch.flags.get("momentum", 0))
+	if mom > 0:
+		dam += DSStats.idiv(dam * 10 * mom, 100)
 	var stacks := int(ch.flags.get("parry_stacks", 0))
 	if stacks > 0:
 		dam += DSStats.idiv(dam * 5 * stacks, 100)
@@ -363,6 +378,8 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 			_emit({"t": "heal", "src": ch.name, "dst": ch.name, "amount": heal, "source": "bloodthirst"})
 	if dealt > 0 and _has_passive(victim, "thornmail") and ch.is_alive():
 		_raw_damage(victim, ch, maxi(1, DSStats.idiv(dealt * 15, 100)), "thorns")
+	if dealt > 0 and victim.flags.get("boon_spiked_hide", false) and ch.is_alive() and dt == HIT:
+		_raw_damage(victim, ch, maxi(1, DSStats.idiv(victim.mud_level, 5)), "thorns")
 
 
 ## get_char_min()/get_char_max(). Returns [min, max] before damage() reductions.
@@ -391,8 +408,12 @@ func damage_range(ch: Combatant, dt: String, wield, st0: bool, st4: bool) -> Arr
 		mx += DSStats.idiv(mx, 20)
 	match ch.stance:
 		"mist":
-			mn = DSStats.idiv(mn, 3)
-			mx = DSStats.idiv(mx, 3)
+			if ch.flags.get("boon_mist_walker", false):
+				mn = DSStats.idiv(mn * 2, 3)
+				mx = DSStats.idiv(mx * 2, 3)
+			else:
+				mn = DSStats.idiv(mn, 3)
+				mx = DSStats.idiv(mx, 3)
 		"storm":
 			mn += DSStats.idiv(mn, 3)
 			mx += DSStats.idiv(mx, 3)
@@ -513,6 +534,8 @@ func _check_sidestep(ch: Combatant, victim: Combatant) -> bool:
 	if c <= 0 or rng.number_percent() >= c:
 		return false
 	_emit({"t": "dodge", "src": victim.name, "dst": ch.name, "how": "sidestep"})
+	if victim.flags.get("boon_evasive_counter", false):
+		victim.flags["counter_ready"] = true
 	return true
 
 
@@ -523,6 +546,8 @@ func _check_parry(ch: Combatant, victim: Combatant) -> bool:
 	_emit({"t": "parry", "src": victim.name, "dst": ch.name})
 	if victim.flags.get("boon_parry_stack", false):
 		victim.flags["parry_stacks"] = mini(5, int(victim.flags.get("parry_stacks", 0)) + 1)
+	if victim.flags.get("boon_cobra_strike", false) and victim.stance == "cobra" and ch.is_alive():
+		_one_hit(victim, ch, "counter", false)
 	return true
 
 
@@ -531,6 +556,8 @@ func _check_dodge(ch: Combatant, victim: Combatant) -> bool:
 	if c <= 0 or rng.number_percent() >= c:
 		return false
 	_emit({"t": "dodge", "src": victim.name, "dst": ch.name})
+	if victim.flags.get("boon_evasive_counter", false):
+		victim.flags["counter_ready"] = true
 	return true
 
 
@@ -572,6 +599,9 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	# Spec: minimum 1 damage once something got through.
 	if dam < 1 and orig > 0 and not (dam_type in victim.immune):
 		dam = 1
+	var dtm := float(victim.flags.get("damage_taken_mult", 1.0))
+	if dtm != 1.0 and victim.is_player:
+		dam = maxi(1, int(dam * dtm))
 	# No one-shots: any single enemy hit is capped at a share of the player's max HP (DECISIONS.md D-013).
 	if ch != null and not ch.is_player and victim.is_player and not extra.get("uncapped", false):
 		var cap := int(victim.max_hp * float(balance.get("enemy_hit_cap_pct", 35)) / 100.0)
@@ -629,6 +659,15 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": sw, "source": "second wind"})
 	if victim.hp > 0 and not victim.is_player:
 		_check_phase(victim)
+	if victim.hp <= 0 and victim.flags.get("boon_last_stand", false) and not victim.flags.get("last_stand_used", false):
+		victim.flags["last_stand_used"] = true
+		victim.hp = 1
+		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": 0, "source": "last stand"})
+	if victim.hp <= 0 and not victim.is_player and player != null and player.is_alive():
+		if player.flags.get("boon_momentum", false):
+			player.flags["momentum"] = int(player.flags.get("momentum", 0)) + 1
+		if player.flags.get("boon_soul_siphon", false) and player.max_mana > 0:
+			player.mana = mini(player.max_mana, player.mana + DSStats.idiv(player.max_mana, 10))
 	if victim.hp <= 0:
 		victim.hp = 0
 		_emit({"t": "death", "src": victim.name, "killer": ch.name if ch != null else ""})
@@ -727,6 +766,10 @@ func can_use(c: Combatant, ref: String, target) -> bool:
 			var frac := float(p.get("min_victim_hp_frac", 0.0))
 			if c.flags.get("boon_backstab_low", false) and aname == "backstab":
 				frac = 0.0
+			if c.flags.get("boon_cutthroat", false) and aname == "circle":
+				frac = 0.0
+			if c.flags.get("boon_relentless_charge", false) and aname == "charge":
+				frac = 0.0
 			if float(target.hp) < float(target.max_hp) * frac:
 				return false
 			if p.get("needs_weapon", false) and c.weapon == null:
@@ -748,7 +791,7 @@ func can_use(c: Combatant, ref: String, target) -> bool:
 				return false
 		"aoe_strike":
 			var rs = p.get("requires_stance", null)
-			if rs != null and c.stance != str(rs):
+			if rs != null and c.stance != str(rs) and not c.flags.get("boon_storm_caller", false):
 				return false
 		"stance":
 			var want := arg if arg != "" else str(p.get("default_stance", "predator"))
@@ -843,6 +886,9 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	apply_damage(c, v, dmg, "bash", "bash", false)
 	if not v.is_alive():
 		return
+	if v.flags.has("steady") and rng.number_percent() <= int(v.flags["steady"]):
+		_emit({"t": "resist", "src": v.name, "ability": "knockdown"})
+		return
 	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
@@ -872,6 +918,9 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	apply_damage(c, v, rng.number_range(2, 2 * (DSStats.size_index(v.size) + 1) + 2), "trip", "bash", false)
 	if not v.is_alive():
 		return
+	if v.flags.has("steady") and rng.number_percent() <= int(v.flags["steady"]):
+		_emit({"t": "resist", "src": v.name, "ability": "knockdown"})
+		return
 	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
@@ -886,6 +935,9 @@ func _h_direct(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> voi
 	var lo := c.mud_level * int(p.get("dam_min_level_mult", 1))
 	var hi := c.mud_level * int(p.get("dam_max_level_mult", 2))
 	apply_damage(c, v, rng.number_range(lo, hi), aname, str(p.get("dam_type", "bash")), false)
+	if c.flags.get("boon_stunning_kick", false) and v.is_alive() and not v.no_stun and rng.number_percent() <= 25:
+		v.add_status("stunned", 2)
+		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": 1})
 
 
 ## act_combat.c do_berserk
@@ -916,6 +968,12 @@ func _h_buff(c: Combatant, a: Dictionary, p: Dictionary) -> void:
 		return
 	var st := str(p.get("status", aname))
 	var rounds := int(p.get("duration_rounds", 6))
+	if c.flags.get("boon_lingering_ward", false) and aname in ["shield", "armor"]:
+		rounds *= 2
+	if c.flags.get("boon_warcry_heal", false) and aname == "warcry":
+		var wh := int(c.max_hp * 0.15)
+		c.hp = mini(c.max_hp, c.hp + wh)
+		_emit({"t": "heal", "src": c.name, "dst": c.name, "amount": wh, "source": "warcry"})
 	var d := {}
 	if p.has("hitroll_level_div"):
 		d["hitroll"] = DSStats.idiv(c.mud_level, int(p["hitroll_level_div"]))
@@ -944,6 +1002,9 @@ func _h_opener(c: Combatant, v: Combatant, aname: String) -> void:
 			c.damroll += DSStats.idiv(c.mud_level, 4)
 		_multi_hit(c, v, aname)
 		c.damroll = saved
+		if aname == "cross slash" and c.flags.get("boon_bleeding_cross", false) and v.is_alive():
+			v.add_status("bleeding", 4, {"dmg": maxi(1, DSStats.idiv(c.mud_level, 4))})
+			_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "bleeding", "rounds": 3})
 	else:
 		_miss(c, v, aname)
 
@@ -979,6 +1040,8 @@ func _h_debuff(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 		return
 	var st := str(p.get("status", "blind"))
 	var rounds := int(p.get("duration_rounds", 2))
+	if aname == "dirt kicking" and c.flags.get("boon_long_dirt", false):
+		rounds += 2
 	var hr := int(p.get("hitroll", -DSStats.idiv(c.mud_level, int(p.get("hitroll_level_div", 4)))))
 	v.add_status(st, rounds + 1, {"hitroll": hr})
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
@@ -1001,12 +1064,18 @@ func _h_strike(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 	if rng.number_percent() >= chance:
 		_miss(c, v, aname)
 		return
-	for _i in int(p.get("swings", 1)):
+	var swings := int(p.get("swings", 1))
+	if aname == "toss daggers" and c.flags.get("boon_double_toss", false):
+		swings += 1
+	for _i in swings:
 		_one_hit(c, v, aname, false)
 
 
-func _spell_scale() -> float:
-	return float(balance.get("spell_damage_scale", 1.0))
+func _spell_scale(c: Combatant = null) -> float:
+	var m := 1.0
+	if c != null:
+		m = float(c.flags.get("spell_mult", 1.0)) * float(c.flags.get("damage_mult", 1.0))
+	return float(balance.get("spell_damage_scale", 1.0)) * m
 
 
 ## magic fist, implosion
@@ -1018,7 +1087,9 @@ func _h_spell_damage(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 			dam = int(dam * float(p.get("save_mult", 1.0)))
 	else:
 		dam = rng.number_range(int(p.get("dam_flat_min", 1)), int(p.get("dam_flat_max", 1)) + int(p.get("dam_max_level_mult", 0)) * c.mud_level)
-	dam = int(dam * _spell_scale())
+	dam = int(dam * _spell_scale(c))
+	if aname == "magic fist" and c.flags.get("boon_empowered_fist", false) and v.hp_pct() > 50.0:
+		dam += DSStats.idiv(dam, 2)
 	apply_damage(c, v, dam, aname, str(p.get("dam_type", "other")), true)
 
 
@@ -1036,7 +1107,7 @@ func _h_chain(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 	var dam := rng.dice(level, dl)
 	if _saves(c, v, level):
 		dam = int(dam * float(p.get("save_mult", 0.5)))
-	apply_damage(c, v, int(dam * _spell_scale()), aname, "lightning", true)
+	apply_damage(c, v, int(dam * _spell_scale(c)), aname, "lightning", true)
 	var last: Combatant = v
 	level -= dec
 	var guard := 0
@@ -1052,7 +1123,7 @@ func _h_chain(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 				var d2 := rng.dice(level, dl)
 				if _saves(c, tv, level):
 					d2 = int(d2 * float(p.get("save_mult", 0.5)))
-				apply_damage(c, tv, int(d2 * _spell_scale()), aname, "lightning", true)
+				apply_damage(c, tv, int(d2 * _spell_scale(c)), aname, "lightning", true)
 			level -= dec
 		if not found:
 			return  # one target left: the bolt fizzles (MUD backlash dropped, DECISIONS.md D-025)
@@ -1068,6 +1139,8 @@ func _h_spell_status(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 		return
 	var st := str(p.get("status", aname))
 	var rounds := int(p.get("duration_rounds", 2))
+	if aname == "sleep" and c.flags.get("boon_deep_sleep", false):
+		rounds += 2
 	for disp in p.get("dispels", []):
 		v.remove_status(disp)
 	v.add_status(st, rounds + 1)
@@ -1093,6 +1166,8 @@ func _h_aoe(c: Combatant, aname: String, p: Dictionary) -> void:
 				extra = 2
 			elif roll > int(p.get("bonus_one_over", 101)):
 				extra = 1
+		if aname == "whirlwind" and c.flags.get("boon_whirling_blades", false):
+			extra = maxi(extra, 1)
 		for _i in extra:
 			_one_hit(c, v, aname, false)
 

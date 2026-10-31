@@ -64,7 +64,7 @@ func tier_class(line: String, tier: int) -> String:
 ## Spec kit "starting actives" are forced to level 1 (DECISIONS.md D-010).
 func unlock_level(ability_name: String, line: String, tier: int) -> int:
 	var l: Dictionary = classes.get(line, {})
-	if ability_name in l.get("starting_actives", []):
+	if ability_name in l.get("starting_actives", []) or ability_name in l.get("starting_passives", []):
 		return 1
 	var a := ability(ability_name)
 	if a.is_empty():

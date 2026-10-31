@@ -14,13 +14,13 @@
   "armor": {
    "params": {
     "duration_rounds": 12,
-    "ac": -400
+    "ac": -800
    }
   },
   "shield": {
    "params": {
     "duration_rounds": 12,
-    "ac": -400
+    "ac": -800
    }
   },
   "sanctuary": {

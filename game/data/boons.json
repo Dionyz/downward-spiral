@@ -18,8 +18,7 @@
    "name": "Riposte",
    "desc": "Each parry adds +5% damage to your next swing, stacking to 5.",
    "lines": [
-    "warrior",
-    "knifer"
+    "warrior"
    ],
    "refs": [
     "parry"
@@ -198,6 +197,305 @@
    ],
    "effect": {
     "run": "post_fight_heal"
+   }
+  },
+  "war_mender": {
+   "name": "War Mender",
+   "desc": "Warcry also heals 15% of your max HP.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "warcry"
+   ],
+   "effect": {
+    "flag": "boon_warcry_heal"
+   }
+  },
+  "bone_breaker": {
+   "name": "Bone Breaker",
+   "desc": "Kick has a 25% chance to stun for a round.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "kick"
+   ],
+   "effect": {
+    "flag": "boon_stunning_kick"
+   }
+  },
+  "relentless_charge": {
+   "name": "Relentless Charge",
+   "desc": "Charge works on wounded targets too.",
+   "lines": [
+    "warrior"
+   ],
+   "refs": [
+    "charge"
+   ],
+   "effect": {
+    "flag": "boon_relentless_charge"
+   }
+  },
+  "evasive_counter": {
+   "name": "Evasive Counter",
+   "desc": "After you dodge or sidestep, your next swing deals +50% damage.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "dodge",
+    "sidestep"
+   ],
+   "effect": {
+    "flag": "boon_evasive_counter"
+   }
+  },
+  "grit_in_the_eyes": {
+   "name": "Grit in the Eyes",
+   "desc": "Dirt kicking blinds for 2 extra rounds.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "dirt kicking"
+   ],
+   "effect": {
+    "flag": "boon_long_dirt"
+   }
+  },
+  "cutthroat": {
+   "name": "Cutthroat",
+   "desc": "Circle works on badly wounded targets too.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "circle"
+   ],
+   "effect": {
+    "flag": "boon_cutthroat"
+   }
+  },
+  "twin_throw": {
+   "name": "Twin Throw",
+   "desc": "Toss daggers throws two blades.",
+   "lines": [
+    "thief"
+   ],
+   "refs": [
+    "toss daggers"
+   ],
+   "effect": {
+    "flag": "boon_double_toss"
+   }
+  },
+  "crushing_fist": {
+   "name": "Crushing Fist",
+   "desc": "Magic fist deals +50% damage to enemies above half HP.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "magic fist"
+   ],
+   "effect": {
+    "flag": "boon_empowered_fist"
+   }
+  },
+  "deep_slumber": {
+   "name": "Deep Slumber",
+   "desc": "Sleep lasts 2 extra rounds.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "sleep"
+   ],
+   "effect": {
+    "flag": "boon_deep_sleep"
+   }
+  },
+  "lingering_ward": {
+   "name": "Lingering Ward",
+   "desc": "Shield and armor last twice as long.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "shield",
+    "armor"
+   ],
+   "effect": {
+    "flag": "boon_lingering_ward"
+   }
+  },
+  "soul_siphon": {
+   "name": "Soul Siphon",
+   "desc": "Each kill restores 10% of your mana.",
+   "lines": [
+    "mage"
+   ],
+   "refs": [
+    "magic fist"
+   ],
+   "effect": {
+    "flag": "boon_soul_siphon"
+   }
+  },
+  "mist_walker": {
+   "name": "Mist Walker",
+   "desc": "Mist dance only costs a third of your damage instead of two thirds.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "dance"
+   ],
+   "effect": {
+    "flag": "boon_mist_walker"
+   }
+  },
+  "whirling_blades": {
+   "name": "Whirling Blades",
+   "desc": "Whirlwind always strikes each enemy at least twice.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "whirlwind"
+   ],
+   "effect": {
+    "flag": "boon_whirling_blades"
+   }
+  },
+  "cobra_strike": {
+   "name": "Cobra Strike",
+   "desc": "In cobra dance, every parry triggers a counter-swing.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "dance",
+    "parry"
+   ],
+   "effect": {
+    "flag": "boon_cobra_strike"
+   }
+  },
+  "bleeding_cross": {
+   "name": "Bleeding Cross",
+   "desc": "Cross slash leaves the target bleeding for 3 rounds.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "cross slash"
+   ],
+   "effect": {
+    "flag": "boon_bleeding_cross"
+   }
+  },
+  "storm_caller": {
+   "name": "Storm Caller",
+   "desc": "Storm of blades no longer needs the storm dance.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "storm of blades"
+   ],
+   "effect": {
+    "flag": "boon_storm_caller"
+   }
+  },
+  "thick_blood": {
+   "name": "Thick Blood",
+   "desc": "+15% max HP.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "flag": "boon_thick_blood"
+   }
+  },
+  "first_blood": {
+   "name": "First Blood",
+   "desc": "Your first hit in each fight deals double damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_first_blood"
+   }
+  },
+  "executioners_eye": {
+   "name": "Executioner's Eye",
+   "desc": "+20% damage against enemies below 30% HP.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_executioners_eye"
+   }
+  },
+  "last_stand": {
+   "name": "Last Stand",
+   "desc": "Once per fight, a killing blow leaves you at 1 HP instead.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "effect": {
+    "flag": "boon_last_stand"
+   }
+  },
+  "momentum": {
+   "name": "Momentum",
+   "desc": "Each kill in a fight adds +10% damage for the rest of it.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_momentum"
+   }
+  },
+  "deep_pockets": {
+   "name": "Deep Pockets",
+   "desc": "Carry 2 more potions of each kind, and get one HP potion now.",
+   "lines": [],
+   "refs": [
+    "potion"
+   ],
+   "effect": {
+    "run": "deep_pockets"
+   }
+  },
+  "spiked_hide": {
+   "name": "Spiked Hide",
+   "desc": "Enemies that hit you in melee take damage back.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_spiked_hide"
+   }
+  },
+  "keen_edge": {
+   "name": "Keen Edge",
+   "desc": "Your weapon counts as sharp (+15% damage).",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "effect": {
+    "flag": "boon_keen_edge"
    }
   }
  }

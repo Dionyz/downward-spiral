@@ -291,7 +291,8 @@
      "value": 35,
      "then": "crushing_blow"
     }
-   ]
+   ],
+   "steady": 50
   },
   "hollow_matron": {
    "name": "the Hollow Matron",
@@ -344,7 +345,8 @@
      "value": 35,
      "then": "lunging_lash"
     }
-   ]
+   ],
+   "steady": 50
   },
   "carrion_knight": {
    "name": "a carrion knight",
@@ -518,7 +520,8 @@
      ],
      "speed": 1
     }
-   ]
+   ],
+   "steady": 50
   }
  }
 }

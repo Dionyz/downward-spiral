@@ -51,24 +51,28 @@ EXTRA_UNLOCKS = {"sidestep": {"thief": 21, "mercenary": 11, "blade": 1}}
 CLASS_KITS = {
     "warrior": {
         "passives": ["enhanced damage", "parry", "shield block", "second attack", "third attack", "stun"],
+        "starting_passives": ["enhanced damage", "parry", "shield block", "second attack", "third attack"],
         "starting_actives": ["bash", "kick"],
         "signature": ["berserk", "warcry", "charge", "dirt kicking", "trip"],
         "starting_weapon": "sword", "offhand": "shield",
     },
     "thief": {
         "passives": ["dodge", "sidestep", "second attack", "dual wield", "third attack", "parry", "critical hit"],
+        "starting_passives": ["dodge", "second attack", "dual wield"],
         "starting_actives": ["backstab", "dirt kicking"],
         "signature": ["trip", "envenom", "circle", "gouge", "toss daggers", "kick"],
         "starting_weapon": "dagger", "offhand": "dagger",
     },
     "mage": {
         "passives": [],
+        "starting_passives": [],
         "starting_actives": ["magic fist", "shield"],
-        "signature": ["armor", "sleep", "slow", "implosion", "chain lightning", "sanctuary", "haste"],
+        "signature": ["chain lightning", "sanctuary", "implosion", "sleep", "armor", "haste", "slow"],
         "starting_weapon": "dagger", "offhand": None,
     },
     "knifer": {
         "passives": ["dodge", "parry", "second attack", "dual wield", "third attack"],
+        "starting_passives": ["dodge", "parry", "second attack", "dual wield"],
         "starting_actives": ["whirlwind", "dance"],
         "signature": ["blinding strike", "storm of blades", "cross slash", "transfix", "trip", "kick"],
         "starting_weapon": "sabre", "offhand": "dagger",
