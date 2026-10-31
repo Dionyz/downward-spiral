@@ -32,6 +32,9 @@ static func show(parent: Control, id: String, on_close: Callable = Callable()) -
 	_open[id] = true
 	var layer := Control.new()
 	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Above everything the screen draws with a raised z (map tokens, the boon overlay):
+	# input goes to the last child, so drawing must agree or the tip blocks clicks invisibly.
+	layer.z_index = 100
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	parent.add_child(layer)
 	var dim := ColorRect.new()
