@@ -57,6 +57,15 @@ godot --headless --path . -s tools/combat_log.gd -- --class warrior --level 1 --
 3. The sim returns structured events; `CombatText` renders the log.
 4. Game data comes from the one-way importer; tuning lives in `overrides/`.
 
+Play in a browser: https://dionyz.github.io/downward-spiral/ (served from the `gh-pages` branch once Pages is enabled).
+Rebuild the web version (needs the Godot 4.7.2 source and Emscripten 4.0.11):
+
+```bash
+GODOT_SRC=~/tools-src/godot GODOT=~/bin/godot ./tools/build_web.sh
+```
+
+Then copy `build/web/*` plus an empty `.nojekyll` to the `gh-pages` branch and push.
+
 Play the prototype on desktop:
 
 ```bash
