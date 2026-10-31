@@ -5,3 +5,4 @@ export_presets.cfg
 *.aab
 /android/
 __pycache__/
+build/
