@@ -305,6 +305,17 @@
      "then": "storm of blades"
     },
     {
+     "if": "enemy_lacks_status",
+     "value": "knocked_down",
+     "then": "trip",
+     "and": [
+      {
+       "if": "enemies_at_least",
+       "value": 2
+      }
+     ]
+    },
+    {
      "if": "enemies_at_least",
      "value": 2,
      "then": "whirlwind"
@@ -327,11 +338,6 @@
     {
      "if": "always",
      "then": "cross slash"
-    },
-    {
-     "if": "enemy_lacks_status",
-     "value": "knocked_down",
-     "then": "trip"
     },
     {
      "if": "always",
