@@ -1,0 +1,788 @@
+{
+ "_generated_by": "tools/import_mud_data.py",
+ "_note": "Weapon numbers are medians of real MUD weapons by type and run-level band. Names are generated in game; MUD item names are not imported (license note).",
+ "weapon_types": {
+  "exotic": 0,
+  "sword": 1,
+  "dagger": 2,
+  "spear": 3,
+  "mace": 4,
+  "axe": 5,
+  "flail": 6,
+  "whip": 7,
+  "polearm": 8,
+  "katana": 9,
+  "sabre": 10,
+  "parrying_blade": 11,
+  "staff": 3
+ },
+ "weapon_bases": [
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 1,
+   "samples": 4,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 2,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 3,
+   "samples": 3,
+   "min": 15,
+   "max": 21
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 4,
+   "samples": 2,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 5,
+   "samples": 1,
+   "min": 20,
+   "max": 41
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 6,
+   "samples": 1,
+   "min": 30,
+   "max": 60
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 7,
+   "samples": 9,
+   "min": 34,
+   "max": 68
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 8,
+   "samples": 1,
+   "min": 37,
+   "max": 75
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 9,
+   "samples": 2,
+   "min": 43,
+   "max": 87
+  },
+  {
+   "weapon_type": "axe",
+   "type_id": 5,
+   "band": 10,
+   "samples": 22,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 1,
+   "samples": 3,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 2,
+   "samples": 4,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 3,
+   "samples": 4,
+   "min": 15,
+   "max": 30
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 4,
+   "samples": 3,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 5,
+   "samples": 4,
+   "min": 25,
+   "max": 50
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 6,
+   "samples": 2,
+   "min": 28,
+   "max": 57
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 7,
+   "samples": 9,
+   "min": 35,
+   "max": 70
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 8,
+   "samples": 7,
+   "min": 40,
+   "max": 80
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 9,
+   "samples": 6,
+   "min": 42,
+   "max": 85
+  },
+  {
+   "weapon_type": "dagger",
+   "type_id": 2,
+   "band": 10,
+   "samples": 39,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 1,
+   "samples": 4,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 2,
+   "samples": 2,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 3,
+   "samples": 1,
+   "min": 15,
+   "max": 30
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 4,
+   "samples": 3,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 5,
+   "samples": 2,
+   "min": 27,
+   "max": 55
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 6,
+   "samples": 1,
+   "min": 30,
+   "max": 60
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 7,
+   "samples": 2,
+   "min": 32,
+   "max": 65
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 8,
+   "samples": 1,
+   "min": 40,
+   "max": 85
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 9,
+   "samples": 1,
+   "min": 41,
+   "max": 82
+  },
+  {
+   "weapon_type": "flail",
+   "type_id": 6,
+   "band": 10,
+   "samples": 12,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 1,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 2,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 4,
+   "samples": 2,
+   "min": 18,
+   "max": 36
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 5,
+   "samples": 2,
+   "min": 25,
+   "max": 50
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 6,
+   "samples": 1,
+   "min": 30,
+   "max": 60
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 8,
+   "samples": 1,
+   "min": 40,
+   "max": 80
+  },
+  {
+   "weapon_type": "katana",
+   "type_id": 9,
+   "band": 10,
+   "samples": 12,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 1,
+   "samples": 2,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 2,
+   "samples": 3,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 3,
+   "samples": 2,
+   "min": 15,
+   "max": 30
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 4,
+   "samples": 4,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 5,
+   "samples": 6,
+   "min": 23,
+   "max": 47
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 6,
+   "samples": 5,
+   "min": 27,
+   "max": 55
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 7,
+   "samples": 4,
+   "min": 32,
+   "max": 65
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 8,
+   "samples": 4,
+   "min": 38,
+   "max": 75
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 9,
+   "samples": 1,
+   "min": 42,
+   "max": 85
+  },
+  {
+   "weapon_type": "mace",
+   "type_id": 4,
+   "band": 10,
+   "samples": 24,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "parrying_blade",
+   "type_id": 11,
+   "band": 10,
+   "samples": 6,
+   "min": 41,
+   "max": 91
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 1,
+   "samples": 3,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 2,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 3,
+   "samples": 4,
+   "min": 11,
+   "max": 23
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 4,
+   "samples": 4,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 5,
+   "samples": 3,
+   "min": 23,
+   "max": 46
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 6,
+   "samples": 1,
+   "min": 27,
+   "max": 55
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 7,
+   "samples": 4,
+   "min": 30,
+   "max": 61
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 8,
+   "samples": 4,
+   "min": 38,
+   "max": 77
+  },
+  {
+   "weapon_type": "polearm",
+   "type_id": 8,
+   "band": 10,
+   "samples": 14,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 1,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 3,
+   "samples": 3,
+   "min": 15,
+   "max": 30
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 4,
+   "samples": 1,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 5,
+   "samples": 1,
+   "min": 22,
+   "max": 45
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 6,
+   "samples": 1,
+   "min": 27,
+   "max": 55
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 7,
+   "samples": 3,
+   "min": 35,
+   "max": 70
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 8,
+   "samples": 1,
+   "min": 37,
+   "max": 75
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 9,
+   "samples": 2,
+   "min": 42,
+   "max": 85
+  },
+  {
+   "weapon_type": "sabre",
+   "type_id": 10,
+   "band": 10,
+   "samples": 30,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 1,
+   "samples": 4,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 2,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 3,
+   "samples": 2,
+   "min": 10,
+   "max": 22
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 4,
+   "samples": 3,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 5,
+   "samples": 7,
+   "min": 25,
+   "max": 50
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 6,
+   "samples": 2,
+   "min": 42,
+   "max": 72
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 7,
+   "samples": 4,
+   "min": 32,
+   "max": 64
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 9,
+   "samples": 2,
+   "min": 43,
+   "max": 87
+  },
+  {
+   "weapon_type": "staff",
+   "type_id": 3,
+   "band": 10,
+   "samples": 15,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 1,
+   "samples": 2,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 2,
+   "samples": 3,
+   "min": 8,
+   "max": 15
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 3,
+   "samples": 4,
+   "min": 14,
+   "max": 28
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 4,
+   "samples": 7,
+   "min": 20,
+   "max": 40
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 5,
+   "samples": 5,
+   "min": 24,
+   "max": 49
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 6,
+   "samples": 5,
+   "min": 30,
+   "max": 60
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 7,
+   "samples": 5,
+   "min": 34,
+   "max": 68
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 8,
+   "samples": 4,
+   "min": 39,
+   "max": 79
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 9,
+   "samples": 2,
+   "min": 44,
+   "max": 87
+  },
+  {
+   "weapon_type": "sword",
+   "type_id": 1,
+   "band": 10,
+   "samples": 30,
+   "min": 50,
+   "max": 101
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 1,
+   "samples": 2,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 2,
+   "samples": 1,
+   "min": 10,
+   "max": 20
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 3,
+   "samples": 2,
+   "min": 13,
+   "max": 27
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 4,
+   "samples": 2,
+   "min": 19,
+   "max": 38
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 5,
+   "samples": 1,
+   "min": 25,
+   "max": 50
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 6,
+   "samples": 2,
+   "min": 25,
+   "max": 51
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 7,
+   "samples": 5,
+   "min": 30,
+   "max": 61
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 8,
+   "samples": 5,
+   "min": 40,
+   "max": 80
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 9,
+   "samples": 3,
+   "min": 42,
+   "max": 85
+  },
+  {
+   "weapon_type": "whip",
+   "type_id": 7,
+   "band": 10,
+   "samples": 19,
+   "min": 50,
+   "max": 101
+  }
+ ],
+ "weapon_sample_count": 467,
+ "armor_sample_count": 767,
+ "slots": [
+  "weapon",
+  "armor",
+  "trinket"
+ ]
+}

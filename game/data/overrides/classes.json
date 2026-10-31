@@ -1,0 +1,45 @@
+{
+ "_note": "Hand-tuned class stats and default rules, merged over classes.json at load time. The importer never writes here.",
+ "lines": {
+  "warrior": {
+   "stats": {"hp_base": 150, "hp_per_level": 32, "mana_base": 0, "mana_per_level": 0, "size": "medium",
+             "attributes": {"str": 18, "dex": 14, "con": 17, "int": 11, "wis": 11}, "ac_base": -150, "shield_block_value": 55},
+   "default_rules": [
+    {"if": "enemy_telegraphing", "then": "bash"},
+    {"if": "always", "then": "kick"},
+    {"if": "hp_below", "value": 40, "then": "berserk"},
+    {"if": "missing_buff", "value": "warcry", "then": "warcry"}
+   ]
+  },
+  "thief": {
+   "stats": {"hp_base": 115, "hp_per_level": 24, "size": "medium",
+             "attributes": {"str": 14, "dex": 19, "con": 14, "int": 13, "wis": 11}, "ac_base": -80},
+   "default_rules": [
+    {"if": "enemy_telegraphing", "then": "dirt kicking"},
+    {"if": "always", "then": "backstab"},
+    {"if": "always", "then": "circle"},
+    {"if": "missing_buff", "value": "envenomed", "then": "envenom"}
+   ]
+  },
+  "mage": {
+   "stats": {"hp_base": 90, "hp_per_level": 18, "mana_base": 60, "mana_per_level": 14, "mana_regen": 2, "size": "medium",
+             "attributes": {"str": 11, "dex": 14, "con": 12, "int": 19, "wis": 16}, "ac_base": -50},
+   "default_rules": [
+    {"if": "missing_buff", "value": "shield", "then": "shield"},
+    {"if": "always", "then": "magic fist"},
+    {"if": "enemy_telegraphing", "then": "sleep"},
+    {"if": "hp_below", "value": 50, "then": "sanctuary"}
+   ]
+  },
+  "knifer": {
+   "stats": {"hp_base": 115, "hp_per_level": 24, "size": "medium",
+             "attributes": {"str": 15, "dex": 19, "con": 14, "int": 12, "wis": 11}, "ac_base": -80},
+   "default_rules": [
+    {"if": "enemy_telegraphing", "then": "dance:mist"},
+    {"if": "missing_buff", "value": "stance_predator", "then": "dance:predator"},
+    {"if": "always", "then": "whirlwind"},
+    {"if": "enemy_has_status", "value": "blind", "then": "cross slash"}
+   ]
+  }
+ }
+}

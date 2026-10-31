@@ -1,0 +1,1170 @@
+{
+ "_generated_by": "tools/import_mud_data.py",
+ "abilities": {
+  "enhanced damage": {
+   "id": "enhanced_damage",
+   "name": "enhanced damage",
+   "kind": "passive",
+   "source": "fight.c:one_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1
+   },
+   "params": {},
+   "effect": {
+    "damage_mult_on_roll": 0.5
+   },
+   "answers": [],
+   "tags": []
+  },
+  "parry": {
+   "id": "parry",
+   "name": "parry",
+   "kind": "passive",
+   "source": "fight.c:check_parry",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 2,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 6,
+    "wizard": 5,
+    "sorcerer": 4,
+    "knifer": 1,
+    "tumbler": 1,
+    "wardancer": 1
+   },
+   "params": {},
+   "effect": {
+    "divisor": 3,
+    "min": 10,
+    "max": 50
+   },
+   "answers": [],
+   "tags": []
+  },
+  "dodge": {
+   "id": "dodge",
+   "name": "dodge",
+   "kind": "passive",
+   "source": "fight.c:check_dodge",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 2,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 1,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 7,
+    "wizard": 6,
+    "sorcerer": 5,
+    "knifer": 1,
+    "tumbler": 1,
+    "wardancer": 1
+   },
+   "params": {},
+   "effect": {
+    "divisor": 2,
+    "min": 10,
+    "max_by_size": {
+     "tiny": 90,
+     "small": 80,
+     "medium": 70,
+     "large": 60,
+     "huge": 50,
+     "giant": 40
+    }
+   },
+   "answers": [],
+   "tags": []
+  },
+  "shield block": {
+   "id": "shield_block",
+   "name": "shield block",
+   "kind": "passive",
+   "source": "fight.c:check_shield_block",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 1,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 1,
+    "wizard": 1,
+    "sorcerer": 1
+   },
+   "params": {},
+   "effect": {
+    "min": 10,
+    "max": 66
+   },
+   "answers": [
+    "brace"
+   ],
+   "tags": []
+  },
+  "second attack": {
+   "id": "second_attack",
+   "name": "second attack",
+   "kind": "passive",
+   "source": "fight.c:multi_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 2,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 5,
+    "wizard": 4,
+    "sorcerer": 3,
+    "knifer": 1,
+    "tumbler": 1,
+    "wardancer": 1
+   },
+   "params": {},
+   "effect": {
+    "num": 2,
+    "den": 3,
+    "slow_num": 2,
+    "slow_den": 3
+   },
+   "answers": [],
+   "tags": []
+  },
+  "third attack": {
+   "id": "third_attack",
+   "name": "third attack",
+   "kind": "passive",
+   "source": "fight.c:multi_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 3,
+    "gladiator": 2,
+    "knight": 2,
+    "thief": 4,
+    "mercenary": 3,
+    "blade": 3,
+    "mage": 7,
+    "wizard": 6,
+    "sorcerer": 5,
+    "knifer": 2,
+    "tumbler": 2,
+    "wardancer": 1
+   },
+   "params": {},
+   "effect": {
+    "num": 1,
+    "den": 2,
+    "slow_num": 1,
+    "slow_den": 2,
+    "minus_fail": true
+   },
+   "answers": [],
+   "tags": []
+  },
+  "fourth attack": {
+   "id": "fourth_attack",
+   "name": "fourth attack",
+   "kind": "passive",
+   "source": "fight.c:multi_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 7,
+    "gladiator": 6,
+    "knight": 5,
+    "thief": 9,
+    "mercenary": 8,
+    "blade": 8,
+    "knifer": 5,
+    "tumbler": 4,
+    "wardancer": 4
+   },
+   "params": {},
+   "effect": {
+    "num": 4,
+    "den": 5,
+    "slow_num": 1,
+    "slow_den": 2,
+    "minus_fail": true
+   },
+   "answers": [],
+   "tags": []
+  },
+  "dual wield": {
+   "id": "dual_wield",
+   "name": "dual wield",
+   "kind": "passive",
+   "source": "fight.c:multi_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 4,
+    "mercenary": 1,
+    "blade": 1,
+    "knifer": 1,
+    "tumbler": 1,
+    "wardancer": 1
+   },
+   "params": {},
+   "effect": {
+    "num": 2,
+    "den": 3,
+    "add": 33
+   },
+   "answers": [],
+   "tags": []
+  },
+  "critical hit": {
+   "id": "critical_hit",
+   "name": "critical hit",
+   "kind": "passive",
+   "source": "fight.c:one_hit",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "blade": 5
+   },
+   "params": {},
+   "effect": {
+    "gate_pct": 15,
+    "damage_mult": 0.5
+   },
+   "answers": [],
+   "tags": []
+  },
+  "stun": {
+   "id": "stun",
+   "name": "stun",
+   "kind": "passive",
+   "source": "act_combat.c:do_bash",
+   "handler": null,
+   "target": null,
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 5,
+    "gladiator": 3,
+    "knight": 2
+   },
+   "params": {},
+   "effect": {
+    "chance_div": 4,
+    "warrior_line_div": 2,
+    "duration_dice": [
+     1,
+     2
+    ]
+   },
+   "answers": [],
+   "tags": [],
+   "note": "In the MUD stun is a rider on bash/shield smash, not a command. See DECISIONS.md D-011."
+  },
+  "bash": {
+   "id": "bash",
+   "name": "bash",
+   "kind": "active",
+   "source": "act_combat.c:do_bash",
+   "handler": "bash",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1
+   },
+   "params": {
+    "dam_min_level_div": 2,
+    "dam_max_level_mult": 1,
+    "knockdown_rounds": 1,
+    "chance_mods": {
+     "str": 1,
+     "victim_dex": -1,
+     "level_diff": 1,
+     "standing_victim": -5
+    }
+   },
+   "effect": {},
+   "answers": [
+    "interrupt"
+   ],
+   "tags": []
+  },
+  "kick": {
+   "id": "kick",
+   "name": "kick",
+   "kind": "active",
+   "source": "act_combat.c:do_kick",
+   "handler": "direct_damage",
+   "target": "enemy",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "offensive",
+   "unlock": {
+    "warrior": 2,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 3,
+    "mercenary": 2,
+    "blade": 1,
+    "mage": 3,
+    "wizard": 2,
+    "sorcerer": 1,
+    "knifer": 3,
+    "tumbler": 2,
+    "wardancer": 1
+   },
+   "params": {
+    "dam_min_level_mult": 1,
+    "dam_max_level_mult": 2,
+    "dam_type": "bash"
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "berserk": {
+   "id": "berserk",
+   "name": "berserk",
+   "kind": "active",
+   "source": "act_combat.c:do_berserk",
+   "handler": "berserk",
+   "target": "self",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 3,
+    "gladiator": 2,
+    "knight": 2
+   },
+   "params": {
+    "heal_level_mult": 2,
+    "duration_level_div": 8,
+    "mod_level_div": 4,
+    "fighting_bonus": 10,
+    "flat_bonus": 25,
+    "min_chance": 10
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": []
+  },
+  "warcry": {
+   "id": "warcry",
+   "name": "warcry",
+   "kind": "active",
+   "source": "act_combat.c:do_warcry",
+   "handler": "buff",
+   "target": "self",
+   "beats": 0,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 4,
+    "gladiator": 3,
+    "knight": 3
+   },
+   "params": {
+    "status": "warcry",
+    "hitroll_level_div": 2,
+    "damroll_level_div": 2,
+    "duration_rounds": 8
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "charge": {
+   "id": "charge",
+   "name": "charge",
+   "kind": "active",
+   "source": "act_combat.c:do_charge",
+   "handler": "opener_round",
+   "target": "enemy",
+   "beats": 24,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 6,
+    "gladiator": 6,
+    "knight": 5
+   },
+   "params": {
+    "min_victim_hp_frac": 0.3334,
+    "sword_damroll_level_div": 4,
+    "weapon_scale": {
+     "preferred": "sword",
+     "min_pct": [
+      1.9,
+      2.4
+     ],
+     "max_pct": [
+      3.0,
+      5.0
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": []
+  },
+  "backstab": {
+   "id": "backstab",
+   "name": "backstab",
+   "kind": "active",
+   "source": "act_combat.c:do_backstab",
+   "handler": "opener_round",
+   "target": "enemy",
+   "beats": 20,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "thief": 1,
+    "mercenary": 1,
+    "blade": 1
+   },
+   "params": {
+    "min_victim_hp_frac": 0.3334,
+    "needs_weapon": true,
+    "weapon_scale": {
+     "preferred": "dagger",
+     "min_pct": [
+      2.0,
+      2.4
+     ],
+     "max_pct": [
+      5.0,
+      5.5
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": [
+    "opener"
+   ]
+  },
+  "circle": {
+   "id": "circle",
+   "name": "circle",
+   "kind": "active",
+   "source": "act_combat.c:do_circle",
+   "handler": "opener_round",
+   "target": "enemy",
+   "beats": 24,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "thief": 3,
+    "mercenary": 3,
+    "blade": 3
+   },
+   "params": {
+    "min_victim_hp_frac": 0.2,
+    "needs_weapon": true,
+    "weapon_scale": {
+     "preferred": "dagger",
+     "min_pct": [
+      2.9,
+      3.3
+     ],
+     "max_pct": [
+      4.0,
+      4.4
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": []
+  },
+  "dirt kicking": {
+   "id": "dirt_kicking",
+   "name": "dirt kicking",
+   "kind": "active",
+   "source": "act_combat.c:do_dirt",
+   "handler": "debuff",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 1,
+    "gladiator": 1,
+    "knight": 1,
+    "thief": 1,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 3,
+    "wizard": 2,
+    "sorcerer": 1
+   },
+   "params": {
+    "status": "blind",
+    "duration_rounds": 2,
+    "dam": [
+     2,
+     5
+    ],
+    "chance_mods": {
+     "dex_x5": true,
+     "level_diff": 1
+    },
+    "hitroll_level_div": 4
+   },
+   "effect": {},
+   "answers": [
+    "evade"
+   ],
+   "tags": []
+  },
+  "trip": {
+   "id": "trip",
+   "name": "trip",
+   "kind": "active",
+   "source": "act_combat.c:do_trip",
+   "handler": "trip",
+   "target": "enemy",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "warrior": 4,
+    "gladiator": 3,
+    "knight": 2,
+    "thief": 1,
+    "mercenary": 1,
+    "blade": 1,
+    "mage": 7,
+    "wizard": 6,
+    "sorcerer": 5,
+    "knifer": 4,
+    "tumbler": 3,
+    "wardancer": 2
+   },
+   "params": {
+    "knockdown_rounds": 1,
+    "dam_size_mult": 2,
+    "chance_mods": {
+     "dex": 1,
+     "victim_dex_x1_5": true,
+     "level_diff_x2": true
+    }
+   },
+   "effect": {},
+   "answers": [
+    "interrupt"
+   ],
+   "tags": []
+  },
+  "gouge": {
+   "id": "gouge",
+   "name": "gouge",
+   "kind": "active",
+   "source": "act_combat.c:do_gouge",
+   "handler": "debuff",
+   "target": "enemy",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "thief": 6,
+    "mercenary": 3,
+    "blade": 2
+   },
+   "params": {
+    "status": "blind",
+    "duration_rounds": 3,
+    "dam": [
+     2,
+     5
+    ],
+    "chance_mods": {
+     "dex_x5": true,
+     "level_diff": 1
+    }
+   },
+   "effect": {},
+   "answers": [
+    "evade"
+   ],
+   "tags": []
+  },
+  "envenom": {
+   "id": "envenom",
+   "name": "envenom",
+   "kind": "active",
+   "source": "act_obj.c:do_envenom",
+   "handler": "envenom",
+   "target": "self",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "thief": 2,
+    "mercenary": 1,
+    "blade": 1
+   },
+   "params": {
+    "status": "envenomed",
+    "duration_rounds": 6,
+    "poison_rounds": 3,
+    "poison_dmg_level_div": 10,
+    "damroll_level_div": 10
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "toss daggers": {
+   "id": "toss_daggers",
+   "name": "toss daggers",
+   "kind": "active",
+   "source": "act_combat.c:do_toss",
+   "handler": "strike",
+   "target": "enemy",
+   "beats": 4,
+   "min_mana": 0,
+   "mud_target": "offensive",
+   "unlock": {
+    "thief": 5,
+    "mercenary": 4,
+    "blade": 3
+   },
+   "params": {
+    "swings": 1,
+    "chance_num": 4,
+    "chance_den": 5,
+    "max_bonus_frac": 1.25
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "magic fist": {
+   "id": "magic_fist",
+   "name": "magic fist",
+   "kind": "active",
+   "source": "magic.c:spell_magic_fist",
+   "handler": "spell_damage",
+   "target": "enemy",
+   "beats": 4,
+   "min_mana": 10,
+   "mud_target": "offensive",
+   "unlock": {
+    "mage": 1,
+    "wizard": 1,
+    "sorcerer": 1
+   },
+   "params": {
+    "dam_flat_min": 50,
+    "dam_flat_max": 125,
+    "dam_max_level_mult": 2,
+    "dam_type": "bash"
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "implosion": {
+   "id": "implosion",
+   "name": "implosion",
+   "kind": "active",
+   "source": "magic.c:spell_implosion",
+   "handler": "spell_damage",
+   "target": "enemy",
+   "beats": 5,
+   "min_mana": 40,
+   "mud_target": "offensive",
+   "unlock": {
+    "mage": 5,
+    "wizard": 5,
+    "sorcerer": 4
+   },
+   "params": {
+    "dice_level": 16,
+    "save_mult": 0.75,
+    "dam_type": "other"
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "chain lightning": {
+   "id": "chain_lightning",
+   "name": "chain lightning",
+   "kind": "active",
+   "source": "magic.c:spell_chain_lightning",
+   "handler": "chain_lightning",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 75,
+   "mud_target": "offensive",
+   "unlock": {
+    "mage": 6,
+    "wizard": 5,
+    "sorcerer": 4
+   },
+   "params": {
+    "dice_level": 12,
+    "save_mult": 0.5,
+    "level_decrement": 8,
+    "dam_type": "lightning"
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "shield": {
+   "id": "shield",
+   "name": "shield",
+   "kind": "active",
+   "source": "magic.c:spell_shield",
+   "handler": "buff",
+   "target": "self",
+   "beats": 10,
+   "min_mana": 50,
+   "mud_target": "defensive",
+   "unlock": {
+    "mage": 1,
+    "wizard": 1,
+    "sorcerer": 1
+   },
+   "params": {
+    "status": "shield",
+    "ac": -20,
+    "duration_rounds": 12,
+    "damage_reduction": 0.15
+   },
+   "effect": {},
+   "answers": [
+    "brace"
+   ],
+   "tags": []
+  },
+  "armor": {
+   "id": "armor",
+   "name": "armor",
+   "kind": "active",
+   "source": "magic.c:spell_armor",
+   "handler": "buff",
+   "target": "self",
+   "beats": 10,
+   "min_mana": 20,
+   "mud_target": "defensive",
+   "unlock": {
+    "mage": 3,
+    "wizard": 2,
+    "sorcerer": 1
+   },
+   "params": {
+    "status": "armor",
+    "ac": -20,
+    "duration_rounds": 12,
+    "damage_reduction": 0.15
+   },
+   "effect": {},
+   "answers": [
+    "brace"
+   ],
+   "tags": []
+  },
+  "sanctuary": {
+   "id": "sanctuary",
+   "name": "sanctuary",
+   "kind": "active",
+   "source": "magic.c:spell_sanctuary",
+   "handler": "buff",
+   "target": "self",
+   "beats": 10,
+   "min_mana": 50,
+   "mud_target": "defensive",
+   "unlock": {
+    "mage": 5,
+    "wizard": 4,
+    "sorcerer": 3
+   },
+   "params": {
+    "status": "sanctuary",
+    "duration_base": 2,
+    "duration_level_div": 6
+   },
+   "effect": {},
+   "answers": [
+    "outlast",
+    "brace"
+   ],
+   "tags": []
+  },
+  "haste": {
+   "id": "haste",
+   "name": "haste",
+   "kind": "active",
+   "source": "magic.c:spell_haste",
+   "handler": "buff",
+   "target": "self",
+   "beats": 10,
+   "min_mana": 30,
+   "mud_target": "defensive",
+   "unlock": {
+    "mage": 6,
+    "wizard": 5,
+    "sorcerer": 4
+   },
+   "params": {
+    "status": "haste",
+    "duration_level_div": 2,
+    "dispels": [
+     "slowed"
+    ]
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "sleep": {
+   "id": "sleep",
+   "name": "sleep",
+   "kind": "active",
+   "source": "magic.c:spell_sleep",
+   "handler": "spell_status",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 50,
+   "mud_target": "offensive",
+   "unlock": {
+    "mage": 5,
+    "wizard": 4,
+    "sorcerer": 3
+   },
+   "params": {
+    "status": "asleep",
+    "duration_rounds": 2,
+    "save": true
+   },
+   "effect": {},
+   "answers": [
+    "evade",
+    "interrupt"
+   ],
+   "tags": []
+  },
+  "slow": {
+   "id": "slow",
+   "name": "slow",
+   "kind": "active",
+   "source": "magic.c:spell_slow",
+   "handler": "spell_status",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 30,
+   "mud_target": "offensive",
+   "unlock": {
+    "mage": 6,
+    "wizard": 5,
+    "sorcerer": 4
+   },
+   "params": {
+    "status": "slowed",
+    "duration_level_div": 10,
+    "save": true,
+    "dispels": [
+     "haste"
+    ]
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "whirlwind": {
+   "id": "whirlwind",
+   "name": "whirlwind",
+   "kind": "active",
+   "source": "act_combat.c:do_whirlwind",
+   "handler": "aoe_strike",
+   "target": "all_enemies",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "knifer": 4,
+    "tumbler": 4,
+    "wardancer": 3
+   },
+   "params": {
+    "bonus_two_over": 90,
+    "bonus_one_over": 50,
+    "weapon_scale": {
+     "preferred": null,
+     "min_pct": [
+      1.5,
+      1.5
+     ],
+     "max_pct": [
+      1.5,
+      1.5
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [],
+   "tags": []
+  },
+  "storm of blades": {
+   "id": "storm_of_blades",
+   "name": "storm of blades",
+   "kind": "active",
+   "source": "act_combat.c:do_storm",
+   "handler": "aoe_strike",
+   "target": "all_enemies",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "knifer": 6,
+    "tumbler": 6,
+    "wardancer": 5
+   },
+   "params": {
+    "requires_stance": "storm",
+    "bonus_three_over": 90,
+    "bonus_two_over": 50,
+    "weapon_scale": {
+     "preferred": null,
+     "min_pct": [
+      1.7,
+      1.7
+     ],
+     "max_pct": [
+      1.4,
+      1.4
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": []
+  },
+  "cross slash": {
+   "id": "cross_slash",
+   "name": "cross slash",
+   "kind": "active",
+   "source": "act_combat.c:do_cross_slash",
+   "handler": "opener_round",
+   "target": "enemy",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "knifer": 7,
+    "tumbler": 6,
+    "wardancer": 6
+   },
+   "params": {
+    "min_victim_hp_frac": 0.1,
+    "needs_dual": true,
+    "stops_before_haste": true,
+    "weapon_scale": {
+     "preferred": "sabre",
+     "min_pct": [
+      1.25,
+      2.25
+     ],
+     "max_pct": [
+      1.25,
+      2.25
+     ]
+    }
+   },
+   "effect": {},
+   "answers": [
+    "outlast"
+   ],
+   "tags": []
+  },
+  "blinding strike": {
+   "id": "blinding_strike",
+   "name": "blinding strike",
+   "kind": "active",
+   "source": "act_combat.c:do_blinding_strike",
+   "handler": "debuff",
+   "target": "enemy",
+   "beats": 10,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "knifer": 4,
+    "tumbler": 3,
+    "wardancer": 2
+   },
+   "params": {
+    "status": "blind",
+    "duration_rounds": 2,
+    "dam": [
+     2,
+     5
+    ],
+    "chance_mods": {
+     "dex": 1,
+     "victim_dex_x2": true,
+     "level_diff_x5": true
+    },
+    "hitroll": -4
+   },
+   "effect": {},
+   "answers": [
+    "evade"
+   ],
+   "tags": []
+  },
+  "transfix": {
+   "id": "transfix",
+   "name": "transfix",
+   "kind": "active",
+   "source": "act_combat.c:do_transfix",
+   "handler": "transfix",
+   "target": "enemy",
+   "beats": 6,
+   "min_mana": 0,
+   "mud_target": "none",
+   "unlock": {
+    "knifer": 8,
+    "tumbler": 7,
+    "wardancer": 6
+   },
+   "params": {
+    "stun_rounds_range": [
+     1,
+     3
+    ],
+    "then_attack": true
+   },
+   "effect": {},
+   "answers": [
+    "interrupt"
+   ],
+   "tags": []
+  },
+  "dance": {
+   "id": "dance",
+   "name": "dance",
+   "kind": "active",
+   "source": "act_combat.c:do_dance",
+   "handler": "stance",
+   "target": "self",
+   "beats": 12,
+   "min_mana": 0,
+   "mud_target": "self",
+   "unlock": {
+    "knifer": 1,
+    "tumbler": 1,
+    "wardancer": 1
+   },
+   "params": {
+    "stances": {
+     "mist": {
+      "damage_mult": 0.3334,
+      "dodge": 15,
+      "parry": 0,
+      "source": "fight.c:get_char_min,check_dodge"
+     },
+     "storm": {
+      "damage_mult": 1.3334,
+      "dodge": -15,
+      "parry": -15,
+      "source": "fight.c:get_char_min,check_parry,check_dodge"
+     },
+     "cobra": {
+      "damage_mult": 0.9,
+      "dodge": -10,
+      "parry": 15,
+      "source": "fight.c:get_char_min,check_parry,check_dodge"
+     },
+     "predator": {
+      "damage_mult": 1.1,
+      "dodge": 10,
+      "parry": 0,
+      "source": "fight.c:get_char_min,check_dodge"
+     }
+    },
+    "default_stance": "predator"
+   },
+   "effect": {},
+   "answers": [
+    "evade",
+    "brace"
+   ],
+   "answers_by_stance": {
+    "mist": [
+     "evade"
+    ],
+    "cobra": [
+     "brace"
+    ]
+   },
+   "tags": [
+    "stance"
+   ]
+  }
+ }
+}

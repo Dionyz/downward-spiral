@@ -1,0 +1,213 @@
+{
+ "_generated_by": "tools/import_mud_data.py",
+ "lines": {
+  "warrior": {
+   "display": "Warrior",
+   "line_name": "Knight",
+   "role": "Tank, steady damage",
+   "resource": "cooldowns",
+   "tiers": [
+    {
+     "tier": 1,
+     "mud_class": "warrior",
+     "mud_index": 3,
+     "name": "Warrior",
+     "prime_stat": "str",
+     "gains_mana": true
+    },
+    {
+     "tier": 2,
+     "mud_class": "gladiator",
+     "mud_index": 21,
+     "name": "Gladiator",
+     "prime_stat": "str",
+     "gains_mana": true
+    },
+    {
+     "tier": 3,
+     "mud_class": "knight",
+     "mud_index": 39,
+     "name": "Knight",
+     "prime_stat": "str",
+     "gains_mana": true
+    }
+   ],
+   "passives": [
+    "enhanced damage",
+    "parry",
+    "shield block",
+    "second attack",
+    "third attack",
+    "stun"
+   ],
+   "starting_actives": [
+    "bash",
+    "kick"
+   ],
+   "signature": [
+    "berserk",
+    "warcry",
+    "charge",
+    "dirt kicking",
+    "trip"
+   ],
+   "starting_weapon": "sword",
+   "offhand": "shield"
+  },
+  "thief": {
+   "display": "Thief",
+   "line_name": "Blade",
+   "role": "Burst from an opener, debuffs",
+   "resource": "cooldowns",
+   "tiers": [
+    {
+     "tier": 1,
+     "mud_class": "thief",
+     "mud_index": 2,
+     "name": "Thief",
+     "prime_stat": "dex",
+     "gains_mana": true
+    },
+    {
+     "tier": 2,
+     "mud_class": "mercenary",
+     "mud_index": 20,
+     "name": "Mercenary",
+     "prime_stat": "dex",
+     "gains_mana": true
+    },
+    {
+     "tier": 3,
+     "mud_class": "blade",
+     "mud_index": 38,
+     "name": "Blade",
+     "prime_stat": "dex",
+     "gains_mana": true
+    }
+   ],
+   "passives": [
+    "dodge",
+    "second attack",
+    "dual wield",
+    "third attack",
+    "parry",
+    "critical hit"
+   ],
+   "starting_actives": [
+    "backstab",
+    "dirt kicking"
+   ],
+   "signature": [
+    "trip",
+    "envenom",
+    "circle",
+    "gouge",
+    "toss daggers",
+    "kick"
+   ],
+   "starting_weapon": "dagger",
+   "offhand": "dagger"
+  },
+  "mage": {
+   "display": "Mage",
+   "line_name": "Sorcerer",
+   "role": "Spell damage, control, self-buffs",
+   "resource": "mana",
+   "tiers": [
+    {
+     "tier": 1,
+     "mud_class": "mage",
+     "mud_index": 0,
+     "name": "Mage",
+     "prime_stat": "int",
+     "gains_mana": true
+    },
+    {
+     "tier": 2,
+     "mud_class": "wizard",
+     "mud_index": 18,
+     "name": "Wizard",
+     "prime_stat": "int",
+     "gains_mana": true
+    },
+    {
+     "tier": 3,
+     "mud_class": "sorcerer",
+     "mud_index": 36,
+     "name": "Sorcerer",
+     "prime_stat": "int",
+     "gains_mana": true
+    }
+   ],
+   "passives": [],
+   "starting_actives": [
+    "magic fist",
+    "shield"
+   ],
+   "signature": [
+    "armor",
+    "sleep",
+    "slow",
+    "implosion",
+    "chain lightning",
+    "sanctuary",
+    "haste"
+   ],
+   "starting_weapon": "dagger",
+   "offhand": null
+  },
+  "knifer": {
+   "display": "Knifer",
+   "line_name": "Wardancer",
+   "role": "Fast multi-hit, stances",
+   "resource": "cooldowns",
+   "tiers": [
+    {
+     "tier": 1,
+     "mud_class": "knifer",
+     "mud_index": 16,
+     "name": "Knifer",
+     "prime_stat": "dex",
+     "gains_mana": true
+    },
+    {
+     "tier": 2,
+     "mud_class": "tumbler",
+     "mud_index": 34,
+     "name": "Tumbler",
+     "prime_stat": "dex",
+     "gains_mana": true
+    },
+    {
+     "tier": 3,
+     "mud_class": "wardancer",
+     "mud_index": 52,
+     "name": "Wardancer",
+     "prime_stat": "dex",
+     "gains_mana": true
+    }
+   ],
+   "passives": [
+    "dodge",
+    "parry",
+    "second attack",
+    "dual wield",
+    "third attack"
+   ],
+   "starting_actives": [
+    "whirlwind",
+    "dance"
+   ],
+   "signature": [
+    "blinding strike",
+    "storm of blades",
+    "cross slash",
+    "transfix",
+    "trip",
+    "kick"
+   ],
+   "starting_weapon": "sabre",
+   "offhand": "dagger"
+  }
+ }
+}
