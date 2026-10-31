@@ -41,7 +41,7 @@
    "5": 7,
    "6": 9
   },
-  "elite_level_bonus": 1,
+  "elite_level_bonus": 0,
   "boss_level": 10,
   "xp_per_monster_level": 10,
   "xp_mult": {
@@ -85,5 +85,6 @@
    0.62
   ]
  },
- "unlock_tier": 3
+ "unlock_tier": 3,
+ "max_rule_slots": 4
 }

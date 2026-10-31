@@ -1,3 +1,3 @@
 # Open questions
 
-None open. Answers from rounds 1 and 2 are recorded in `DECISIONS.md`.
+None open. Answers from earlier rounds are recorded in `DECISIONS.md`.

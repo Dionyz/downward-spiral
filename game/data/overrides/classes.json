@@ -4,7 +4,7 @@
   "warrior": {
    "stats": {
     "hp_base": 130,
-    "hp_per_level": 22,
+    "hp_per_level": 16,
     "mana_base": 0,
     "mana_per_level": 0,
     "size": "medium",
@@ -17,8 +17,8 @@
     },
     "ac_base": -150,
     "shield_block_value": 35,
-    "damage_pct": -20,
-    "damage_taken_pct": 40
+    "damage_pct": -35,
+    "damage_taken_pct": 42
    },
    "default_rules": [
     {
@@ -57,7 +57,7 @@
     },
     "ac_base": -80,
     "damage_pct": 15,
-    "damage_taken_pct": 6
+    "damage_taken_pct": 28
    },
    "default_rules": [
     {
@@ -98,7 +98,7 @@
     },
     "ac_base": -50,
     "spell_pct": 150,
-    "damage_taken_pct": 0
+    "damage_taken_pct": 8
    },
    "default_rules": [
     {
@@ -137,7 +137,7 @@
     },
     "ac_base": -80,
     "damage_pct": 10,
-    "damage_taken_pct": 0
+    "damage_taken_pct": 18
    },
    "default_rules": [
     {

@@ -1,0 +1,70 @@
+{
+ "_note": "Account progression (spec milestone 8). Unlocks options, not raw power; permanent bonuses are capped at +10% HP and +10% damage.",
+ "xp_thresholds": [
+  0,
+  150,
+  400,
+  800,
+  1400,
+  2200,
+  3200,
+  4500,
+  6000,
+  8000
+ ],
+ "starting_class": "warrior",
+ "levels": {
+  "2": {
+   "classes": [
+    "thief"
+   ],
+   "boon_tier": 2,
+   "text": "Thief unlocked. New boons enter the pool."
+  },
+  "3": {
+   "rule_slots": 1,
+   "text": "Start every run with a third rule slot."
+  },
+  "4": {
+   "classes": [
+    "mage"
+   ],
+   "hp_pct": 2,
+   "damage_pct": 2,
+   "text": "Mage unlocked. +2% HP and damage."
+  },
+  "5": {
+   "legendary_tier": 2,
+   "hp_pct": 2,
+   "damage_pct": 2,
+   "text": "New legendary powers can drop. +2% HP and damage."
+  },
+  "6": {
+   "classes": [
+    "knifer"
+   ],
+   "text": "Jackal unlocked."
+  },
+  "7": {
+   "boon_tier": 3,
+   "hp_pct": 2,
+   "damage_pct": 2,
+   "text": "More boons enter the pool. +2% HP and damage."
+  },
+  "8": {
+   "potions": 1,
+   "hp_pct": 2,
+   "damage_pct": 2,
+   "text": "Start every run with an extra HP potion. +2% HP and damage."
+  },
+  "9": {
+   "hp_pct": 2,
+   "damage_pct": 2,
+   "text": "+2% HP and damage."
+  },
+  "10": {
+   "text": "You have mastered the Spiral."
+  }
+ },
+ "bonus_cap_pct": 10
+}

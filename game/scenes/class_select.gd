@@ -22,10 +22,16 @@ func _ready() -> void:
 		var kit := "Starts with: " + ", ".join(PackedStringArray(L.get("starting_actives", [])))
 		cv.add_child(UI.label(kit, 18, UI.DIM))
 		var ln: String = line
-		cv.add_child(UI.button("Descend as %s" % str(L.get("display", line)), func(): _start(ln), 56))
+		var b := UI.button("Descend as %s" % str(L.get("display", line)), func(): _start(ln), 56)
+		if not Game.class_unlocked(line):
+			b.disabled = true
+			b.text = "Unlocks at account level %d" % DSMeta.class_unlock_level(Game.data, line)
+			card.modulate = Color(1, 1, 1, 0.55)
+		cv.add_child(b)
 		v.add_child(card)
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("Back", func(): Game.goto("title"), 56))
+	Hint.show(self, "welcome")
 	if Game.autoplay != "":
 		print("[autoplay] class_select -> %s" % Game.autoplay)
 		Game.auto_next("class_select", func(): _start(Game.autoplay))

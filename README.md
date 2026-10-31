@@ -11,20 +11,20 @@ Single-player Android roguelike: auto-exploration and rule-driven auto combat th
 | 3. Rules | Done (telegraphs dropped by owner). |
 | 4. Playable text prototype | Done on desktop (Android export deferred by owner). |
 | 5. Run loop | Done: 6 floors, all room types, rewards, items, boons, events, boss, extraction, death, save/resume. |
-| 6. All four classes | Done: 40 boons, boss, 1,000-run balance within 6.7 points. |
+| 6. All four classes | Done: 40 boons, boss, 1,000-run balance within 3.7 points. |
 | 7. Art and feel | Done on desktop: icons, combat stage animations, screen shake, sound, log toggle. 60 fps on Android unverified. |
-| 8 | In progress. |
+| 8. Meta-progression and polish | Done: account levels and unlocks, settings, credits, tutorial tips. |
 
 ## Layout
 
 ```
 game/core/     pure logic, no Nodes: rng, stats, game_data, combatant, ability, factory,
-               combat_sim, rules, combat_text, loot, encounters, dungeon_gen, run_state, autopilot
-game/scenes/   title, class_select, dungeon (map + rooms), combat, run_end + Game autoload
-game/ui/       theme/widgets, combat log, rule editor
+               combat_sim, rules, combat_text, loot, encounters, dungeon_gen, run_state, autopilot, meta
+game/scenes/   title, class_select, dungeon (map + rooms), combat, run_end, settings + Game autoload
+game/ui/       theme/widgets, combat log, rule editor, cards, tutorial hints
 game/data/     classes/abilities.json (imported); items, monsters, boons, events, rooms, balance (hand-authored);
                overrides/*.json (hand-tuned, merged at load, never touched by the importer)
-tools/         import_mud_data.py, combat_log.gd (CLI combat log)
+tools/         import_mud_data.py, combat_log.gd (CLI combat log), balance_run.gd, gen_sfx.py
 tests/unit/    GUT tests
 addons/gut/    GUT 9.7.1 (MIT), dev-only
 game/assets/   icons (game-icons.net, CC BY 3.0) and generated sound (tools/gen_sfx.py)

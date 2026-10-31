@@ -37,6 +37,7 @@ var room: Dictionary = {}
 var phase: String = "path"
 var result: String = ""
 var stats := {"kills": 0, "fights": 0, "rooms": 0, "gold_earned": 0}
+var perks: Dictionary = {}    # account perks this run started with (DSMeta.perks)
 var messages: Array = []      # short lines for the UI (level ups, loot); cleared by the UI
 
 
@@ -44,18 +45,20 @@ var messages: Array = []      # short lines for the UI (level ups, loot); cleare
 # Setup and save
 # ---------------------------------------------------------------------------
 
-static func new_run(p_data: DSData, p_line: String, p_seed: int) -> DSRunState:
+## `p_perks` = DSMeta.perks(...) for the player's account; omitted = everything unlocked, no bonuses.
+static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictionary = {}) -> DSRunState:
 	var r := DSRunState.new()
 	r.data = p_data
+	r.perks = p_perks.duplicate(true) if not p_perks.is_empty() else DSMeta.all_unlocked(p_data)
 	r.seed_value = p_seed
 	r.rng = DSRng.new(p_seed)
 	r.line = p_line
 	var ps: Dictionary = r._cfg().get("potions_start", {"hp": 2, "mp": 2})
-	r.potions = {"hp": int(ps.get("hp", 2)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
+	r.potions = {"hp": int(ps.get("hp", 2)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
 	var L: Dictionary = p_data.classes.get(p_line, {})
 	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
 	r.actives = DSFactory.default_actives(p_data, p_line, r.tier(), 1)
-	r.rules = DSFactory.default_rules(p_data, p_line, r.tier(), 1, DSFactory.rule_slots(p_data, 1))
+	r.rules = DSFactory.default_rules(p_data, p_line, r.tier(), 1, r.rule_slots())
 	r._new_floor()
 	return r
 
@@ -66,7 +69,7 @@ func to_dict() -> Dictionary:
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "boons": boons.duplicate(), "rules": rules.duplicate(true),
 		"actives": actives.duplicate(), "rules_custom": rules_custom, "actives_custom": actives_custom, "floor_num": floor_num, "floor_data": floor_data.duplicate(true),
-		"step": step, "room": room.duplicate(true), "phase": phase, "result": result, "stats": stats.duplicate(),
+		"step": step, "room": room.duplicate(true), "phase": phase, "result": result, "stats": stats.duplicate(), "perks": perks.duplicate(true),
 	}
 
 
@@ -97,6 +100,9 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.phase = str(d.get("phase", "path"))
 	r.result = str(d.get("result", ""))
 	r.stats = _normalize(d.get("stats", r.stats))
+	r.perks = _normalize(d.get("perks", {}))
+	if r.perks.is_empty():
+		r.perks = DSMeta.all_unlocked(p_data)
 	return r
 
 
@@ -136,7 +142,8 @@ func _has_mana() -> bool:
 
 ## A fresh Combatant reflecting the run: level, gear, boons, rules, current HP/mana.
 func make_player() -> Combatant:
-	var opts := {"rules": rules, "actives": actives, "weapon": items["weapon"]}
+	var opts := {"rules": rules, "actives": actives, "weapon": items["weapon"],
+		"meta_hp_pct": int(perks.get("hp_pct", 0)), "meta_damage_pct": int(perks.get("damage_pct", 0))}
 	if items["armor"] != null:
 		opts["armor"] = items["armor"]
 	if items["trinket"] != null:
@@ -157,7 +164,7 @@ func tier() -> int:
 
 
 func rule_slots() -> int:
-	return DSFactory.rule_slots(data, level)
+	return mini(int(data.balance.get("max_rule_slots", 4)), DSFactory.rule_slots(data, level) + int(perks.get("rule_slots", 0)))
 
 
 ## Every active the character knows at its level (for swapping at rest rooms).
@@ -519,7 +526,7 @@ func add_xp(amount: int) -> int:
 
 
 func _roll_item(rarity: String) -> Dictionary:
-	return DSLoot.roll_item(data, rng, item_level(), "", rarity, line)
+	return DSLoot.roll_item(data, rng, item_level(), "", rarity, line, int(perks.get("legendary_tier", 99)))
 
 
 func available_boons() -> Array:
@@ -530,6 +537,8 @@ func available_boons() -> Array:
 		var b: Dictionary = data.boons[id]
 		var lines: Array = b.get("lines", [])
 		if boons.has(id):
+			continue
+		if int(b.get("tier", 1)) > int(perks.get("boon_tier", 99)):
 			continue
 		if lines.is_empty() or lines.has(line):
 			out.append(id)

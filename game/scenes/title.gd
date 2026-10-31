@@ -18,7 +18,12 @@ func _ready() -> void:
 	if Game.has_saved_run():
 		v.add_child(UI.button("Continue", _continue, 80))
 	v.add_child(UI.button("New Run", func(): Game.goto("class_select"), 80))
-	var ver := UI.label("text prototype · milestone 5", 16, UI.DIM)
+	v.add_child(UI.button("Settings and credits", func(): Game.goto("settings"), 56))
+	var lvl := Game.account_level()
+	var acct := UI.label("Account level %d · %d XP" % [lvl, int(Game.account.get("xp", 0))], 18, UI.DIM)
+	acct.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(acct)
+	var ver := UI.label("v1", 16, UI.DIM)
 	ver.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(ver)
 	if Game.autoplay != "":

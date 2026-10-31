@@ -19,7 +19,7 @@ static func roll_rarity(data: DSData, rng: DSRng, floor_bonus: float = 0.0) -> S
 
 
 ## Roll one item. `slot` "" = random; `line` biases weapon type toward the class.
-static func roll_item(data: DSData, rng: DSRng, ilvl: int, slot: String = "", rarity: String = "", line: String = "") -> Dictionary:
+static func roll_item(data: DSData, rng: DSRng, ilvl: int, slot: String = "", rarity: String = "", line: String = "", legendary_tier: int = 99) -> Dictionary:
 	var it: Dictionary = data.items
 	if slot == "":
 		slot = rng.pick(it.get("slots", ["weapon", "armor", "trinket"]))
@@ -94,7 +94,7 @@ static func roll_item(data: DSData, rng: DSRng, ilvl: int, slot: String = "", ra
 		var lp: Dictionary = it.get("legendary_passives", {})
 		var lkeys: Array = []
 		for k in lp.keys():
-			if slot in lp[k].get("slots", []):
+			if slot in lp[k].get("slots", []) and int(lp[k].get("tier", 1)) <= legendary_tier:
 				lkeys.append(k)
 		lkeys.sort()
 		if not lkeys.is_empty():

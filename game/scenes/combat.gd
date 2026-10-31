@@ -84,7 +84,7 @@ func _ready() -> void:
 	timer.wait_time = ROUND_TIME / Game.speed
 	timer.timeout.connect(_tick)
 	add_child(timer)
-	timer.start()
+	Hint.show(self, "fight", func(): timer.start())
 
 
 # --- cards -------------------------------------------------------------------

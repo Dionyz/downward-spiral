@@ -69,7 +69,7 @@ func _path(p: String) -> String:
 func new_run(line: String, seed_value: int = 0) -> void:
 	if seed_value == 0:
 		seed_value = int(Time.get_unix_time_from_system() * 1000.0) % 2147483646 + 1
-	run = DSRunState.new_run(data, line, seed_value)
+	run = DSRunState.new_run(data, line, seed_value, account_perks())
 	save_run()
 
 
@@ -91,13 +91,28 @@ func save_run() -> void:
 		_write(_path(RUN_SAVE), run.to_dict())
 
 
+func account_level() -> int:
+	return DSMeta.level_for(data, int(account.get("xp", 0)))
+
+
+func account_perks() -> Dictionary:
+	return DSMeta.perks(data, account_level())
+
+
+func class_unlocked(line: String) -> bool:
+	return autoplay != "" or account_perks()["classes"].has(line)
+
+
 ## Bank the finished run into the account once, and clear the run save.
 func finish_run() -> Dictionary:
 	if run == null or run.phase != "over":
 		return {}
 	var b := run.banked()
 	if not run.room.get("banked", false):
+		var before := account_level()
 		account = DSRunState.bank_into(account, run)
+		b["level_before"] = before
+		b["level_after"] = account_level()
 		run.room["banked"] = true
 		_write(_path(ACCOUNT_SAVE), account)
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(_path(RUN_SAVE)))
@@ -141,4 +156,5 @@ func auto_next(shot_name: String, next: Callable, delay: float = 0.3) -> void:
 		_shot_n += 1
 		var path := "%s/%03d_%s.png" % [args[i + 1], _shot_n, shot_name]
 		get_viewport().get_texture().get_image().save_png(path)
-	next.call()
+	if next.is_valid():
+		next.call()

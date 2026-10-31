@@ -46,7 +46,14 @@ func _ready() -> void:
 	auto_timer.one_shot = true
 	auto_timer.timeout.connect(_auto_advance)
 	add_child(auto_timer)
+	if not Hint.seen("dungeon"):
+		_auto_paused = true
 	_refresh()
+	Hint.show(self, "dungeon", func():
+		_auto_paused = false
+		if is_inside_tree():
+			_refresh()
+	)
 
 
 # --- rendering ------------------------------------------------------------
@@ -84,6 +91,15 @@ func _refresh() -> void:
 			_show_reward()
 		"floor_end":
 			_show_floor_end()
+	var hid := ""
+	if run.phase == "reward" and not run.room.get("reward", {}).get("offers", []).is_empty():
+		hid = "reward"
+	elif run.phase == "floor_end":
+		hid = "floor_end"
+	elif run.phase == "room" and run.room.get("type", "") in ["rest", "shrine", "event"]:
+		hid = str(run.room["type"])
+	if hid != "" and Hint.seen("dungeon"):
+		Hint.show(self, hid)
 	_maybe_autoplay()
 
 
@@ -335,14 +351,19 @@ func _auto_advance() -> void:
 		_fight()
 
 
+var _auto_pending := false
+
+
 func _maybe_autoplay() -> void:
-	if Game.autoplay == "":
+	if Game.autoplay == "" or _auto_pending:
 		return
+	_auto_pending = true
 	var shot := "%d_%d_%s_%s" % [run.floor_num, run.step, run.phase, str(run.room.get("type", ""))]
 	Game.auto_next(shot, _autoplay_step)
 
 
 func _autoplay_step() -> void:
+	_auto_pending = false
 	if not is_inside_tree():
 		return
 	print("[autoplay] at floor %d step %d phase %s room %s" % [run.floor_num, run.step, run.phase, run.room.get("type", "-")])
@@ -387,6 +408,7 @@ func _open_rules() -> void:
 	scroll.add_child(ed)
 	v.add_child(scroll)
 	ed.setup(run.actives, run.rules, run.rule_slots())
+	Hint.show(overlay, "rules")
 	v.add_child(UI.button("Done", func():
 		run.set_rules(ed.get_rules())
 		Game.save_run()
