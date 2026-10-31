@@ -124,6 +124,14 @@ static func line(ev: Dictionary) -> String:
 			return "** %s **" % str(ev.get("text", ""))
 		"death":
 			return "%s %s DEAD!" % [subj(src), v(src, "are", "is")]
+		"pickup":
+			return "%s %s %s%s." % [subj(YOU), "pick up", ev.get("name", "something"), " and equip it" if ev.get("equipped", false) else ""]
+		"chest":
+			return "You open a chest."
+		"wake":
+			return "%s wakes up." % subj(src)
+		"encounter":
+			return "-- Enemies close in --"
 		"fight_end":
 			match ev.get("result", ""):
 				"win":

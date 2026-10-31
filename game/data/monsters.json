@@ -23,7 +23,8 @@
     2
    ],
    "role": "swarm",
-   "color": "#a08060"
+   "color": "#a08060",
+   "move_speed": 150
   },
   "goblin_cutter": {
    "name": "a goblin cutter",
@@ -112,7 +113,8 @@
      "then": "venom_bite"
     }
    ],
-   "color": "#9b6fd1"
+   "color": "#9b6fd1",
+   "move_speed": 120
   },
   "hooded_cultist": {
    "name": "a hooded cultist",
@@ -140,7 +142,8 @@
      "max": 9,
      "dam_type": "negative",
      "beats": 12,
-     "display": "shadow bolt"
+     "display": "shadow bolt",
+     "range": 5
     }
    },
    "rules": [
@@ -149,7 +152,8 @@
      "then": "shadow_bolt"
     }
    ],
-   "color": "#c0392b"
+   "color": "#c0392b",
+   "keep_distance": 4
   },
   "orc_brute": {
    "name": "an orc brute",
@@ -194,7 +198,8 @@
      "then": "overhead_smash"
     }
    ],
-   "color": "#8a9a3a"
+   "color": "#8a9a3a",
+   "move_speed": 80
   },
   "ghoul": {
    "name": "a ghoul",
@@ -395,7 +400,8 @@
      "then": "rotting_cleave"
     }
    ],
-   "color": "#a8423a"
+   "color": "#a8423a",
+   "move_speed": 90
   },
   "wailing_shade": {
    "name": "a wailing shade",
@@ -443,7 +449,8 @@
      "then": "chilling_wail"
     }
    ],
-   "color": "#a8e6ef"
+   "color": "#a8e6ef",
+   "move_speed": 120
   },
   "spiral_warden": {
    "name": "the Spiral Warden",
@@ -533,7 +540,8 @@
     }
    ],
    "steady": 50,
-   "color": "#ff9a2e"
+   "color": "#ff9a2e",
+   "wake_radius": 4
   }
  }
 }

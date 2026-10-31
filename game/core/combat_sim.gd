@@ -27,6 +27,10 @@ var events: Array = []         # events from the current step
 var log_all: bool = true
 var history: Array = []        # every event of the fight when log_all
 var max_rounds: int = 200
+## Map play hooks (DSWorld sets these): range_check(c, ref, target) -> bool decides whether an
+## ability can reach its target; area_targets(c, ability) -> Array lists who an area ability hits.
+var range_check: Callable = Callable()
+var area_targets: Callable = Callable()
 
 
 func _init(p_rng: DSRng, p_data: DSData) -> void:
@@ -233,8 +237,32 @@ func _default_target(c: Combatant):
 	return player
 
 
-func opponents_of(c: Combatant) -> Array:
+func opponents_of(c: Combatant, aname: String = "") -> Array:
+	if area_targets.is_valid():
+		return area_targets.call(c, aname)
 	return living_enemies() if c.is_player else ([player] if player.is_alive() else [])
+
+
+## Map play: tick one combatant's statuses, cooldowns and regen (one turn).
+func tick(c: Combatant) -> void:
+	_tick(c)
+
+
+## Map play: a new encounter starts (resets once-per-fight effects).
+func start_encounter() -> void:
+	player.flags["second_wind_used"] = false
+	player.flags["last_stand_used"] = false
+	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false)
+	player.flags["momentum"] = 0
+	player.flags["counter_ready"] = false
+	if _has_passive(player, "pale_ward"):
+		player.add_status("sanctuary", 3)
+		_emit({"t": "status_applied", "src": player.name, "dst": player.name, "status": "sanctuary", "rounds": 3})
+
+
+## Map play: one melee attack (a full MUD attack round) against `victim`.
+func melee(ch: Combatant, victim: Combatant) -> void:
+	_multi_hit(ch, victim, HIT)
 
 
 # ---------------------------------------------------------------------------
@@ -755,6 +783,8 @@ func can_use(c: Combatant, ref: String, target) -> bool:
 		return false
 	var p: Dictionary = a.get("params", {})
 	var tkind: String = a.get("target", "enemy")
+	if range_check.is_valid() and not range_check.call(c, ref, target):
+		return false
 	if tkind == "enemy" or tkind == "all_enemies":
 		if target == null or not target.is_alive():
 			return false
@@ -1114,7 +1144,7 @@ func _h_chain(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 	while level > 0 and guard < 50 and c.is_alive():
 		guard += 1
 		var found := false
-		for tv in opponents_of(c):
+		for tv in opponents_of(c, aname):
 			if tv == last:
 				continue
 			found = true
@@ -1152,7 +1182,7 @@ func _h_aoe(c: Combatant, aname: String, p: Dictionary) -> void:
 	if rng.number_percent() >= _skill_for(c, aname):
 		_miss(c, null, aname)
 		return
-	for v in opponents_of(c):
+	for v in opponents_of(c, aname):
 		_one_hit(c, v, aname, false)
 		var roll := rng.number_percent()
 		var extra := 0

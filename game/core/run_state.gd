@@ -1,13 +1,14 @@
 class_name DSRunState
 extends RefCounted
-## One run, start to finish: floors, rooms, rewards, boons, items, XP, gold, extraction, death.
-## Pure logic and plain data: to_dict()/from_dict() is the save file. The UI only calls methods here.
+## One run, start to finish: six Rogue-style floors, XP, gold, loot, boons, extraction, death.
+## Pure logic and plain data: to_dict()/from_dict() is the save file. The UI calls tick() on a
+## timer while exploring and the choice methods when play is paused.
 ##
 ## Phases:
-##   "path"      between rooms; at_fork() says whether the player must pick a room
-##   "room"      inside a room (fight not finished / choice not made yet)
-##   "reward"    after a won fight: loot already landed in the inventory; pick 1 of 3 boons (or skip)
-##   "floor_end" floor cleared; descend() or extract() (extract from floor 2 on)
+##   "explore"   the floor is in play: call tick() each turn
+##   "boon"      choose 1 of the offered boons (offer, offer_source), or skip
+##   "event"     an event object was touched: event_choose(i), then event_done()
+##   "floor_end" standing on the stairs: descend() or extract() (extract from floor 2 on)
 ##   "over"      run ended; result is "death", "extract" or "victory"
 
 const FLOORS := 6
@@ -24,19 +25,23 @@ var xp_total: int = 0         # earned this run (converted to account XP at the 
 var gold: int = 0
 var hp: int = -1              # -1 = full
 var mana: int = -1
-var potions := {"hp": 2, "mp": 2}
+var potions := {"hp": 3, "mp": 2}
 var items := {"weapon": null, "armor": null, "trinket": null}   # equipped, one per slot
 var inventory: Array = []     # everything else you carry (max INVENTORY_MAX)
 var boons: Array = []
 var floor_num: int = 1
-var floor_data: Dictionary = {}
-var step: int = 0
-var room: Dictionary = {}
-var phase: String = "path"
+var world: DSWorld
+var phase: String = "explore"
+var offer: Array = []         # boon ids on offer
+var offer_source: String = ""
+var pending_boons: int = 0    # boon picks earned (level-ups, elites) not yet shown
+var event_id: String = ""
+var event_outcome: Array = []
 var result: String = ""
 var stats := {"kills": 0, "fights": 0, "rooms": 0, "gold_earned": 0}
 var perks: Dictionary = {}    # account perks this run started with (DSMeta.perks)
 var messages: Array = []      # short lines for the UI (level ups, loot); cleared by the UI
+var room: Dictionary = {}     # legacy scratch (banking flag)
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +56,8 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 	r.seed_value = p_seed
 	r.rng = DSRng.new(p_seed)
 	r.line = p_line
-	var ps: Dictionary = r._cfg().get("potions_start", {"hp": 2, "mp": 2})
-	r.potions = {"hp": int(ps.get("hp", 2)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
+	var ps: Dictionary = r._cfg().get("potions_start", {"hp": 3, "mp": 2})
+	r.potions = {"hp": int(ps.get("hp", 3)) + int(r.perks.get("potions", 0)), "mp": int(ps.get("mp", 2)) if r._has_mana() else 0}
 	var L: Dictionary = p_data.classes.get(p_line, {})
 	r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
 	r._new_floor()
@@ -60,12 +65,15 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 
 
 func to_dict() -> Dictionary:
+	_sync_from_world()
 	return {
-		"version": 1, "seed": seed_value, "rng": rng.save_state(), "line": line, "level": level, "xp": xp,
+		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
-		"floor_num": floor_num, "floor_data": floor_data.duplicate(true),
-		"step": step, "room": room.duplicate(true), "phase": phase, "result": result, "stats": stats.duplicate(), "perks": perks.duplicate(true),
+		"floor_num": floor_num, "world": world.to_dict() if world != null else {}, "phase": phase,
+		"offer": offer.duplicate(), "offer_source": offer_source, "pending_boons": pending_boons,
+		"event_id": event_id, "event_outcome": event_outcome.duplicate(), "result": result,
+		"stats": stats.duplicate(), "perks": perks.duplicate(true), "room": room.duplicate(true),
 	}
 
 
@@ -84,19 +92,198 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.mana = int(d.get("mana", -1))
 	r.potions = _normalize(d.get("potions", {}))
 	r.items = _normalize(d.get("items", r.items))
-	r.boons = _normalize(d.get("boons", []))
 	r.inventory = _normalize(d.get("inventory", []))
+	r.boons = _normalize(d.get("boons", []))
 	r.floor_num = int(d.get("floor_num", 1))
-	r.floor_data = _normalize(d.get("floor_data", {}))
-	r.step = int(d.get("step", 0))
-	r.room = _normalize(d.get("room", {}))
-	r.phase = str(d.get("phase", "path"))
+	r.phase = str(d.get("phase", "explore"))
+	r.offer = _normalize(d.get("offer", []))
+	r.offer_source = str(d.get("offer_source", ""))
+	r.pending_boons = int(d.get("pending_boons", 0))
+	r.event_id = str(d.get("event_id", ""))
+	r.event_outcome = _normalize(d.get("event_outcome", []))
 	r.result = str(d.get("result", ""))
 	r.stats = _normalize(d.get("stats", r.stats))
 	r.perks = _normalize(d.get("perks", {}))
+	r.room = _normalize(d.get("room", {}))
 	if r.perks.is_empty():
 		r.perks = DSMeta.all_unlocked(p_data)
+	var wd: Dictionary = _normalize(d.get("world", {}))
+	if not wd.is_empty():
+		r.world = DSWorld.from_dict(r, wd)
 	return r
+
+
+# ---------------------------------------------------------------------------
+# Floors and turns
+# ---------------------------------------------------------------------------
+
+func _new_floor() -> void:
+	var lvl := DSLevelGen.generate(data, rng, floor_num)
+	world = DSWorld.create(self, lvl, rng.fork())
+	phase = "explore"
+
+
+## Advance one turn of the floor. Returns the turn's events (for the UI to animate).
+func tick() -> Array:
+	if phase != "explore" or world == null:
+		return []
+	var evs := world.step()
+	world.wake_damaged()
+	_sync_from_world()
+	if phase == "over":
+		return evs
+	var p: Dictionary = world.pending
+	if p.get("kind", "") == "death":
+		end_run("death")
+	elif p.get("kind", "") == "stairs":
+		world.pending = {}
+		if floor_num >= FLOORS:
+			end_run("victory")
+		else:
+			phase = "floor_end"
+	elif p.get("kind", "") == "event":
+		world.pending = {}
+		var ids := data.events.keys()
+		ids.sort()
+		event_id = str(rng.pick(ids))
+		event_outcome = []
+		phase = "event"
+	elif p.get("kind", "") == "boon":
+		world.pending = {}
+		_open_offer("shrine")
+	elif pending_boons > 0:
+		pending_boons -= 1
+		_open_offer("level")
+	return evs
+
+
+func _open_offer(source: String) -> void:
+	offer = _boon_offers(3).map(func(o): return o["id"])
+	offer_source = source
+	if offer.is_empty():
+		phase = "explore"
+	else:
+		phase = "boon"
+
+
+## Live HP/mana live on the world's player while a floor is in play.
+func _sync_from_world() -> void:
+	if world != null and world.player != null:
+		hp = world.player.hp
+		mana = world.player.mana
+
+
+func _sync_to_world() -> void:
+	if world != null:
+		world.refresh_player()
+
+
+func take_boon(i: int) -> void:
+	if phase != "boon" or i < 0 or i >= offer.size():
+		return
+	add_boon(str(offer[i]))
+	_close_offer()
+
+
+func skip_boon() -> void:
+	if phase == "boon":
+		_close_offer()
+
+
+func _close_offer() -> void:
+	offer = []
+	offer_source = ""
+	phase = "explore"
+	_sync_to_world()
+
+
+## Kill reward: XP, gold, maybe item and potion drops (returned as items to place on the floor).
+func on_kill(c: Combatant, elite: bool, boss: bool) -> Array:
+	var kind := "boss" if boss else ("elite" if elite else "normal")
+	var cfg := _cfg()
+	stats["kills"] = int(stats["kills"]) + 1
+	var gx := c.level * int(cfg.get("xp_per_monster_level", 10)) * int(cfg.get("xp_mult", {}).get(kind, 1))
+	var gg := (c.level * int(cfg.get("gold_per_monster_level", 3)) + rng.number_range(0, 3)) * int(cfg.get("gold_mult", {}).get(kind, 1))
+	if boons.has("quick_study"):
+		gx += DSStats.idiv(gx, 4)
+	if boons.has("scavenger"):
+		gg += DSStats.idiv(gg, 2)
+	gold += gg
+	stats["gold_earned"] = int(stats["gold_earned"]) + gg
+	_sync_from_world()
+	var lv := add_xp(gx)
+	pending_boons += lv
+	if elite:
+		pending_boons += 1
+	if lv > 0:
+		_sync_to_world()
+	if boons.has("catch_breath") and world != null:
+		world.player.hp = mini(world.player.max_hp, world.player.hp + world.player.max_hp / 10)
+	var drops: Array = []
+	if elite or rng.number_percent() <= int(cfg.get("loot_drop_pct", 25)):
+		drops.append_array(_fight_loot(elite))
+	var pchance := int(cfg.get("potion_drop_pct_elite", 50)) if elite else int(cfg.get("potion_drop_pct", 8))
+	if rng.number_percent() <= pchance:
+		var kp := "mp" if _has_mana() and rng.number_percent() <= 35 else "hp"
+		if _add_potion(kp):
+			messages.append("Found a %s potion." % ("healing" if kp == "hp" else "mana"))
+	if boss:
+		world.pending = {"kind": "stairs"}
+		world.heading_down = true
+	return drops
+
+
+## A chest: `balance.run.treasure_items` items, the first at least uncommon.
+func open_chest() -> Array:
+	var found: Array = []
+	for i in int(_cfg().get("treasure_items", 3)):
+		found.append(_roll_item("uncommon" if i == 0 else ""))
+	var got := gain_items(found)
+	_sync_to_world()
+	return got
+
+
+# --- events ---
+
+## Pick option `i` of the current event. Returns the outcome lines.
+func event_choose(i: int) -> Array:
+	if phase != "event" or not event_outcome.is_empty():
+		return event_outcome
+	var opts: Array = event_def().get("options", [])
+	if i < 0 or i >= opts.size():
+		return []
+	_sync_from_world()
+	var lines: Array = []
+	var found_item = null
+	for op in opts[i].get("ops", []):
+		found_item = _apply_op(op, lines, found_item)
+	if found_item != null:
+		var got := gain_items([found_item])
+		lines.append("Found %s%s." % [found_item.get("name", "?"), " (equipped)" if got[0]["equipped"] else " (in your bag)"])
+	event_outcome = lines
+	_sync_to_world()
+	return lines
+
+
+func event_done() -> void:
+	if phase == "event":
+		event_id = ""
+		event_outcome = []
+		phase = "explore"
+
+
+func descend() -> void:
+	if phase != "floor_end":
+		return
+	_sync_from_world()
+	floor_num += 1
+	_new_floor()
+
+
+func extract() -> void:
+	if can_extract():
+		end_run("extract")
+
 
 
 ## JSON turns ints into floats; convert dictionaries of numbers back.
@@ -128,10 +315,6 @@ func _has_mana() -> bool:
 	var st: Dictionary = data.classes.get(line, {}).get("stats", {})
 	return int(st.get("mana_base", 0)) > 0
 
-
-# ---------------------------------------------------------------------------
-# Player
-# ---------------------------------------------------------------------------
 
 ## A fresh Combatant reflecting the run: level, gear, boons, current HP/mana.
 ## The character carries every ability it knows and fights by its class's built-in priorities.
@@ -171,148 +354,9 @@ func item_level() -> int:
 	return clampi(monster_level(), 1, 10)
 
 
-# ---------------------------------------------------------------------------
-# Floors and rooms
-# ---------------------------------------------------------------------------
-
-func _new_floor() -> void:
-	floor_data = DSDungeonGen.generate(rng, floor_num, data.rooms)
-	step = 0
-	room = {}
-	phase = "path"
-
-
-func steps() -> Array:
-	return floor_data.get("steps", [])
-
-
-func current_step() -> Array:
-	var s := steps()
-	return s[step] if step < s.size() else []
-
-
-func at_fork() -> bool:
-	return phase == "path" and current_step().size() > 1
-
-
-## Enter the room at `choice` of the current step (0 unless it's a fork).
-func enter(choice: int = 0) -> Dictionary:
-	if phase != "path":
-		return room
-	var options := current_step()
-	if options.is_empty():
-		return {}
-	room = options[clampi(choice, 0, options.size() - 1)].duplicate(true)
-	room["chosen"] = choice
-	# Remember which room was taken at each step (the map draws the walked path).
-	var taken: Array = floor_data.get("taken", [])
-	while taken.size() <= step:
-		taken.append(0)
-	taken[step] = choice
-	floor_data["taken"] = taken
-	stats["rooms"] = int(stats["rooms"]) + 1
-	match room["type"]:
-		"fight", "elite", "boss":
-			var kind := "normal" if room["type"] == "fight" else str(room["type"])
-			var lvl := monster_level()
-			if kind == "elite":
-				lvl += int(_cfg().get("elite_level_bonus", 1))
-			elif kind == "boss":
-				lvl = int(_cfg().get("boss_level", 10))
-			room["monsters"] = DSEncounters.roll_ids(data, rng, floor_num, kind)
-			room["monster_level"] = lvl
-			room["fight_seed"] = rng.next_int()
-		"treasure":
-			var found: Array = []
-			for i in int(_cfg().get("treasure_items", 3)):
-				found.append(_roll_item("uncommon" if i == 0 else ""))
-			room["loot"] = gain_items(found)
-		"shrine":
-			room["offers"] = _boon_offers(3)
-		"event":
-			var ids := data.events.keys()
-			ids.sort()
-			room["event"] = rng.pick(ids)
-	phase = "room"
-	return room
-
-
-func is_fight_room() -> bool:
-	return phase == "room" and room.get("type", "") in ["fight", "elite", "boss"]
-
-
-## Monsters for the current fight room. Same every time (resume restarts the fight identically).
-func fight_monsters() -> Array:
-	return DSEncounters.build(data, room.get("monsters", []), int(room.get("monster_level", 1)))
-
-
-func fight_rng() -> DSRng:
-	return DSRng.new(int(room.get("fight_seed", 1)))
-
-
-## Record a finished fight. `potions_left` = potions after any drunk during the fight.
-func finish_fight(p: Combatant, foes: Array, fight_result: String, potions_left: Dictionary = {}) -> Dictionary:
-	if not potions_left.is_empty():
-		potions = potions_left.duplicate()
-	hp = p.hp
-	mana = p.mana
-	stats["fights"] = int(stats["fights"]) + 1
-	if fight_result != "win":
-		end_run("death")
-		return {}
-	var kind := "normal" if room.get("type") == "fight" else str(room.get("type"))
-	var c := _cfg()
-	var gained_xp := 0
-	var gained_gold := 0
-	for f in foes:
-		if f.is_alive():
-			continue
-		stats["kills"] = int(stats["kills"]) + 1
-		gained_xp += f.level * int(c.get("xp_per_monster_level", 10)) * int(c.get("xp_mult", {}).get(kind, 1))
-		gained_gold += (f.level * int(c.get("gold_per_monster_level", 3)) + rng.number_range(0, 3)) * int(c.get("gold_mult", {}).get(kind, 1))
-	if boons.has("quick_study"):
-		gained_xp += DSStats.idiv(gained_xp, 4)
-	if boons.has("scavenger"):
-		gained_gold += DSStats.idiv(gained_gold, 2)
-	gold += gained_gold
-	stats["gold_earned"] = int(stats["gold_earned"]) + gained_gold
-	var reward := {"gold": gained_gold, "xp": gained_xp, "levels": add_xp(gained_xp)}
-	if boons.has("catch_breath"):
-		_heal_pct(10, 10)
-	if rng.number_percent() <= int(c.get("potion_drop_pct", 20)):
-		var kind_p := "mp" if _has_mana() and rng.number_percent() <= 40 else "hp"
-		if _add_potion(kind_p):
-			reward["potion"] = kind_p
-	if kind != "boss":
-		reward["loot"] = gain_items(_fight_loot(kind == "elite"))
-		reward["offers"] = _boon_offers(3)
-	else:
-		reward["loot"] = []
-		reward["offers"] = []
-	room["reward"] = reward
-	phase = "reward"
-	return reward
-
-
-## Take boon offer `i` (after a fight, or at a shrine).
-func take_offer(i: int) -> void:
-	var offers: Array = room.get("reward", {}).get("offers", []) if phase == "reward" else room.get("offers", [])
-	if i < 0 or i >= offers.size():
-		return
-	var o: Dictionary = offers[i]
-	if o.get("kind") == "boon":
-		add_boon(str(o["id"]))
-	complete_room()
-
-
-## Skip the reward / leave the treasure or shrine.
-func skip() -> void:
-	if phase in ["reward", "room"]:
-		complete_room()
-
-
 ## Put `item` in its slot. Whatever was there goes back into the inventory.
 func equip(item: Dictionary) -> void:
+	_sync_from_world()
 	var slot: String = item.get("slot", "weapon")
 	var old = items.get(slot)
 	var before := make_player()
@@ -326,6 +370,7 @@ func equip(item: Dictionary) -> void:
 	if old != null:
 		inventory.append(old)
 	messages.append("Equipped %s." % item.get("name", "?"))
+	_sync_to_world()
 
 
 ## Equip inventory item `i` (swapping out what that slot held). Allowed between rooms.
@@ -381,67 +426,8 @@ func add_boon(id: String) -> void:
 		messages.append("Boon: %s." % data.boons[id].get("name", id))
 
 
-# --- shrine ---
-
-func shrine_remove_cost() -> int:
-	return int(_cfg().get("shrine_remove_cost_per_floor", 30)) * floor_num
-
-
-func shrine_reroll_cost() -> int:
-	return int(_cfg().get("shrine_reroll_cost_per_floor", 20)) * floor_num
-
-
-func shrine_remove(id: String) -> bool:
-	if room.get("type") != "shrine" or phase != "room" or not boons.has(id) or gold < shrine_remove_cost():
-		return false
-	gold -= shrine_remove_cost()
-	boons.erase(id)
-	messages.append("Removed %s." % data.boons.get(id, {}).get("name", id))
-	complete_room()
-	return true
-
-
-func shrine_reroll() -> bool:
-	if room.get("type") != "shrine" or phase != "room" or gold < shrine_reroll_cost():
-		return false
-	gold -= shrine_reroll_cost()
-	room["offers"] = _boon_offers(3)
-	return true
-
-
-# --- rest ---
-
-func rest_heal() -> void:
-	if room.get("type") != "rest" or phase != "room":
-		return
-	var pct := int(_cfg().get("rest_heal_pct", 40))
-	_heal_pct(pct, pct)
-	messages.append("You rest and recover.")
-	complete_room()
-
-
-# --- event ---
-
 func event_def() -> Dictionary:
-	return data.events.get(room.get("event", ""), {})
-
-
-## Pick option `i` of the current event. Returns the outcome lines.
-func event_choose(i: int) -> Array:
-	if room.get("type") != "event" or phase != "room" or room.has("outcome"):
-		return room.get("outcome", [])
-	var opts: Array = event_def().get("options", [])
-	if i < 0 or i >= opts.size():
-		return []
-	var lines: Array = []
-	var found_item = null
-	for op in opts[i].get("ops", []):
-		found_item = _apply_op(op, lines, found_item)
-	if found_item != null:
-		var got := gain_items([found_item])
-		lines.append("Found %s%s." % [found_item.get("name", "?"), " (equipped)" if got[0]["equipped"] else " (in your bag)"])
-	room["outcome"] = lines
-	return lines
+	return data.events.get(event_id, {})
 
 
 func _apply_op(op: Dictionary, lines: Array, found_item):
@@ -498,8 +484,6 @@ func _add_potion(kind: String) -> bool:
 	potions[kind] = int(potions.get(kind, 0)) + 1
 	return true
 
-
-# --- progression ---
 
 func xp_to_next() -> int:
 	return int(_cfg().get("xp_to_next_per_level", 40)) * level
@@ -576,34 +560,8 @@ func _fight_loot(elite: bool) -> Array:
 	return out
 
 
-# --- floor end, extraction, death ---
-
-func complete_room() -> void:
-	room["done"] = true
-	step += 1
-	if step >= steps().size():
-		if floor_num >= FLOORS:
-			end_run("victory")
-		else:
-			phase = "floor_end"
-	else:
-		phase = "path"
-
-
 func can_extract() -> bool:
 	return phase == "floor_end" and floor_num >= int(_cfg().get("extract_from_floor", 2))
-
-
-func descend() -> void:
-	if phase != "floor_end":
-		return
-	floor_num += 1
-	_new_floor()
-
-
-func extract() -> void:
-	if can_extract():
-		end_run("extract")
 
 
 func end_run(kind: String) -> void:

@@ -1,28 +1,8 @@
 class_name DSAutopilot
 extends RefCounted
 ## Plays a run with simple, fixed choices. Used by tests, the balance script and UI autoplay.
-## Potions: HP below 30%, MP below 15%. Gear: strongest per slot after every room. Boons: the first offered.
-## Rest: heal. Floors: always descend.
-
-
-## Fight the current room to the end. Returns the sim.
-static func fight(run: DSRunState, log_all: bool = false) -> CombatSim:
-	var p := run.make_player()
-	var foes := run.fight_monsters()
-	var sim := CombatSim.new(run.fight_rng(), run.data)
-	sim.log_all = log_all
-	var pots: Dictionary = run.potions.duplicate()
-	sim.begin(p, foes)
-	while not sim.over:
-		if p.hp_pct() < 30.0 and int(pots.get("hp", 0)) > 0:
-			pots["hp"] = int(pots["hp"]) - 1
-			sim.use_potion("hp")
-		if p.max_mana > 0 and p.mana_pct() < 15.0 and int(pots.get("mp", 0)) > 0:
-			pots["mp"] = int(pots["mp"]) - 1
-			sim.use_potion("mp")
-		sim.step()
-	run.finish_fight(p, foes, sim.result, pots)
-	return sim
+## Potions: drunk automatically (HP below 30%, MP below 15%). Gear: strongest per slot.
+## Boons: the first offered. Events: the first option. Stairs: always descend.
 
 
 ## Equip the strongest item (by DSLoot.power) in each slot from the bag.
@@ -36,42 +16,31 @@ static func equip_best(run: DSRunState) -> void:
 			run.equip_from_inventory(int(cands[0]["i"]))
 
 
-## Advance one step of the run (one room, one reward, or one floor transition).
-static func advance(run: DSRunState) -> void:
+## Handle whatever the run is waiting on, or play one turn. Returns that turn's events.
+static func advance(run: DSRunState) -> Array:
+	if run.world != null:
+		run.world.auto_potions = true
 	match run.phase:
-		"path":
-			run.enter(0)
-		"room":
-			match run.room.get("type", ""):
-				"fight", "elite", "boss":
-					fight(run)
-				"shrine":
-					if run.room.get("offers", []).is_empty():
-						run.skip()
-					else:
-						run.take_offer(0)
-				"rest":
-					run.rest_heal()
-				"event":
-					run.event_choose(0)
-					if run.phase == "room":
-						run.complete_room()
-				_:
-					run.skip()
-		"reward":
-			if run.room.get("reward", {}).get("offers", []).is_empty():
-				run.skip()
-			else:
-				run.take_offer(0)
+		"explore":
+			var bag := run.inventory.size()
+			var evs := run.tick()
+			if run.inventory.size() != bag:
+				equip_best(run)
+			return evs
+		"boon":
+			run.take_boon(0)
+		"event":
+			run.event_choose(0)
+			run.event_done()
 		"floor_end":
 			run.descend()
-	equip_best(run)
+	return []
 
 
-## Play until the run ends (or `max_steps`). Returns the run.
-static func play(run: DSRunState, max_steps: int = 500) -> DSRunState:
+## Play until the run ends (or `max_turns`). Returns the run.
+static func play(run: DSRunState, max_turns: int = 20000) -> DSRunState:
 	var n := 0
-	while run.phase != "over" and n < max_steps:
+	while run.phase != "over" and n < max_turns:
 		advance(run)
 		n += 1
 	return run
