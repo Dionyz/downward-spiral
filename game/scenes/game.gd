@@ -21,6 +21,11 @@ var _players: Array = []
 
 
 func _ready() -> void:
+	# In a landscape browser window keep the portrait layout (letterboxed) instead of stretching it wide.
+	if OS.has_feature("web"):
+		var win := DisplayServer.window_get_size()
+		if win.x > win.y:
+			get_tree().root.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	data = DSData.load_dir("res://game/data")
 	var args := OS.get_cmdline_user_args()
 	var i := args.find("--autoplay")
