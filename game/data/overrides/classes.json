@@ -40,7 +40,8 @@
      "value": "warcry",
      "then": "warcry"
     }
-   ]
+   ],
+   "color": "#d9a441"
   },
   "thief": {
    "stats": {
@@ -77,7 +78,8 @@
      "value": "envenomed",
      "then": "envenom"
     }
-   ]
+   ],
+   "color": "#7fc8a9"
   },
   "mage": {
    "stats": {
@@ -118,7 +120,8 @@
      "if": "always",
      "then": "magic fist"
     }
-   ]
+   ],
+   "color": "#9d7cf2"
   },
   "knifer": {
    "stats": {
@@ -157,7 +160,8 @@
      "value": "blind",
      "then": "cross slash"
     }
-   ]
+   ],
+   "color": "#ff7a3d"
   }
  }
 }

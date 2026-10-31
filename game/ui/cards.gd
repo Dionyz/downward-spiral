@@ -41,6 +41,8 @@ static func item_card(data: DSData, it: Dictionary, equipped, on_take: Callable,
 	var v := VBoxContainer.new()
 	card.add_child(v)
 	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 10)
+	head.add_child(UI.icon("item_" + str(it.get("slot", "weapon")), 40, rarity_color(data, str(it.get("rarity", "common")))))
 	var nm := UI.label(str(it.get("name", "?")), 22, rarity_color(data, str(it.get("rarity", "common"))))
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(nm)
@@ -61,7 +63,13 @@ static func boon_card(data: DSData, id: String, on_take: Callable, take_label: S
 	var card := PanelContainer.new()
 	var v := VBoxContainer.new()
 	card.add_child(v)
-	v.add_child(UI.label(str(b.get("name", id)), 22, UI.ACCENT))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 10)
+	head.add_child(UI.icon("boon", 40, UI.ACCENT))
+	var bn := UI.label(str(b.get("name", id)), 22, UI.ACCENT)
+	bn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(bn)
+	v.add_child(head)
 	v.add_child(UI.label("Boon", 16, UI.DIM))
 	v.add_child(UI.label(str(b.get("desc", "")), 18))
 	v.add_child(UI.button(take_label, on_take, 52))

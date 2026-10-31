@@ -22,7 +22,8 @@
     1,
     2
    ],
-   "role": "swarm"
+   "role": "swarm",
+   "color": "#a08060"
   },
   "goblin_cutter": {
    "name": "a goblin cutter",
@@ -44,7 +45,8 @@
     2,
     3
    ],
-   "role": "normal"
+   "role": "normal",
+   "color": "#7fb24a"
   },
   "restless_skeleton": {
    "name": "a restless skeleton",
@@ -70,7 +72,8 @@
     3,
     4
    ],
-   "role": "normal"
+   "role": "normal",
+   "color": "#e8e0c8"
   },
   "cave_spider": {
    "name": "a cave spider",
@@ -108,7 +111,8 @@
      "value": 35,
      "then": "venom_bite"
     }
-   ]
+   ],
+   "color": "#9b6fd1"
   },
   "hooded_cultist": {
    "name": "a hooded cultist",
@@ -144,7 +148,8 @@
      "if": "always",
      "then": "shadow_bolt"
     }
-   ]
+   ],
+   "color": "#c0392b"
   },
   "orc_brute": {
    "name": "an orc brute",
@@ -188,7 +193,8 @@
      "value": 30,
      "then": "overhead_smash"
     }
-   ]
+   ],
+   "color": "#8a9a3a"
   },
   "ghoul": {
    "name": "a ghoul",
@@ -232,7 +238,8 @@
      "value": 20,
      "then": "paralyzing_rake"
     }
-   ]
+   ],
+   "color": "#9fbf7f"
   },
   "gravewarden": {
    "name": "the Gravewarden",
@@ -292,7 +299,8 @@
      "then": "crushing_blow"
     }
    ],
-   "steady": 50
+   "steady": 50,
+   "color": "#8ea8c3"
   },
   "hollow_matron": {
    "name": "the Hollow Matron",
@@ -346,7 +354,8 @@
      "then": "lunging_lash"
     }
    ],
-   "steady": 50
+   "steady": 50,
+   "color": "#b07cd8"
   },
   "carrion_knight": {
    "name": "a carrion knight",
@@ -385,7 +394,8 @@
      "value": 30,
      "then": "rotting_cleave"
     }
-   ]
+   ],
+   "color": "#a8423a"
   },
   "wailing_shade": {
    "name": "a wailing shade",
@@ -432,7 +442,8 @@
      "value": 25,
      "then": "chilling_wail"
     }
-   ]
+   ],
+   "color": "#a8e6ef"
   },
   "spiral_warden": {
    "name": "the Spiral Warden",
@@ -521,7 +532,8 @@
      "speed": 1
     }
    ],
-   "steady": 50
+   "steady": 50,
+   "color": "#ff9a2e"
   }
  }
 }

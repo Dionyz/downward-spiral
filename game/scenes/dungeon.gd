@@ -72,6 +72,8 @@ func _refresh() -> void:
 		c.queue_free()
 	for m in run.messages:
 		body.add_child(UI.label(str(m), 18, Color("#7fc8a9")))
+		if str(m).begins_with("Level "):
+			Game.sfx("level_up")
 	run.messages.clear()
 	match run.phase:
 		"path":
@@ -101,8 +103,11 @@ func _draw_map() -> void:
 			var t: String = rm.get("type", "fight")
 			var chip := PanelContainer.new()
 			chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var l := UI.label(TYPE_LABEL.get(t, t), 18, Color(TYPE_COLOR.get(t, "#c9c2b6")), false)
-			chip.add_child(l)
+			var ch := HBoxContainer.new()
+			ch.add_theme_constant_override("separation", 8)
+			ch.add_child(UI.icon("room_" + t, 24, Color(TYPE_COLOR.get(t, "#c9c2b6"))))
+			ch.add_child(UI.label(TYPE_LABEL.get(t, t), 18, Color(TYPE_COLOR.get(t, "#c9c2b6")), false))
+			chip.add_child(ch)
 			var done := i < run.step
 			var taken := done or (i == run.step and run.phase != "path")
 			var chosen_here := int(run.room.get("chosen", 0)) if i == run.step else -1
@@ -121,7 +126,13 @@ func _room_title(rm: Dictionary) -> void:
 	var nm: String = rm.get("name", "")
 	if t == "event" and rm.has("event"):
 		nm = str(run.data.events.get(rm["event"], {}).get("title", nm))
-	body.add_child(UI.label("%s — %s" % [TYPE_LABEL.get(t, t), nm], 26, Color(TYPE_COLOR.get(t, "#e6e1d6"))))
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 12)
+	head.add_child(UI.icon("room_" + t, 56, Color(TYPE_COLOR.get(t, "#e6e1d6"))))
+	var tl := UI.label("%s — %s" % [TYPE_LABEL.get(t, t), nm], 26, Color(TYPE_COLOR.get(t, "#e6e1d6")))
+	tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(tl)
+	body.add_child(head)
 	if t != "event" or not rm.has("event"):
 		body.add_child(UI.label(str(rm.get("desc", "")), 20, UI.DIM))
 

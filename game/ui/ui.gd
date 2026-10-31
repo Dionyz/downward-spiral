@@ -83,8 +83,22 @@ static func button(text: String, cb: Callable, min_h: int = 64) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.custom_minimum_size = Vector2(0, min_h)
+	b.pressed.connect(func(): Game.sfx("click"))
 	b.pressed.connect(cb)
 	return b
+
+
+## Tinted icon from game/assets/icons (white SVG silhouettes).
+static func icon(name: String, size: int = 64, color: Color = TEXT) -> TextureRect:
+	var t := TextureRect.new()
+	var path := "res://game/assets/icons/%s.svg" % name
+	if ResourceLoader.exists(path):
+		t.texture = load(path)
+	t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	t.custom_minimum_size = Vector2(size, size)
+	t.modulate = color
+	return t
 
 
 static func bar(color: Color, h: int = 22) -> ProgressBar:

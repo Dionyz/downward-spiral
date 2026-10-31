@@ -10,8 +10,15 @@ func _ready() -> void:
 		var card := PanelContainer.new()
 		var cv := VBoxContainer.new()
 		card.add_child(cv)
-		cv.add_child(UI.label(str(L.get("display", line)), 30, UI.TEXT))
-		cv.add_child(UI.label(str(L.get("role", "")), 20, UI.DIM))
+		var top := HBoxContainer.new()
+		top.add_theme_constant_override("separation", 12)
+		top.add_child(UI.icon("class_" + line, 64, Color(str(L.get("color", "#e6e1d6")))))
+		var tv := VBoxContainer.new()
+		tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tv.add_child(UI.label(str(L.get("display", line)), 30, UI.TEXT, false))
+		tv.add_child(UI.label(str(L.get("role", "")), 18, UI.DIM))
+		top.add_child(tv)
+		cv.add_child(top)
 		var kit := "Starts with: " + ", ".join(PackedStringArray(L.get("starting_actives", [])))
 		cv.add_child(UI.label(kit, 18, UI.DIM))
 		var ln: String = line

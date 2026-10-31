@@ -5,6 +5,9 @@ extends Control
 func _ready() -> void:
 	var v := UI.screen(self)
 	v.add_child(UI.spacer())
+	var logo := UI.icon("title", 220, UI.ACCENT)
+	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(logo)
 	var t := UI.label("DOWNWARD\nSPIRAL", 64, UI.ACCENT)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(t)

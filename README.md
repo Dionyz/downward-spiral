@@ -12,7 +12,8 @@ Single-player Android roguelike: auto-exploration and rule-driven auto combat th
 | 4. Playable text prototype | Done on desktop (Android export deferred by owner). |
 | 5. Run loop | Done: 6 floors, all room types, rewards, items, boons, events, boss, extraction, death, save/resume. |
 | 6. All four classes | Done: 40 boons, boss, 1,000-run balance within 6.7 points. |
-| 7–8 | In progress. |
+| 7. Art and feel | Done on desktop: icons, combat stage animations, screen shake, sound, log toggle. 60 fps on Android unverified. |
+| 8 | In progress. |
 
 ## Layout
 
@@ -26,6 +27,7 @@ game/data/     classes/abilities.json (imported); items, monsters, boons, events
 tools/         import_mud_data.py, combat_log.gd (CLI combat log)
 tests/unit/    GUT tests
 addons/gut/    GUT 9.7.1 (MIT), dev-only
+game/assets/   icons (game-icons.net, CC BY 3.0) and generated sound (tools/gen_sfx.py)
 ```
 
 ## Commands

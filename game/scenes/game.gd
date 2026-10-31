@@ -5,6 +5,8 @@ extends Node
 const SCENES := "res://game/scenes/%s.tscn"
 const RUN_SAVE := "user://run.json"
 const ACCOUNT_SAVE := "user://account.json"
+const SETTINGS_SAVE := "user://settings.json"
+const SFX := ["hit", "crit", "miss", "block", "spell", "heal", "death", "level_up", "click", "victory", "defeat"]
 
 var data: DSData
 var run: DSRunState
@@ -13,6 +15,9 @@ var speed: float = 1.0
 ## Headless smoke test: `godot --headless --path . -- --autoplay warrior` clicks through a whole run.
 var autoplay: String = ""
 var save_dir: String = ""   # override for autoplay so real saves aren't touched
+var settings := {"sfx_volume": 0.8, "speed": 1.0, "log_open": false, "hints_seen": []}
+var _sfx_streams := {}
+var _players: Array = []
 
 
 func _ready() -> void:
@@ -25,6 +30,34 @@ func _ready() -> void:
 		save_dir = "user://autoplay"
 		DirAccess.make_dir_recursive_absolute(save_dir)
 	account = _read(_path(ACCOUNT_SAVE))
+	settings.merge(_read(_path(SETTINGS_SAVE)), true)
+	if autoplay == "":
+		speed = float(settings.get("speed", 1.0))
+	for n in SFX:
+		var path := "res://game/assets/sfx/%s.wav" % n
+		if ResourceLoader.exists(path):
+			_sfx_streams[n] = load(path)
+	for _j in 8:
+		var pl := AudioStreamPlayer.new()
+		add_child(pl)
+		_players.append(pl)
+
+
+## Play a sound effect by name (see SFX). Cheap round-robin pool.
+func sfx(n: String, pitch: float = 1.0) -> void:
+	if not _sfx_streams.has(n) or float(settings.get("sfx_volume", 0.8)) <= 0.0:
+		return
+	for pl in _players:
+		if not pl.playing:
+			pl.stream = _sfx_streams[n]
+			pl.volume_db = linear_to_db(float(settings.get("sfx_volume", 0.8)))
+			pl.pitch_scale = pitch
+			pl.play()
+			return
+
+
+func save_settings() -> void:
+	_write(_path(SETTINGS_SAVE), settings)
 
 
 func _path(p: String) -> String:
