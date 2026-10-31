@@ -87,6 +87,7 @@
    ],
    "passives": [
     "dodge",
+    "sidestep",
     "second attack",
     "dual wield",
     "third attack",
@@ -157,8 +158,8 @@
    "offhand": null
   },
   "knifer": {
-   "display": "Knifer",
-   "line_name": "Wardancer",
+   "display": "Jackal",
+   "line_name": "Tarantella",
    "role": "Fast multi-hit, stances",
    "resource": "cooldowns",
    "tiers": [
@@ -166,7 +167,7 @@
      "tier": 1,
      "mud_class": "knifer",
      "mud_index": 16,
-     "name": "Knifer",
+     "name": "Jackal",
      "prime_stat": "dex",
      "gains_mana": true
     },
@@ -174,7 +175,7 @@
      "tier": 2,
      "mud_class": "tumbler",
      "mud_index": 34,
-     "name": "Tumbler",
+     "name": "Harlequin",
      "prime_stat": "dex",
      "gains_mana": true
     },
@@ -182,7 +183,7 @@
      "tier": 3,
      "mud_class": "wardancer",
      "mud_index": 52,
-     "name": "Wardancer",
+     "name": "Tarantella",
      "prime_stat": "dex",
      "gains_mana": true
     }

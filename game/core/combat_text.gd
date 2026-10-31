@@ -18,9 +18,6 @@ const STATUS_WORDS := {
 	"envenomed": "coats a blade in venom", "bleeding": "begins to bleed",
 }
 
-const TAG_HINT := {
-	"interrupt": "INTERRUPT it", "brace": "BRACE for it", "evade": "EVADE it", "outlast": "OUTLAST it",
-}
 
 
 static func verb_for(amount: int, max_hp: int) -> String:
@@ -62,7 +59,9 @@ static func line(ev: Dictionary) -> String:
 		"parry":
 			return "%s turns aside %s's blow." % [src, dst]
 		"dodge":
-			return "%s sidesteps %s's swing." % [src, dst]
+			if ev.get("how", "") == "sidestep":
+				return "%s slips past %s's swing." % [src, dst]
+			return "%s dodges %s's swing." % [src, dst]
 		"block":
 			return "%s catches %s's blow on a shield." % [src, dst]
 		"ability", "cast":
@@ -91,17 +90,6 @@ static func line(ev: Dictionary) -> String:
 			return "%s recovers %d mana." % [src, int(ev.get("amount", 0))]
 		"stunned":
 			return "%s reels, unable to act." % src
-		"telegraph":
-			return "!! %s readies %s -- %s! !!" % [src, ev.get("name", ""), TAG_HINT.get(ev.get("tag", ""), "")]
-		"telegraph_interrupted":
-			return "%s's %s is cut short!" % [src, ev.get("attack", "attack")]
-		"telegraph_strike":
-			var how: String = ev.get("answered", "")
-			if how != "":
-				return "%s unleashes %s -- answered by %s." % [src, ev.get("name", ""), how]
-			return "%s unleashes %s!" % [src, ev.get("name", "")]
-		"backlash":
-			return "The %s arcs back into %s!" % [ev.get("ability", "spell"), src]
 		"death":
 			return "%s is DEAD!" % src
 		"fight_end":

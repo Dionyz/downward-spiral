@@ -44,7 +44,6 @@ var melee_fail: int = 0        # MUD pcdata->melee_fail (0) / NPC 40
 var statuses: Dictionary = {}  # name -> {rounds:int, ...data}
 var cooldowns: Dictionary = {} # ability ref -> rounds left
 var stance: String = ""        # knifer dance: mist, storm, cobra, predator
-var telegraph: Dictionary = {} # enemy pending telegraph {ability, tag, name, rounds}
 var monster_abilities: Dictionary = {}
 var flags: Dictionary = {}     # boon-driven flags and counters
 var tags: Array = []           # "elite", "boss"...
@@ -101,7 +100,7 @@ func is_stunned() -> bool:
 	return has_status("stunned")
 
 
-## Dazed/knocked-down/asleep/stunned fighters cannot use abilities or start telegraphs.
+## Dazed/knocked-down/asleep/stunned fighters cannot use abilities.
 func can_act() -> bool:
 	return is_alive() and not (has_status("stunned") or has_status("asleep") or has_status("dazed"))
 

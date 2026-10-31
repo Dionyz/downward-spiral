@@ -2,7 +2,7 @@ extends GutTest
 ## Level, proficiency, cooldown and mana mapping.
 
 const B := {"level_scale": 10, "proficiency": {"start": 40, "per_level": 10, "cap": 95, "hard_cap": 100},
-	"cooldown_divisor": 4, "min_cooldown": 1, "mana_cost_scale": 0.25,
+	"cooldown_divisor": 12, "min_cooldown": 1, "mana_cost_scale": 0.25,
 	"weapon_proficiency": {"start": 75, "per_level": 2, "cap": 95}}
 
 
@@ -21,8 +21,10 @@ func test_mud_level_mapping():
 
 
 func test_cooldown_from_beats():
-	assert_eq(DSStats.cooldown_rounds(10, B), 3, "bash beats 10")
-	assert_eq(DSStats.cooldown_rounds(24, B), 6, "circle/charge beats 24")
+	# Beats are pulses; one combat round (PULSE_VIOLENCE) is 12 pulses.
+	assert_eq(DSStats.cooldown_rounds(10, B), 1, "bash beats 10 -> 1 round")
+	assert_eq(DSStats.cooldown_rounds(24, B), 2, "circle beats 24 -> 2 rounds")
+	assert_eq(DSStats.cooldown_rounds(20, B), 2, "backstab beats 20")
 	assert_eq(DSStats.cooldown_rounds(4, B), 1, "magic fist beats 4")
 	assert_eq(DSStats.cooldown_rounds(0, B), 1, "warcry beats 0 -> min 1")
 

@@ -23,7 +23,6 @@ var enemies: Array = []        # Array[Combatant]
 var round_num: int = 0
 var over: bool = false
 var result: String = ""        # "win" | "loss" | "extract"
-var queued: String = ""        # ability ref tapped by the player for next round
 var events: Array = []         # events from the current step
 var log_all: bool = true
 var history: Array = []        # every event of the fight when log_all
@@ -50,7 +49,11 @@ func begin(p: Combatant, foes: Array) -> Array:
 	result = ""
 	events = []
 	history = []
+	player.flags["second_wind_used"] = false
 	_emit({"t": "fight_start", "src": player.name, "enemies": foes.map(func(e): return e.name)})
+	if _has_passive(player, "pale_ward"):
+		player.add_status("sanctuary", 3)
+		_emit({"t": "status_applied", "src": player.name, "dst": player.name, "status": "sanctuary", "rounds": 3})
 	return events
 
 
@@ -69,15 +72,12 @@ func step() -> Array:
 	if _check_end():
 		return events
 
-	# 2-3. Player: stunned loses the round; else rules, then queued tap.
+	# 2-3. Player: stunned loses the round; else rules, then the class's automatic choice.
 	if player.is_alive() and not player.is_stunned() and player.is_awake():
 		if player.can_act():
 			var choice := rules_engine.choose(self, player, player.rules, enemies)
-			if choice.is_empty() and queued != "":
-				var tgt = _default_target(player)
-				if can_use(player, queued, tgt):
-					choice = {"ability": queued, "target": tgt, "rule": -1}
-			queued = ""
+			if choice.is_empty():
+				choice = auto_choice(player)
 			if not choice.is_empty():
 				use_ability(player, choice["ability"], choice["target"])
 	elif player.is_stunned():
@@ -85,12 +85,9 @@ func step() -> Array:
 	if _check_end():
 		return events
 
-	# 4. Enemies: resolve last round's telegraphs, then their rule lists.
+	# 4. Enemies: their own short rule lists.
 	for e in enemies:
 		if not e.is_alive() or not player.is_alive():
-			continue
-		if not e.telegraph.is_empty():
-			_resolve_telegraph(e)
 			continue
 		if e.can_act() and e.is_awake():
 			var ech := rules_engine.choose(self, e, e.rules, [player])
@@ -127,8 +124,27 @@ func run(p: Combatant, foes: Array) -> Array:
 	return history
 
 
-func queue_ability(ref: String) -> void:
-	queued = ref
+## When no rule fires, the class plays itself: first usable equipped active, in equip order.
+## Stances are only taken automatically when the character has none. Buffs already up and
+## openers that need a healthy target are filtered out by can_use.
+func auto_choice(c: Combatant) -> Dictionary:
+	if c.flags.get("no_auto", false):
+		return {}
+	var tgt = _default_target(c)
+	if tgt == null:
+		return {}
+	for ref in c.actives:
+		var a := _ability_def(c, str(ref))
+		if a.get("handler", "") == "stance" and c.stance != "":
+			continue
+		var use_target = c if a.get("target", "enemy") == "self" else tgt
+		if can_use(c, str(ref), use_target):
+			return {"ability": str(ref), "target": use_target, "rule": -1}
+	return {}
+
+
+func _has_passive(c: Combatant, pid: String) -> bool:
+	return c.flags.get("passives", []).has(pid)
 
 
 ## Potions: the only direct player actions during a fight besides tap-to-queue and extract.
@@ -249,6 +265,11 @@ func _multi_hit(ch: Combatant, victim: Combatant, dt: String) -> void:
 	if dt in OPENER_DTS:
 		return
 
+	if dt == HIT and _has_passive(ch, "phantom_edge") and rng.number_percent() <= 25:
+		_one_hit(ch, victim, dt, false)
+		if not victim.is_alive():
+			return
+
 	# NPC extra swings ("speed"): monsters' flat bonus attacks.
 	for _i in int(ch.flags.get("speed", 0)):
 		_one_hit(ch, victim, dt, false)
@@ -301,6 +322,8 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 			return
 		if _check_block(ch, victim):
 			return
+		if _check_sidestep(ch, victim):
+			return
 	var st0 := rng.number_percent() < ch.skill("enhanced damage")
 	var st4 := false
 	if ch.is_player and ch.line_is(THIEF_WARRIOR_LINES) and not ch.is_stunned() \
@@ -321,10 +344,19 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 	var dtype: String = ch.dam_type
 	if wield != null:
 		dtype = str(wield.get("dam_type", ch.dam_type))
+	if _has_passive(ch, "executioner") and victim.hp_pct() < 25.0:
+		dam += DSStats.idiv(dam, 2)
 	var ev_extra := {"dt": dt, "crit": st4, "enhanced": st0, "offhand": offhand}
 	var dealt := apply_damage(ch, victim, dam, dt, dtype, false, ev_extra)
 	if dealt > 0 and wield != null:
 		_weapon_effects(ch, victim, wield)
+	if dealt > 0 and _has_passive(ch, "bloodthirst") and ch.is_alive():
+		var heal := DSStats.idiv(dealt, 3)
+		if heal > 0:
+			ch.hp = mini(ch.max_hp, ch.hp + heal)
+			_emit({"t": "heal", "src": ch.name, "dst": ch.name, "amount": heal, "source": "bloodthirst"})
+	if dealt > 0 and _has_passive(victim, "thornmail") and ch.is_alive():
+		_raw_damage(victim, ch, maxi(1, DSStats.idiv(dealt * 15, 100)), "thorns")
 
 
 ## get_char_min()/get_char_max(). Returns [min, max] before damage() reductions.
@@ -460,6 +492,23 @@ func block_chance(_ch: Combatant, victim: Combatant) -> int:
 	return c
 
 
+## check_sidestep(): skill/2 clamped 10..50; no floor without the skill.
+func sidestep_chance(_ch: Combatant, victim: Combatant) -> int:
+	if not victim.is_awake() or victim.skill("sidestep") < 1:
+		return 0
+	if victim.is_stunned():
+		return 10
+	return clampi(DSStats.idiv(victim.skill("sidestep"), 2), 10, 50)
+
+
+func _check_sidestep(ch: Combatant, victim: Combatant) -> bool:
+	var c := sidestep_chance(ch, victim)
+	if c <= 0 or rng.number_percent() >= c:
+		return false
+	_emit({"t": "dodge", "src": victim.name, "dst": ch.name, "how": "sidestep"})
+	return true
+
+
 func _check_parry(ch: Combatant, victim: Combatant) -> bool:
 	var c := parry_chance(ch, victim)
 	if c <= 0 or rng.number_percent() >= c:
@@ -516,9 +565,9 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	# Spec: minimum 1 damage once something got through.
 	if dam < 1 and orig > 0 and not (dam_type in victim.immune):
 		dam = 1
-	# No unanswerable one-shots: untelegraphed enemy hits are capped (DECISIONS.md D-013).
-	if ch != null and not ch.is_player and victim.is_player and not extra.get("telegraphed", false):
-		var cap := int(victim.max_hp * float(balance.get("untelegraphed_cap_pct", 35)) / 100.0)
+	# No one-shots: any single enemy hit is capped at a share of the player's max HP (DECISIONS.md D-013).
+	if ch != null and not ch.is_player and victim.is_player and not extra.get("uncapped", false):
+		var cap := int(victim.max_hp * float(balance.get("enemy_hit_cap_pct", 35)) / 100.0)
 		dam = mini(dam, maxi(1, cap))
 	return _raw_damage(ch, victim, dam, dt, extra)
 
@@ -541,9 +590,14 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 	if victim.has_status("asleep") and dam > 0:
 		victim.remove_status("asleep")
 		_emit({"t": "status_expired", "src": victim.name, "status": "asleep"})
+	if victim.hp > 0 and victim.hp_pct() < 25.0 and _has_passive(victim, "second_wind") \
+			and not victim.flags.get("second_wind_used", false):
+		victim.flags["second_wind_used"] = true
+		var sw := int(victim.max_hp * 0.3)
+		victim.hp = mini(victim.max_hp, victim.hp + sw)
+		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": sw, "source": "second wind"})
 	if victim.hp <= 0:
 		victim.hp = 0
-		victim.telegraph = {}
 		_emit({"t": "death", "src": victim.name, "killer": ch.name if ch != null else ""})
 	return dam
 
@@ -665,9 +719,6 @@ func can_use(c: Combatant, ref: String, target) -> bool:
 			var want := arg if arg != "" else str(p.get("default_stance", "predator"))
 			if c.stance == want:
 				return false
-		"telegraph":
-			if not c.telegraph.is_empty():
-				return false
 	return true
 
 
@@ -678,6 +729,8 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 	var arg: String = parts[1]
 	var a := _ability_def(c, aname)
 	var cost := ability_cost(c, ref)
+	if cost > 0 and _has_passive(c, "spellweave") and rng.number_percent() <= 20:
+		cost = 0
 	c.mana -= cost
 	var cd: int
 	if a.has("cooldown"):
@@ -685,7 +738,7 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 	else:
 		cd = DSStats.cooldown_rounds(int(a.get("beats", 0)), balance)
 	if cd > 0:
-		c.cooldowns[aname] = cd + 1  # +1 because the tick at the start of next round eats one
+		c.cooldowns[aname] = cd  # ticks down at the start of each round; usable again at 0
 	_emit({"t": "cast" if cost > 0 else "ability", "src": c.name, "dst": target.name if target != null else "",
 		"ability": aname, "arg": arg, "cost": cost})
 	var p: Dictionary = a.get("params", {})
@@ -720,8 +773,6 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 			_h_transfix(c, target, p)
 		"stance":
 			_h_stance(c, arg, p)
-		"telegraph":
-			_h_telegraph(c, target, aname, a)
 		"monster_strike":
 			_h_monster_strike(c, target, aname, a)
 		"monster_status":
@@ -742,13 +793,6 @@ func _miss(c: Combatant, target, aname: String) -> void:
 	_emit({"t": "ability_miss", "src": c.name, "dst": target.name if target != null else "", "ability": aname})
 
 
-func _interrupt(target: Combatant, by: Combatant, aname: String) -> void:
-	if not target.telegraph.is_empty():
-		_emit({"t": "telegraph_interrupted", "src": target.name, "by": by.name, "ability": aname,
-			"attack": target.telegraph.get("name", "")})
-		target.telegraph = {}
-
-
 ## act_combat.c do_bash
 func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	var chance := _skill_for(c, "bash")
@@ -767,7 +811,6 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
-	_interrupt(v, c, "bash")
 	if c.flags.get("boon_bash_slow", false):
 		v.add_status("slowed", 2 + 1)
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "slowed", "rounds": 2})
@@ -797,7 +840,6 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
-	_interrupt(v, c, "trip")
 
 
 ## act_combat.c do_kick
@@ -944,8 +986,7 @@ func _h_spell_damage(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 
 
 ## magic.c spell_chain_lightning. First strike, then sweeps the room in list order hitting
-## everyone except the last victim, losing 8 levels per hit. When nobody else is left the
-## bolt arcs into the caster (dice(level,10), -6 levels) unless the caster was just hit.
+## everyone except the last victim, losing 8 levels per hit.
 func _h_chain(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 	if c.hp < DSStats.idiv(c.max_hp, 20):
 		_miss(c, v, aname)
@@ -977,15 +1018,7 @@ func _h_chain(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 				apply_damage(c, tv, int(d2 * _spell_scale()), aname, "lightning", true)
 			level -= dec
 		if not found:
-			if last == c:
-				return
-			last = c
-			var ds := rng.dice(level, 10)
-			if _saves(c, c, level):
-				ds = DSStats.idiv(ds, 2)
-			_emit({"t": "backlash", "src": c.name, "ability": aname})
-			apply_damage(c, c, int(ds * _spell_scale()), aname, "lightning", true)
-			level -= 6
+			return  # one target left: the bolt fizzles (MUD backlash dropped, DECISIONS.md D-025)
 
 
 ## sleep, slow
@@ -1003,7 +1036,6 @@ func _h_spell_status(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 	v.add_status(st, rounds + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
 	if st == "asleep":
-		_interrupt(v, c, aname)
 
 
 ## whirlwind, storm of blades: every opponent takes one swing plus bonus swings on a percent roll.
@@ -1039,7 +1071,6 @@ func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
 	if not v.no_stun:
 		v.add_status("stunned", dur + 1)
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
-		_interrupt(v, c, "transfix")
 	if p.get("then_attack", true):
 		_multi_hit(c, v, HIT)
 
@@ -1055,70 +1086,8 @@ func _h_stance(c: Combatant, arg: String, p: Dictionary) -> void:
 
 
 # ---------------------------------------------------------------------------
-# Monster abilities and telegraphs
+# Monster abilities
 # ---------------------------------------------------------------------------
-
-## Announce a heavy attack one round ahead. Tag says what answers it.
-func _h_telegraph(c: Combatant, target: Combatant, aname: String, a: Dictionary) -> void:
-	c.telegraph = {"ability": aname, "name": a.get("display", aname), "tag": a.get("tag", "brace"), "target": target}
-	_emit({"t": "telegraph", "src": c.name, "dst": target.name, "ability": aname, "name": a.get("display", aname),
-		"tag": a.get("tag", "brace")})
-
-
-## Is the telegraph `tag` answered right now against `victim`?
-func telegraph_answered(c: Combatant, victim: Combatant, tag: String) -> String:
-	match tag:
-		"interrupt":
-			return ""  # only answered by interrupting before it lands (see _interrupt)
-		"brace":
-			if victim.shield != null and victim.skill("shield block") > 0:
-				return "shield"
-			if victim.stance == "cobra":
-				return "cobra"
-			for s in ["armor", "shield", "sanctuary"]:
-				if victim.has_status(s):
-					return s
-		"evade":
-			if victim.stance == "mist":
-				return "mist"
-			if not c.can_see():
-				return "blind"
-		"outlast":
-			return ""
-	return ""
-
-
-func _resolve_telegraph(c: Combatant) -> void:
-	var tg := c.telegraph
-	c.telegraph = {}
-	var aname: String = tg.get("ability", "")
-	var a := _ability_def(c, aname)
-	var victim: Combatant = player
-	if not victim.is_alive():
-		return
-	if not c.can_act() or not c.is_awake():
-		_emit({"t": "telegraph_interrupted", "src": c.name, "by": victim.name, "ability": "", "attack": tg.get("name", "")})
-		return
-	var tag: String = tg.get("tag", "brace")
-	var how := telegraph_answered(c, victim, tag)
-	var pct := float(a.get("hp_pct", 45)) / 100.0
-	var dam := int(victim.max_hp * pct)
-	_emit({"t": "telegraph_strike", "src": c.name, "dst": victim.name, "name": tg.get("name", aname), "tag": tag,
-		"answered": how})
-	if tag == "evade" and how != "":
-		_emit({"t": "miss", "src": c.name, "dst": victim.name, "dt": aname, "evaded": how})
-		return
-	if tag == "brace" and how != "":
-		dam = int(dam * float(balance.get("brace_mult", 0.35)))
-	if tag == "outlast":
-		# Lands over several rounds as a bleed; heal, sanctuary or a fast kill answers it.
-		var rounds := int(a.get("bleed_rounds", 3))
-		var per := maxi(1, DSStats.idiv(dam, rounds))
-		victim.add_status("bleeding", rounds + 1, {"dmg": per})
-		_emit({"t": "status_applied", "src": c.name, "dst": victim.name, "status": "bleeding", "rounds": rounds})
-		return
-	apply_damage(c, victim, dam, aname, str(a.get("dam_type", "bash")), false, {"telegraphed": true})
-
 
 func _h_monster_strike(c: Combatant, v: Combatant, aname: String, a: Dictionary) -> void:
 	var lo := int(a.get("min", c.dmg_min))

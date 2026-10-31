@@ -12,7 +12,6 @@ const CONDITIONS := {
 	"hp_below": "My HP below X%",
 	"mana_below": "My mana below X%",
 	"enemy_hp_below": "Enemy HP below X%",
-	"enemy_telegraphing": "Enemy is telegraphing",
 	"enemy_has_status": "Enemy has status",
 	"enemy_lacks_status": "Enemy doesn't have status",
 	"missing_buff": "I don't have buff",
@@ -62,11 +61,6 @@ func _condition_target(sim, me, r: Dictionary, living: Array):
 		"enemy_hp_below":
 			for f in living:
 				if f.hp_pct() < float(v):
-					return f
-			return null
-		"enemy_telegraphing":
-			for f in living:
-				if not f.telegraph.is_empty():
 					return f
 			return null
 		"enemy_has_status":

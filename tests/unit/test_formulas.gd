@@ -116,14 +116,14 @@ func test_armor_class_reduction():
 	assert_eq(_hit(w, 100), 70)
 
 
-func test_untelegraphed_enemy_hit_is_capped_at_35_percent():
+func test_enemy_hit_is_capped_at_35_percent():
 	var pc := H.dummy("pc", true)
 	pc.max_hp = 100
 	pc.hp = 100
 	var mob := H.dummy("mob")
 	assert_eq(sim.apply_damage(mob, pc, 90, "hit", "bash", false), 35)
 	pc.hp = 100
-	assert_eq(sim.apply_damage(mob, pc, 90, "hit", "bash", false, {"telegraphed": true}), 90)
+	assert_eq(sim.apply_damage(mob, pc, 90, "hit", "bash", false, {"uncapped": true}), 90)
 
 
 # --- defenses -----------------------------------------------------------------

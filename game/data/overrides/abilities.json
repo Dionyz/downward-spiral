@@ -1,14 +1,50 @@
 {
  "_note": "Hand-tuned ability values merged over abilities.json. MUD durations are in ticks (~30s); these convert them to rounds. See DECISIONS.md D-012.",
  "abilities": {
-  "berserk": {"params": {"duration_rounds": 6}},
-  "warcry": {"params": {"duration_rounds": 10}},
-  "armor": {"params": {"duration_rounds": 12, "ac": -400, "damage_reduction": 0}},
-  "shield": {"params": {"duration_rounds": 12, "ac": -400, "damage_reduction": 0}},
-  "sanctuary": {"params": {"duration_rounds": 6}},
-  "haste": {"params": {"duration_rounds": 8}},
-  "slow": {"params": {"duration_rounds": 4}},
-  "sleep": {"params": {"duration_rounds": 2}},
-  "dance": {"cooldown": 2}
+  "berserk": {
+   "params": {
+    "duration_rounds": 6
+   }
+  },
+  "warcry": {
+   "params": {
+    "duration_rounds": 10
+   }
+  },
+  "armor": {
+   "params": {
+    "duration_rounds": 12,
+    "ac": -400
+   }
+  },
+  "shield": {
+   "params": {
+    "duration_rounds": 12,
+    "ac": -400
+   }
+  },
+  "sanctuary": {
+   "params": {
+    "duration_rounds": 6
+   }
+  },
+  "haste": {
+   "params": {
+    "duration_rounds": 8
+   }
+  },
+  "slow": {
+   "params": {
+    "duration_rounds": 4
+   }
+  },
+  "sleep": {
+   "params": {
+    "duration_rounds": 2
+   }
+  },
+  "dance": {
+   "cooldown": 2
+  }
  }
 }

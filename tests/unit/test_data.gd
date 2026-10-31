@@ -24,6 +24,8 @@ func test_four_class_lines_with_three_tiers():
 	assert_eq(data.tier_class("warrior", 3), "knight")
 	assert_eq(data.tier_class("thief", 3), "blade")
 	assert_eq(data.tier_class("knifer", 3), "wardancer")
+	assert_eq(data.classes["knifer"]["display"], "Jackal", "Devil's Silence names are renamed")
+	assert_eq(data.classes["knifer"]["tiers"][2]["name"], "Tarantella")
 
 
 func test_every_kit_ability_exists():
@@ -62,8 +64,8 @@ func test_deep_merge():
 	assert_eq(DSData.deep_merge(a, b), {"x": {"y": 5, "z": 2}, "k": [9]})
 
 
-func test_weapon_bases_imported():
-	var bases: Array = data.items.get("weapon_bases", [])
-	assert_gt(bases.size(), 20)
+func test_starting_weapon():
 	var w := DSFactory.starting_weapon(data, "dagger", 1)
-	assert_gt(int(w["max"]), int(w["min"]))
+	assert_eq([w["min"], w["max"]], [8, 16])
+	var w10 := DSFactory.starting_weapon(data, "dagger", 10)
+	assert_eq([w10["min"], w10["max"]], [44, 88])

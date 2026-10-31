@@ -39,25 +39,28 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 		c.skills[n] = DSStats.proficiency(ul, level, b, int(bonuses.get(n, 0)))
 	c.flags["weapon_skill"] = DSStats.weapon_proficiency(level, b, int(bonuses.get("weapon", 0)))
 
+	# Gear: one weapon slot (dual wielders wield a matched pair), armor, trinket.
 	c.weapon = opts.get("weapon", starting_weapon(data, str(L.get("starting_weapon", "dagger")), 1))
 	var oh = L.get("offhand", null)
-	if opts.has("offhand"):
-		c.offhand = opts["offhand"]
-	elif oh == "shield":
+	if oh == "shield":
 		c.shield = {"block": int(st.get("shield_block_value", 50))}
-	elif oh != null and c.skills.has("dual wield"):
-		c.offhand = starting_weapon(data, str(oh), 1)
+	elif oh != null and c.skills.has("dual wield") and c.weapon != null:
+		c.offhand = c.weapon
 	if opts.has("shield"):
 		c.shield = opts["shield"]
-	var armor = opts.get("armor", null)
-	if armor != null:
-		c.ac += int(armor.get("ac", 0))
-	var trinket = opts.get("trinket", null)
-	if trinket != null:
-		for k in trinket.get("skill_bonus", {}).keys():
-			if c.skills.has(k):
-				c.skills[k] = mini(100, c.skills[k] + int(trinket["skill_bonus"][k]))
-		c.damroll += int(trinket.get("damroll", 0))
+	var passives: Array = []
+	for slot in ["weapon", "armor", "trinket"]:
+		var item = c.weapon if slot == "weapon" else opts.get(slot, null)
+		if item == null:
+			continue
+		apply_item_stats(c, item)
+		if item.has("passive"):
+			passives.append(item["passive"])
+	c.flags["passives"] = passives
+	if passives.has("quickened"):
+		c.add_status("haste", -1)
+	c.hp = c.max_hp
+	c.mana = c.max_mana
 
 	if opts.has("actives"):
 		c.actives = opts["actives"].duplicate()
@@ -66,8 +69,16 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 	if opts.has("rules"):
 		c.rules = opts["rules"].duplicate(true)
 	else:
-		c.rules = default_rules(data, line, tier, level, int(opts.get("rule_slots", 2)))
+		c.rules = default_rules(data, line, tier, level, int(opts.get("rule_slots", rule_slots(data, level))))
 	return c
+
+
+## Rule slots: balance.rule_slots (2), +1 from balance.rule_slot_bonus_level (5).
+static func rule_slots(data: DSData, level: int) -> int:
+	var n := int(data.balance.get("rule_slots", 2))
+	if level >= int(data.balance.get("rule_slot_bonus_level", 5)):
+		n += 1
+	return n
 
 
 ## Equipped actives when the player hasn't chosen: starting actives, then signature unlocks, max 4.
@@ -100,33 +111,32 @@ static func default_rules(data: DSData, line: String, tier: int, level: int, slo
 	return out
 
 
-static func starting_weapon(data: DSData, wtype: String, band: int) -> Dictionary:
-	return weapon_from_base(data, wtype, band, [])
+## Plain common weapon of `wtype` at item level `ilvl`.
+static func starting_weapon(data: DSData, wtype: String, ilvl: int) -> Dictionary:
+	var wdef: Dictionary = data.items.get("weapon_types", {}).get(wtype, {})
+	var mn: Array = wdef.get("min", [5, 2])
+	var mx: Array = wdef.get("max", [10, 4])
+	var names: Array = data.items.get("weapon_names", {}).get(wtype, [wtype.capitalize()])
+	return {"slot": "weapon", "type": wtype, "rarity": "common", "ilvl": ilvl,
+		"min": int(round(float(mn[0]) + float(mn[1]) * (ilvl - 1))),
+		"max": int(round(float(mx[0]) + float(mx[1]) * (ilvl - 1))),
+		"level": ilvl * int(data.balance.get("level_scale", 10)), "dam_type": wdef.get("dam_type", "slash"),
+		"flags": [], "affixes": [], "skill_bonus": {}, "damroll": 0, "hp": 0, "mana": 0, "name": names[0]}
 
 
-static func weapon_from_base(data: DSData, wtype: String, band: int, wflags: Array) -> Dictionary:
-	var bases: Array = data.items.get("weapon_bases", [])
-	var best = null
-	for wb in bases:
-		if wb.get("weapon_type", "") != wtype:
-			continue
-		if best == null or absi(int(wb["band"]) - band) < absi(int(best["band"]) - band):
-			best = wb
-	var mn := 5
-	var mx := 10
-	if best != null:
-		mn = int(best["min"])
-		mx = int(best["max"])
-	var dt := "slash"
-	if wtype in ["dagger", "spear", "polearm"]:
-		dt = "pierce"
-	elif wtype in ["mace", "flail", "staff"]:
-		dt = "bash"
-	return {"type": wtype, "min": mn, "max": mx, "level": band * int(data.balance.get("level_scale", 10)),
-		"flags": wflags.duplicate(), "dam_type": dt, "name": wtype.capitalize()}
+## Add an item's flat bonuses to a combatant (weapon damage itself is read from c.weapon).
+static func apply_item_stats(c: Combatant, item: Dictionary) -> void:
+	c.ac += int(item.get("ac", 0))
+	c.damroll += int(item.get("damroll", 0))
+	c.max_hp += int(item.get("hp", 0))
+	c.max_mana += int(item.get("mana", 0)) if c.max_mana > 0 else 0
+	var sb: Dictionary = item.get("skill_bonus", {})
+	for k in sb.keys():
+		if c.skills.has(k):
+			c.skills[k] = mini(100, int(c.skills[k]) + int(sb[k]))
 
 
-## Monster `id` scaled to `level`. Elites/bosses carry their own telegraph abilities.
+## Monster `id` scaled to `level`.
 static func make_monster(data: DSData, id: String, level: int, idx: int = 0) -> Combatant:
 	var b := data.balance
 	var m: Dictionary = data.monsters.get(id, {})

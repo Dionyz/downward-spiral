@@ -1,17 +1,35 @@
 {
  "_note": "Hand-authored tuning. Not touched by the importer. Every number here is a first guess pending playtest; see DECISIONS.md.",
  "level_scale": 10,
- "proficiency": {"start": 40, "per_level": 10, "cap": 95, "hard_cap": 100},
- "weapon_proficiency": {"start": 75, "per_level": 2, "cap": 95},
- "cooldown_divisor": 4,
+ "proficiency": {
+  "start": 40,
+  "per_level": 10,
+  "cap": 95,
+  "hard_cap": 100
+ },
+ "weapon_proficiency": {
+  "start": 75,
+  "per_level": 2,
+  "cap": 95
+ },
+ "cooldown_divisor": 12,
  "min_cooldown": 1,
  "mana_cost_scale": 0.25,
- "spell_damage_scale": 0.2,
+ "spell_damage_scale": 0.5,
  "max_actives": 4,
  "max_rounds": 200,
  "potion_pct": 35,
- "untelegraphed_cap_pct": 35,
- "brace_mult": 0.35,
- "post_fight_regen_pct": 25,
- "monster_scaling": {"hp_linear": 0.9, "hp_quadratic": 0.12, "dmg_linear": 0.3}
+ "monster_scaling": {
+  "hp_linear": 0.9,
+  "hp_quadratic": 0.12,
+  "dmg_linear": 0.3
+ },
+ "promotions": false,
+ "fight_size": [
+  1,
+  4
+ ],
+ "enemy_hit_cap_pct": 35,
+ "rule_slots": 2,
+ "rule_slot_bonus_level": 5
 }
