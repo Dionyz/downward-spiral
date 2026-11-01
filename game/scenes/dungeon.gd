@@ -24,6 +24,8 @@ var char_btn: Button
 var shield_rect: ColorRect
 var shield_label: Label
 var _banner: Label
+var info_vals := {}            # HUD readouts: key -> [value Label, detail Label]
+var _dmg_log: Array = []       # [msec, amount] of your recent hits, for DPS
 var extract_btn: Button
 var overlay: Control           # boon / event / floor end
 var timer: Timer
@@ -90,6 +92,43 @@ func _ready() -> void:
 	log_strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	strip_frame.add_child(log_strip)
 	v.add_child(strip_frame)
+
+	# Readouts: average hit, chance to avoid a hit, recent DPS, best hit this run.
+	var info := HBoxContainer.new()
+	info.add_theme_constant_override("separation", 6)
+	for k in [["avg", "Avg hit"], ["avoid", "Avoid"], ["dps", "DPS (5s)"], ["best", "Best hit"]]:
+		var chip := PanelContainer.new()
+		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var cst := StyleBoxFlat.new()
+		cst.bg_color = Color("#16141c")
+		cst.set_corner_radius_all(8)
+		cst.content_margin_left = 8
+		cst.content_margin_right = 8
+		cst.content_margin_top = 3
+		cst.content_margin_bottom = 3
+		chip.add_theme_stylebox_override("panel", cst)
+		var cv := VBoxContainer.new()
+		cv.add_theme_constant_override("separation", -2)
+		chip.add_child(cv)
+		var t := UI.label(str(k[1]), 13, UI.DIM, false)
+		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cv.add_child(t)
+		var val := UI.label("-", 20, UI.TEXT, false)
+		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cv.add_child(val)
+		var det := UI.label("", 12, UI.DIM, false)
+		det.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		det.clip_text = true
+		det.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		cv.add_child(det)
+		info_vals[k[0]] = [val, det]
+		info.add_child(chip)
+	v.add_child(info)
+	var dps_tick := Timer.new()
+	dps_tick.wait_time = 0.5
+	dps_tick.timeout.connect(_refresh_dps)
+	add_child(dps_tick)
+	dps_tick.start()
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
@@ -220,6 +259,10 @@ func _play(evs: Array) -> void:
 		match t:
 			"damage":
 				var amt := int(ev.get("amount", 0))
+				if src == pname and dst != pname and amt > 0:
+					_dmg_log.append([Time.get_ticks_msec(), amt])
+					if amt > int(run.stats.get("best_hit", 0)):
+						run.stats["best_hit"] = amt
 				var crit: bool = ev.get("crit", false)
 				grid.lunge(src, dst)
 				grid.flash(dst, Color(1.0, 0.35, 0.3))
@@ -293,6 +336,7 @@ func _refresh() -> void:
 	char_btn.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
 	char_btn.add_theme_color_override("icon_hover_color", Color("#5fd35f"))
 	_refresh_shield()
+	_refresh_info()
 	_set_gear_glow(not ups.is_empty())
 	for c in log_strip.get_children():
 		c.queue_free()
@@ -943,3 +987,33 @@ func _open_character() -> void:
 		Game.auto_next("character", func():
 			layer.queue_free()
 			Game.goto("gear"), 0.6)
+
+
+## The readout strip above the buttons.
+func _refresh_info() -> void:
+	if info_vals.is_empty() or run.world == null:
+		return
+	var q := CharStats.quick(run)
+	info_vals["avg"][0].text = Cards._num(snappedf(float(q["avg"]), 0.1)) if float(q["avg"]) > 0.0 else "-"
+	info_vals["avg"][1].text = "per weapon hit"
+	info_vals["avoid"][0].text = "%d%%" % int(q["avoid"])
+	var parts: Dictionary = q["parts"]
+	info_vals["avoid"][1].text = " ".join(parts.keys().map(func(k): return "%s %d" % [str(k), int(parts[k])])) if not parts.is_empty() else "no defenses"
+	var best := int(run.stats.get("best_hit", 0))
+	info_vals["best"][0].text = str(best) if best > 0 else "-"
+	info_vals["best"][1].text = "this run"
+	_refresh_dps()
+
+
+## Damage you dealt over the last 5 real seconds.
+func _refresh_dps() -> void:
+	if info_vals.is_empty():
+		return
+	var now := Time.get_ticks_msec()
+	while not _dmg_log.is_empty() and now - int(_dmg_log[0][0]) > 5000:
+		_dmg_log.pop_front()
+	var total := 0
+	for e in _dmg_log:
+		total += int(e[1])
+	info_vals["dps"][0].text = Cards._num(snappedf(total / 5.0, 0.1))
+	info_vals["dps"][1].text = "at %dx speed" % int(Game.speed)

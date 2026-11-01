@@ -10,6 +10,31 @@ static func _pct(v: float) -> String:
 	return ("+%d%%" % r) if r > 0 else ("%d%%" % r)
 
 
+## The few numbers the run HUD shows: average weapon hit and the chances to avoid a melee hit.
+## Avoid combines parry, dodge, shield block and sidestep as independent rolls.
+static func quick(run: DSRunState) -> Dictionary:
+	var p: Combatant = run.world.player if run.world != null else run.make_player()
+	var sim := CombatSim.new(DSRng.new(1), run.data)
+	var foe := Combatant.new()
+	var avg := 0.0
+	if p.weapon != null:
+		var r := sim.damage_range(p, "hit", p.weapon, false, false)
+		avg = (int(r[0]) + int(r[1])) / 2.0 * float(p.flags.get("damage_mult", 1.0)) + CombatSim.bstat(p, "b_flat")
+	var parts := {}
+	if p.skill("parry") > 0:
+		parts["parry"] = sim.parry_chance(foe, p)
+	if p.skill("dodge") > 0:
+		parts["dodge"] = sim.dodge_chance(foe, p)
+	if p.shield != null and p.skill("shield block") > 0:
+		parts["block"] = sim.block_chance(foe, p)
+	if p.skill("sidestep") > 0:
+		parts["sidestep"] = sim.sidestep_chance(foe, p)
+	var hit_through := 1.0
+	for k in parts.keys():
+		hit_through *= 1.0 - int(parts[k]) / 100.0
+	return {"avg": avg, "avoid": roundi((1.0 - hit_through) * 100.0), "parts": parts}
+
+
 static func sections(run: DSRunState) -> Array:
 	var data := run.data
 	var p: Combatant = run.world.player if run.world != null else run.make_player()
@@ -68,6 +93,7 @@ static func sections(run: DSRunState) -> Array:
 	rows.append(["Bonus vs elites and bosses", _pct(b.call("b_giant")) if b.call("b_giant") > 0 else ""])
 	rows.append(["Bonus under 30% health", _pct(b.call("b_berserk_low")) if b.call("b_berserk_low") > 0 else ""])
 	rows.append(["Execute (under 20% health)", ("%d%% chance" % b.call("b_execute")) if b.call("b_execute") > 0 else ""])
+	rows.append(["Best hit this run", str(int(run.stats.get("best_hit", 0))) if int(run.stats.get("best_hit", 0)) > 0 else ""])
 	rows.append(["Skill cooldowns", ("-%d turns" % b.call("b_cdr")) if b.call("b_cdr") > 0 else ""])
 	out.append({"title": "Offense", "rows": rows})
 
