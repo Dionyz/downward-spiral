@@ -582,3 +582,25 @@ func test_corridor_hold_is_capped_when_the_pack_never_comes():
 		most = maxi(most, waits)
 	assert_lte(most, DSWorld.CORRIDOR_HOLD_MAX, "holds the corridor a few turns at most")
 	assert_gt(r.world.ppos.x, 3, "then closes in")
+
+
+func test_explore_keeps_walking_to_a_sleeping_monster_that_drops_out_of_view():
+	# Regression: a sleeping monster seen from one tile but not the next made explore flip
+	# between it and the frontier forever. The monster being walked to stays the goal.
+	var r := DSRunState.new_run(data, "warrior", 16)
+	var w := 30
+	var rows: Array = [" ".repeat(w), " " + ".".repeat(w - 2) + " ", " ".repeat(w)]
+	var lvl := {"w": w, "h": 3, "tiles": rows, "rooms": [], "start": [1, 1], "stairs": [2, 1],
+		"objects": [], "spawns": [{"id": "sewer_rat", "x": 27, "y": 1}], "floor": 1}
+	var wd := DSWorld.create(r, lvl, r.rng.fork())
+	for y in 3:
+		for x in w:
+			wd.seen[DSWorld.pk(Vector2i(x, y))] = true
+	var rat: Dictionary = wd.monsters[0]
+	rat["state"] = "asleep"
+	assert_false(wd.is_visible(rat["pos"]), "the rat is out of sight")
+	var dist := wd.distance_map(wd.ppos, false, 80)
+	assert_eq(wd._explore_goal(dist), wd.stairs, "unseen sleeper: head for the stairs")
+	wd.heading_down = false
+	wd.hunt_mark = rat
+	assert_eq(wd._explore_goal(dist), Vector2i(26, 1), "the marked sleeper stays the goal")

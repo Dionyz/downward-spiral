@@ -43,6 +43,7 @@ var extracting := false          # walking back to the entrance to extract
 var ambush := false              # this is an ambush floor: clear it to finish extracting
 var corridor_hold := 0           # turns spent holding a corridor in a row (capped: CORRIDOR_HOLD_MAX)
 const CORRIDOR_HOLD_MAX := 5
+var hunt_mark: Dictionary = {}   # the sleeping/wandering monster explore is walking to (kept if it drops out of view)
 
 
 # ---------------------------------------------------------------------------
@@ -648,10 +649,13 @@ func _explore_goal(dist: PackedInt32Array):
 			best_d = d
 			best = o["pos"]
 	if best != null:
+		hunt_mark = {}
 		return best
-	# Sleeping or wandering monsters in sight: go and kill them (a tile next to them).
+	# Sleeping or wandering monsters in sight: go and kill them (a tile next to them). The one
+	# already being walked to stays a target when a step takes it out of view (no flip-flopping).
+	var mark: Dictionary = {}
 	for m in monsters:
-		if not m["c"].is_alive() or m["state"] == "hunt" or not is_visible(m["pos"]):
+		if not m["c"].is_alive() or m["state"] == "hunt" or not (is_visible(m["pos"]) or is_same(m, hunt_mark)):
 			continue
 		for dd in DIRS8:
 			var n: Vector2i = m["pos"] + dd
@@ -659,6 +663,8 @@ func _explore_goal(dist: PackedInt32Array):
 			if d >= 0 and d < best_d and can_step(n, m["pos"]):
 				best_d = d
 				best = n
+				mark = m
+	hunt_mark = mark
 	if best != null:
 		return best
 	# Frontier: a reachable tile next to unexplored ground.
