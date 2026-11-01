@@ -41,6 +41,8 @@ var _fov_at := Vector2i(-99, -99)
 var entrance := Vector2i.ZERO    # where the player arrived on this floor (extraction point)
 var extracting := false          # walking back to the entrance to extract
 var ambush := false              # this is an ambush floor: clear it to finish extracting
+var corridor_hold := 0           # turns spent holding a corridor in a row (capped: CORRIDOR_HOLD_MAX)
+const CORRIDOR_HOLD_MAX := 5
 
 
 # ---------------------------------------------------------------------------
@@ -574,10 +576,13 @@ func _player_fight(foes: Array) -> void:
 		adj.sort_custom(func(a, b): return a["c"].hp < b["c"].hp)
 		sim.melee(player, adj[0]["c"])
 		return
-	# Hold a corridor when a pack is coming; otherwise close in.
-	if foes.size() >= 3 and tile(ppos) == "#":
+	# Hold a corridor when a pack is coming; otherwise close in. Holding is capped so a ranged
+	# foe that never closes the gap (blocking the rest of the pack behind it) can't stall the run.
+	if foes.size() >= 3 and tile(ppos) == "#" and corridor_hold < CORRIDOR_HOLD_MAX:
+		corridor_hold += 1
 		_emit({"t": "wait", "who": "player"})
 		return
+	corridor_hold = 0
 	var dist := distance_map(foes[0]["pos"], true, 30)
 	var nxt = step_down(ppos, dist)
 	if nxt != null:

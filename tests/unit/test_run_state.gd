@@ -553,3 +553,32 @@ func test_explore_reaches_stairs_more_than_80_steps_away():
 	var start := r.world.ppos
 	_turns(r, 5)
 	assert_lt(r.world.ppos.x, start.x, "the character walks toward the far stairs")
+
+
+func test_corridor_hold_is_capped_when_the_pack_never_comes():
+	# Regression: with 3+ foes hunting and the character in a corridor it waited for them every
+	# turn. A pack that never closes in (a caster in front blocking the rest) stalled the run.
+	var perks := DSMeta.perks(data, {})
+	perks["mastery"] = 1
+	var r := DSRunState.new_run(data, "warrior", 15, perks)
+	var w := 16
+	var rows: Array = [" ".repeat(w), " " + "#".repeat(w - 2) + " ", " ".repeat(w)]
+	var spawns: Array = []
+	for x in [8, 9, 10]:
+		spawns.append({"id": "sewer_rat", "x": x, "y": 1})
+	var lvl := {"w": w, "h": 3, "tiles": rows, "rooms": [], "start": [1, 1], "stairs": [14, 1],
+		"objects": [], "spawns": spawns, "floor": 1}
+	r.world = DSWorld.create(r, lvl, r.rng.fork())
+	for m in r.world.monsters:
+		m["state"] = "hunt"
+		m["energy"] = -1000000  # never acts: the pack never comes
+	var waits := 0
+	var most := 0
+	for i in 20:
+		if r.phase != "explore":
+			break
+		var waited := r.tick().any(func(e): return e["t"] == "wait" and e.get("who") == "player")
+		waits = waits + 1 if waited else 0
+		most = maxi(most, waits)
+	assert_lte(most, DSWorld.CORRIDOR_HOLD_MAX, "holds the corridor a few turns at most")
+	assert_gt(r.world.ppos.x, 3, "then closes in")
