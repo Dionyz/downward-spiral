@@ -601,10 +601,10 @@ func _explore() -> void:
 	if goal == ppos:
 		_interact()
 		return
-	var back := distance_map(goal, false, 80)
+	var back := distance_map(goal, false)
 	var nxt = step_down(ppos, back)
 	if nxt == null:
-		back = distance_map(goal, true, 80)
+		back = distance_map(goal, true)
 		nxt = step_down(ppos, back, false)
 		var blocker: Dictionary = {}
 		if nxt != null and monster_at(nxt) != null:

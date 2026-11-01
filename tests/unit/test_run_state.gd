@@ -536,3 +536,20 @@ func test_mythic_items_only_in_the_abyss_depths():
 	var rng := DSRng.new(5)
 	for i in 300:
 		assert_ne(DSLoot.roll_rarity(data, rng, 0.5), "mythic", "never from normal drops")
+
+
+func test_explore_reaches_stairs_more_than_80_steps_away():
+	# Regression: the path back from the goal was capped at 80 steps, so a cleared floor whose
+	# stairs were farther away left the character waiting forever.
+	var r := DSRunState.new_run(data, "warrior", 14)
+	var w := 120
+	var rows: Array = [" ".repeat(w), " " + ".".repeat(w - 2) + " ", " ".repeat(w)]
+	var lvl := {"w": w, "h": 3, "tiles": rows, "rooms": [], "start": [w - 2, 1], "stairs": [1, 1],
+		"objects": [], "spawns": [], "floor": 1}
+	r.world = DSWorld.create(r, lvl, r.rng.fork())
+	for y in 3:
+		for x in w:
+			r.world.seen[DSWorld.pk(Vector2i(x, y))] = true
+	var start := r.world.ppos
+	_turns(r, 5)
+	assert_lt(r.world.ppos.x, start.x, "the character walks toward the far stairs")

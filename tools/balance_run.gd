@@ -2,7 +2,7 @@ extends SceneTree
 ## Full-run balance: N autopilot runs per class through one dungeon (no account power-ups, no stash
 ## gear, all boons open, autopilot drinks potions at 30% HP and takes the first boon).
 ##   godot --headless --path . -s tools/balance_run.gd -- [--runs 200] [--classes warrior,thief] [--seed0 5000]
-##       [--mastery 1] [--dungeon spiral]
+##       [--mastery 1] [--dungeon spiral] [--verbose]
 ## --mastery is the class mastery the run starts at (1 = a fresh character; 10 = everything learned).
 ## Prints win rate, average floor/level/turns, deaths per floor, and how often the killer was an
 ## elite or the boss. Exits 1 if class win rates are more than 10 points apart.
@@ -15,6 +15,7 @@ func _init() -> void:
 	var seed0 := 5000
 	var mastery := 1
 	var dungeon := "spiral"
+	var verbose := args.has("--verbose")
 	for i in args.size():
 		if args[i] == "--runs" and i + 1 < args.size():
 			runs = int(args[i + 1])
@@ -50,6 +51,8 @@ func _init() -> void:
 			while run.phase != "over" and n < 30000:
 				DSAutopilot.advance(run)
 				n += 1
+			if verbose:
+				printerr("%s seed %d: %s floor %d level %d steps %d" % [line, seed0 + r * 13, run.result, run.floor_num, run.level, n])
 			floors += run.floor_num
 			levels += run.level
 			turns += run.world.turn if run.world != null else 0
