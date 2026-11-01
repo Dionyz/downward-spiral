@@ -20,7 +20,10 @@ var log_layer: Control
 var pot_hp: Button
 var pot_mp: Button
 var speed_btn: Button
-var gear_btn: Button
+var char_btn: Button
+var shield_rect: ColorRect
+var shield_label: Label
+var _banner: Label
 var extract_btn: Button
 var overlay: Control           # boon / event / floor end
 var timer: Timer
@@ -54,11 +57,21 @@ func _ready() -> void:
 	bv.add_theme_constant_override("separation", 2)
 	hp_bar = UI.bar(UI.HP, 18)
 	bv.add_child(hp_bar)
+	# Shield: a pale blue segment after current health (overlapping its end when it doesn't fit).
+	shield_rect = ColorRect.new()
+	shield_rect.color = Color(0.62, 0.85, 1.0, 0.9)
+	shield_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shield_rect.visible = false
+	hp_bar.add_child(shield_rect)
+	hp_bar.resized.connect(_refresh_shield)
 	mana_bar = UI.bar(UI.MANA, 8)
 	bv.add_child(mana_bar)
 	bars.add_child(bv)
 	hp_label = UI.label("", 17, UI.TEXT, false)
 	bars.add_child(hp_label)
+	shield_label = UI.label("", 17, Color("#9fd8ff"), false)
+	shield_label.visible = false
+	bars.add_child(shield_label)
 	v.add_child(bars)
 
 	grid = GridView.new()
@@ -83,13 +96,8 @@ func _ready() -> void:
 	pot_hp = UI.button("", func(): _drink("hp"), 60)
 	pot_mp = UI.button("", func(): _drink("mp"), 60)
 	speed_btn = UI.button("", _toggle_speed, 60)
-	gear_btn = UI.button("Gear", _open_gear, 60)
-	var skills_btn := UI.button("Skills", func():
-		timer.stop()
-		_paused = true
-		Game.save_run()
-		Game.goto("skills"), 60)
-	for b in [pot_hp, pot_mp, speed_btn, gear_btn, skills_btn]:
+	char_btn = UI.button("Character", _open_character, 60)
+	for b in [pot_hp, pot_mp, speed_btn, char_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.add_theme_font_size_override("font_size", 19)
 		b.clip_text = true
@@ -171,8 +179,10 @@ func _turn() -> void:
 	_refresh()
 	if run.floor_num != floor_before:
 		grid.setup(run)
-	_check_low_hp()
+	_check_low_hp(evs)
 	if run.phase == "explore":
+		if _paused or _tutorials(evs):
+			return
 		if _shots_left > 0 and run.world.turn % 40 == 0:
 			_shot("f%d_t%d" % [run.floor_num, run.world.turn], func(): timer.start(_turn_time()))
 		else:
@@ -235,7 +245,11 @@ func _play(evs: Array) -> void:
 			"death":
 				Game.sfx("death")
 			"pickup":
-				grid.float_text(pname, str(ev.get("name", "")), Cards.rarity_color(run.data, str(ev.get("rarity", "common"))), 14)
+				var rar := str(ev.get("rarity", "common"))
+				grid.float_text(pname, str(ev.get("name", "")), Cards.rarity_color(run.data, rar), 14)
+				var order: Array = run.data.items.get("rarity_order", [])
+				if order.find(rar) >= maxi(0, order.find("epic")):
+					_show_banner(line, Cards.rarity_color(run.data, rar))
 			"shrine":
 				grid.float_text(pname, "blessed", Color("#9d7cf2"), 18)
 				Game.sfx("heal")
@@ -273,12 +287,12 @@ func _refresh() -> void:
 	extract_btn.disabled = run.world.ambush or run.phase != "explore"
 	extract_btn.text = "Ambush!" if run.world.ambush else ("Cancel Extract" if run.world.extracting else "Extract")
 	var ups := run.upgrade_slots()
-	gear_btn.text = "Gear"
-	gear_btn.icon = UI.tex("ui_upgrade") if not ups.is_empty() else null
-	gear_btn.expand_icon = true
-	gear_btn.add_theme_constant_override("icon_max_width", 24)
-	gear_btn.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
-	gear_btn.add_theme_color_override("icon_hover_color", Color("#5fd35f"))
+	char_btn.icon = UI.tex("ui_upgrade") if not ups.is_empty() else null
+	char_btn.expand_icon = true
+	char_btn.add_theme_constant_override("icon_max_width", 24)
+	char_btn.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
+	char_btn.add_theme_color_override("icon_hover_color", Color("#5fd35f"))
+	_refresh_shield()
 	_set_gear_glow(not ups.is_empty())
 	for c in log_strip.get_children():
 		c.queue_free()
@@ -536,7 +550,7 @@ func _show_floor_end() -> void:
 		print("[autoplay] floor %d cleared, level %d, HP %d, gold %d, turn %d" % [run.floor_num, run.level, run.world.player.hp, run.gold, run.world.turn])
 		if run.floor_num == 1 and OS.get_cmdline_user_args().has("--shots") and not _gear_shown:
 			_gear_shown = true
-			_shot("floor_end", func(): Game.goto("gear"))
+			_shot("floor_end", _open_character)
 			return
 		_shot("floor_end", _descend)
 
@@ -566,6 +580,7 @@ func _extract_pressed() -> void:
 	_recent.append(["Heading back to the entrance to extract...", "#7fc8a9"])
 	Game.save_run()
 	_refresh()
+	_teach("extract")
 
 
 func _show_extract_choice() -> void:
@@ -637,7 +652,7 @@ func _drink(kind: String) -> void:
 var _low_hp_armed := true
 
 
-func _check_low_hp() -> void:
+func _check_low_hp(_evs: Array = []) -> void:
 	if run.world == null or Game.autoplay != "":
 		return
 	var pct := run.world.player.hp_pct()
@@ -648,8 +663,9 @@ func _check_low_hp() -> void:
 		if Game.speed > 1.0:
 			Game.speed = 1.0
 			_recent.append(["Low health! Slowed to 1x.", "#ff7a3d"])
-			grid.float_text(run.world.player.name, "LOW HP", UI.WARN, 20)
 			_refresh()
+		grid.float_text(run.world.player.name, "LOW HP", UI.WARN, 20)
+		_teach("low_hp")
 
 
 ## In-run settings: volume, and a way back to the title (the run is saved).
@@ -715,13 +731,13 @@ func _set_gear_glow(on: bool) -> void:
 		_glow.kill()
 		_glow = null
 	if on:
-		gear_btn.add_theme_color_override("font_color", Color("#5fd35f"))
+		char_btn.add_theme_color_override("font_color", Color("#5fd35f"))
 		_glow = create_tween().set_loops()
-		_glow.tween_property(gear_btn, "modulate", Color(1.35, 1.6, 1.35), 0.6)
-		_glow.tween_property(gear_btn, "modulate", Color.WHITE, 0.6)
+		_glow.tween_property(char_btn, "modulate", Color(1.35, 1.6, 1.35), 0.6)
+		_glow.tween_property(char_btn, "modulate", Color.WHITE, 0.6)
 	else:
-		gear_btn.remove_theme_color_override("font_color")
-		gear_btn.modulate = Color.WHITE
+		char_btn.remove_theme_color_override("font_color")
+		char_btn.modulate = Color.WHITE
 
 
 func _toggle_speed() -> void:
@@ -749,3 +765,181 @@ func _shot(name: String, next: Callable) -> void:
 		Game.auto_next(name, next, 0.4)
 	else:
 		next.call()
+
+
+# --- HUD extras ------------------------------------------------------------------
+
+## Shield (Bulwark and friends) drawn on the health bar, with the amount beside the numbers.
+func _refresh_shield() -> void:
+	if run == null or run.world == null or shield_rect == null:
+		return
+	var p := run.world.player
+	var sh := maxi(0, int(p.flags.get("shield_hp", 0)))
+	shield_label.visible = sh > 0
+	shield_label.text = "+%d shield" % sh
+	shield_rect.visible = sh > 0 and p.is_alive()
+	if not shield_rect.visible:
+		return
+	var mx := float(maxi(1, p.max_hp))
+	var w := hp_bar.size.x
+	var bw := clampf(sh / mx, 0.0, 1.0)
+	var start := minf(clampf(p.hp / mx, 0.0, 1.0), 1.0 - bw)
+	shield_rect.position = Vector2(start * w, 0)
+	shield_rect.size = Vector2(maxf(2.0, bw * w), hp_bar.size.y)
+
+
+## Big centered line that fades out: epic and better loot.
+func _show_banner(text: String, col: Color) -> void:
+	if _banner != null and is_instance_valid(_banner):
+		_banner.queue_free()
+	var l := UI.label(text, 30, col)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	l.add_theme_constant_override("outline_size", 10)
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	l.set_anchors_preset(Control.PRESET_FULL_RECT)
+	l.offset_left = 24
+	l.offset_right = -24
+	l.z_index = 45
+	add_child(l)
+	_banner = l
+	l.pivot_offset = get_viewport_rect().size / 2.0
+	l.scale = Vector2(0.85, 0.85)
+	var tw := l.create_tween()
+	tw.tween_property(l, "scale", Vector2.ONE, 0.15)
+	tw.tween_interval(1.0)
+	tw.tween_property(l, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(l.queue_free)
+	Game.sfx("level_up", 1.3)
+
+
+# --- tutorial ---------------------------------------------------------------------
+
+## Show tutorial `id` (once ever) and hold the turn loop until it's dismissed.
+func _teach(id: String) -> bool:
+	if Hint.seen(id) or not Hint.TEXT.has(id):
+		return false
+	_paused = true
+	timer.stop()
+	Hint.show(self, id, func():
+		_paused = false
+		if is_inside_tree():
+			_refresh()
+			_resume())
+	return true
+
+
+## First-time moments worth explaining. One per turn at most.
+func _tutorials(evs: Array) -> bool:
+	if run.world == null:
+		return false
+	var w := run.world
+	var p := w.player
+	var pname := p.name
+	var seen_types := {}
+	for ev in evs:
+		var t := str(ev.get("t", ""))
+		seen_types[t] = true
+		if t == "status_applied" and str(ev.get("dst", "")) == pname and str(ev.get("status", "")) in CombatSim.INCAPACITATING:
+			seen_types["stunned"] = true
+		if t == "heal" and str(ev.get("source", "")) == "campfire":
+			seen_types["campfire"] = true
+	if seen_types.has("encounter") and _teach("combat"):
+		return true
+	if seen_types.has("pickup") and _teach("loot"):
+		return true
+	if seen_types.has("stunned") and _teach("stunned"):
+		return true
+	if seen_types.has("shrine") and _teach("shrine"):
+		return true
+	if seen_types.has("campfire") and _teach("campfire"):
+		return true
+	if int(p.flags.get("shield_hp", 0)) > 0 and _teach("shield"):
+		return true
+	if int(run.potions.get("hp", 0)) <= 0 and _teach("no_potions"):
+		return true
+	if p.max_mana > 0 and p.mana_pct() < 20.0 and w.in_combat and _teach("low_mana"):
+		return true
+	if w.living_boss() != null and _teach("boss"):
+		return true
+	for m in w.monsters:
+		if not m["c"].is_alive() or not w.is_visible(m["pos"]):
+			continue
+		if m["elite"] and not m["boss"] and _teach("elite"):
+			return true
+		if str(m["state"]) == "asleep" and not m["boss"] and _teach("sleeper"):
+			return true
+	return false
+
+
+## In-run Character panel: detailed stats, plus Gear, Boons and Skills.
+func _open_character() -> void:
+	_paused = true
+	timer.stop()
+	var layer := PanelContainer.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 90
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color("#0d0c11")
+	st.set_content_margin_all(16)
+	layer.add_theme_stylebox_override("panel", st)
+	add_child(layer)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	layer.add_child(v)
+	var ch := Game.character()
+	var L: Dictionary = run.data.classes.get(run.line, {})
+	v.add_child(UI.label("%s the %s" % [str(ch.get("name", "You")), str(L.get("display", run.line))], 30, UI.ACCENT))
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var inner := VBoxContainer.new()
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.add_theme_constant_override("separation", 4)
+	scroll.add_child(inner)
+	v.add_child(scroll)
+	for sec in CharStats.sections(run):
+		var hl := UI.label(str(sec["title"]), 22, UI.ACCENT)
+		inner.add_child(hl)
+		for r in sec["rows"]:
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 12)
+			var k := UI.label(str(r[0]), 18, UI.DIM)
+			k.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			k.size_flags_stretch_ratio = 0.9
+			row.add_child(k)
+			var val := UI.label(str(r[1]), 18)
+			val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			row.add_child(val)
+			inner.add_child(row)
+		var gap := Control.new()
+		gap.custom_minimum_size = Vector2(0, 8)
+		inner.add_child(gap)
+	var grid_row := HBoxContainer.new()
+	grid_row.add_theme_constant_override("separation", 8)
+	var gear_b := UI.button("Gear", _open_gear, 60)
+	if not run.upgrade_slots().is_empty():
+		gear_b.icon = UI.tex("ui_upgrade")
+		gear_b.expand_icon = true
+		gear_b.add_theme_constant_override("icon_max_width", 24)
+		gear_b.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
+		gear_b.add_theme_color_override("font_color", Color("#5fd35f"))
+	var boons_b := UI.button("Boons (%d)" % run.boons.size(), func(): BoonList.open(self, run), 60)
+	var skills_b := UI.button("Skills", func():
+		Game.save_run()
+		Game.goto("skills"), 60)
+	for b in [gear_b, boons_b, skills_b]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid_row.add_child(b)
+	v.add_child(grid_row)
+	v.add_child(UI.button("Back to the run", func():
+		layer.queue_free()
+		_paused = false
+		_resume(), 60))
+	Hint.show(self, "character")
+	if Game.autoplay != "":
+		Game.auto_next("character", func():
+			layer.queue_free()
+			Game.goto("gear"), 0.6)
