@@ -248,7 +248,7 @@
   },
   "gravewarden": {
    "name": "the Gravewarden",
-   "hp": 150,
+   "hp": 75,
    "dmg": [
     4,
     9
@@ -309,7 +309,7 @@
   },
   "hollow_matron": {
    "name": "the Hollow Matron",
-   "hp": 130,
+   "hp": 65,
    "dmg": [
     3,
     8

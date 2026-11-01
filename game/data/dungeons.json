@@ -20,7 +20,7 @@
  "floors": 10,
  "abyss_floors": 20,
  "level_per_floor": 0.9,
- "boss_level_bonus": 1,
+ "boss_level_bonus": 3,
  "elite_floors": [
   3,
   6,

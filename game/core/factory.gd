@@ -198,6 +198,7 @@ static func make_monster(data: DSData, id: String, level: int, idx: int = 0) -> 
 	c.max_hp = maxi(1, int(float(m.get("hp", 20)) * hp_mult))
 	c.hp = c.max_hp
 	var dm: Array = m.get("dmg", [1, 4])
+	c.flags["ability_dmg_mult"] = dmg_mult
 	c.dmg_min = maxi(1, int(float(dm[0]) * dmg_mult))
 	c.dmg_max = maxi(c.dmg_min, int(float(dm[1]) * dmg_mult))
 	c.size = str(m.get("size", "medium"))

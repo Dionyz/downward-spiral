@@ -19,9 +19,9 @@
  "max_rounds": 200,
  "potion_pct": 50,
  "monster_scaling": {
-  "hp_linear": 1.35,
-  "hp_quadratic": 0.18,
-  "dmg_linear": 0.5
+  "hp_linear": 1.0,
+  "hp_quadratic": 0.45,
+  "dmg_linear": 0.3
  },
  "promotions": false,
  "fight_size": [

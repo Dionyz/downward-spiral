@@ -18,7 +18,7 @@
     "ac_base": -150,
     "shield_block_value": 35,
     "damage_pct": -35,
-    "damage_taken_pct": 29
+    "damage_taken_pct": 20
    },
    "color": "#d9a441",
    "ai": [
@@ -75,7 +75,7 @@
     },
     "ac_base": -80,
     "damage_pct": 15,
-    "damage_taken_pct": 38
+    "damage_taken_pct": 25
    },
    "color": "#7fc8a9",
    "ai": [
@@ -141,8 +141,8 @@
   },
   "mage": {
    "stats": {
-    "hp_base": 140,
-    "hp_per_level": 32,
+    "hp_base": 110,
+    "hp_per_level": 26,
     "mana_base": 60,
     "mana_per_level": 14,
     "mana_regen": 5,
@@ -155,7 +155,7 @@
      "wis": 16
     },
     "ac_base": -50,
-    "spell_pct": 150,
+    "spell_pct": 10,
     "damage_taken_pct": 29
    },
    "color": "#9d7cf2",
@@ -261,8 +261,8 @@
      "wis": 11
     },
     "ac_base": -80,
-    "damage_pct": 10,
-    "damage_taken_pct": 17
+    "damage_pct": -5,
+    "damage_taken_pct": 35
    },
    "color": "#ff7a3d",
    "ai": [

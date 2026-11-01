@@ -321,3 +321,36 @@ func test_jackal_boons():
 	sim2._hamstring(p2, e2)
 	assert_true(e2.has_status("slowed"))
 	assert_true(data2.boons["mesmerist"]["lines"].has("knifer"))
+
+
+func _ability_hits(level: int, ability: String, n: int) -> Array:
+	var sim := CombatSim.new(DSRng.new(5), data)
+	var p := DSFactory.make_player(data, "warrior", 1, 30, {"rule_slots": 4})
+	var m := DSFactory.make_monster(data, "spiral_warden", level)
+	sim.player = p
+	sim.enemies = [m]
+	var out: Array = []
+	for i in n:
+		p.hp = p.max_hp
+		sim.events = []
+		sim._h_monster_strike(m, p, ability, m.monster_abilities[ability])
+		for e in sim.events:
+			if e["t"] == "damage":
+				out.append(int(e["amount"]))
+	return out
+
+
+func test_monster_ability_damage_scales_with_level():
+	# Ability min/max are level-1 numbers scaled like melee (balance.monster_scaling.dmg_linear).
+	var low := _ability_hits(1, "spiral_slam", 20)
+	var high := _ability_hits(12, "spiral_slam", 20)
+	assert_false(low.is_empty())
+	assert_false(high.is_empty())
+	assert_gt(high.min(), low.max(), "a level-12 spiral slam always beats a level-1 one")
+	var sim := CombatSim.new(DSRng.new(1), data)
+	var p := DSFactory.make_player(data, "warrior", 1, 10, {})
+	var hm := DSFactory.make_monster(data, "hollow_matron", 12)
+	var curse: Dictionary = hm.monster_abilities["wasting_curse"].duplicate()
+	curse["skill"] = 101
+	sim._h_monster_status(hm, p, "wasting_curse", curse)
+	assert_gt(int(p.statuses["bleeding"]["dmg"]), int(curse["dmg"]), "damage over time scales too")

@@ -1444,8 +1444,10 @@ func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
 # ---------------------------------------------------------------------------
 
 func _h_monster_strike(c: Combatant, v: Combatant, aname: String, a: Dictionary) -> void:
-	var lo := int(a.get("min", c.dmg_min))
-	var hi := int(a.get("max", c.dmg_max))
+	# Ability numbers are level-1 values, scaled by level like melee damage (monster_scaling.dmg_linear).
+	var am := float(c.flags.get("ability_dmg_mult", 1.0))
+	var lo := int(a["min"] * am) if a.has("min") else c.dmg_min
+	var hi := int(a["max"] * am) if a.has("max") else c.dmg_max
 	apply_damage(c, v, rng.number_range(lo, hi), str(a.get("display", aname)), str(a.get("dam_type", c.dam_type)), false)
 
 
@@ -1459,7 +1461,7 @@ func _h_monster_status(c: Combatant, v: Combatant, aname: String, a: Dictionary)
 		if not _cc(c, v, st, rounds + 1):
 			return
 	else:
-		v.add_status(st, rounds + 1, {"dmg": int(a.get("dmg", 2))})
+		v.add_status(st, rounds + 1, {"dmg": maxi(1, int(float(a.get("dmg", 2)) * float(c.flags.get("ability_dmg_mult", 1.0))))})
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
 
 
