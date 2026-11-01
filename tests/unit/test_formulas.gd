@@ -53,18 +53,6 @@ func test_backstab_at_weapon_level_100():
 	assert_eq(sim.damage_range(_pc(100), "backstab", H.dagger(50, 101, 100), false, false), [170, 656])
 
 
-func test_stance_modifiers():
-	var c := _pc(100)
-	c.stance = "mist"   # min/3, max/3
-	assert_eq(sim.damage_range(c, "hit", H.sword(), false, false), [3, 6])
-	c.stance = "storm"  # +1/3
-	assert_eq(sim.damage_range(c, "hit", H.sword(), false, false), [13, 26])
-	c.stance = "cobra"  # -1/10
-	assert_eq(sim.damage_range(c, "hit", H.sword(), false, false), [9, 18])
-	c.stance = "predator"  # +1/10
-	assert_eq(sim.damage_range(c, "hit", H.sword(), false, false), [11, 22])
-
-
 func test_npc_uses_its_damage_dice_and_no_skill_scaling():
 	var m := H.dummy("mob")
 	m.dmg_min = 3
@@ -139,11 +127,6 @@ func test_parry_chance():
 	v.skills["parry"] = 300
 	assert_eq(sim.parry_chance(atk, v), 50, "clamped to 50")
 	v.skills["parry"] = 60
-	v.stance = "cobra"
-	assert_eq(sim.parry_chance(atk, v), 35, "cobra +15 after clamp")
-	v.stance = "storm"
-	assert_eq(sim.parry_chance(atk, v), 5)
-	v.stance = ""
 	v.add_status("stunned", 2)
 	assert_eq(sim.parry_chance(atk, v), 10)
 
@@ -169,9 +152,6 @@ func test_dodge_chance():
 	assert_eq(sim.dodge_chance(atk, v), 80)
 	v.size = "medium"
 	v.skills["dodge"] = 60
-	v.stance = "mist"
-	assert_eq(sim.dodge_chance(atk, v), 45)
-	v.stance = ""
 	v.add_status("blind", 2)
 	assert_eq(sim.dodge_chance(atk, v), 15, "can't see attacker: 30/2")
 	v.remove_status("blind")

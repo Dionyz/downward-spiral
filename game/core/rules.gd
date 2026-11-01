@@ -5,7 +5,7 @@ extends RefCounted
 ## Players don't edit these: each class has a built-in list (overrides/classes.json "ai").
 ##
 ## Rule shape: {"if": "<condition>", "value": <number|string>, "and": [<more conditions>], "then": "<ability ref>"}
-## Ability refs may carry an argument: "dance:mist".
+## Ability refs may carry an argument after a colon ("name:arg").
 
 const CONDITIONS := {
 	"always": "Always",
@@ -21,8 +21,7 @@ const CONDITIONS := {
 
 ## Statuses offered in the editor for "enemy has status" and "I don't have buff".
 const ENEMY_STATUSES := ["blind", "slowed", "poisoned", "asleep", "stunned", "knocked_down"]
-const SELF_BUFFS := ["armor", "shield", "sanctuary", "haste", "berserk", "warcry", "envenomed",
-	"stance_mist", "stance_storm", "stance_cobra", "stance_predator"]
+const SELF_BUFFS := ["armor", "shield", "sanctuary", "haste", "berserk", "warcry", "envenomed"]
 
 
 ## Returns {"ability": ref, "target": Combatant, "rule": index} or {} if no rule fires.

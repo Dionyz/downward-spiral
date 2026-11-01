@@ -119,7 +119,6 @@ func _attach_player() -> void:
 func refresh_player() -> void:
 	var cds := player.cooldowns.duplicate()
 	var sts := player.statuses.duplicate(true)
-	var stance := player.stance
 	var fl := player.flags.duplicate()
 	run.stats["revives"] = int(fl.get("revives_used", 0))
 	run.stats["last_stands"] = int(fl.get("last_stands_used", 0))
@@ -128,7 +127,6 @@ func refresh_player() -> void:
 	for k in sts.keys():
 		if not player.statuses.has(k):
 			player.statuses[k] = sts[k]
-	player.stance = stance
 	for k in ["second_wind_used", "last_stand_used", "first_blood_ready", "momentum", "counter_ready", "parry_stacks",
 			"last_stands_used", "second_winds_used", "rampage", "rampage_until", "retaliate_ready", "shield_hp", "leech_bank"]:
 		if fl.has(k):

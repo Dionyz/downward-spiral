@@ -43,7 +43,6 @@ var melee_fail: int = 0        # MUD pcdata->melee_fail (0) / NPC 40
 
 var statuses: Dictionary = {}  # name -> {rounds:int, ...data}
 var cooldowns: Dictionary = {} # ability ref -> rounds left
-var stance: String = ""        # knifer dance: mist, storm, cobra, predator
 var monster_abilities: Dictionary = {}
 var flags: Dictionary = {}     # boon-driven flags and counters
 var tags: Array = []           # "elite", "boss"...
@@ -139,5 +138,5 @@ func to_dict() -> Dictionary:
 	return {
 		"id": id, "name": name, "is_player": is_player, "line": line, "tier": tier, "level": level,
 		"hp": hp, "max_hp": max_hp, "mana": mana, "max_mana": max_mana, "statuses": statuses.duplicate(true),
-		"stance": stance, "cooldowns": cooldowns.duplicate(),
+		"cooldowns": cooldowns.duplicate(),
 	}

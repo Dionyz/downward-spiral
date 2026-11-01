@@ -148,7 +148,7 @@ func test_skill_order_and_off():
 	assert_eq(str(custom[2]["then"]), "bash")
 	assert_false(custom.any(func(r): return r["then"] == "charge"), "switched off")
 	var skills := DSFactory.class_skills(data, "knifer", 3)
-	assert_true(skills.any(func(s): return s["name"] == "dance" and s["rules"].size() == 3), "three dances on one card")
+	assert_false(skills.any(func(s): return s["name"] == "dance"), "no dances")
 	for l in ["warrior", "thief", "mage", "knifer"]:
 		for s in DSFactory.class_skills(data, l, 3):
 			assert_true(str(data.skills.get(s["name"], "")) != "", "%s has a description" % s["name"])

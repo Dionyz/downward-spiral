@@ -784,23 +784,6 @@
     "storm"
    ]
   },
-  "cobra_strike": {
-   "name": "Cobra Strike",
-   "desc": "In cobra dance, every parry triggers a counter-swing.",
-   "lines": [
-    "knifer"
-   ],
-   "refs": [
-    "dance",
-    "parry"
-   ],
-   "effect": {
-    "flag": "boon_cobra_strike"
-   },
-   "tags": [
-    "iron"
-   ]
-  },
   "bleeding_cross": {
    "name": "Bleeding Cross",
    "desc": "Cross slash leaves the target bleeding for 3 rounds.",
@@ -815,22 +798,6 @@
    },
    "tags": [
     "blood"
-   ]
-  },
-  "storm_caller": {
-   "name": "Storm Caller",
-   "desc": "Storm of blades no longer needs the storm dance.",
-   "lines": [
-    "knifer"
-   ],
-   "refs": [
-    "storm of blades"
-   ],
-   "effect": {
-    "flag": "boon_storm_caller"
-   },
-   "tags": [
-    "storm"
    ]
   },
   "heavy_hands": {

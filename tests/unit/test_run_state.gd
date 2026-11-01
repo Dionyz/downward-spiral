@@ -247,7 +247,7 @@ func test_boon_pool_shape():
 		per[key] = int(per.get(key, 0)) + 1
 	assert_gte(int(per["shared"]), 20)
 	for l in ["warrior", "thief", "mage", "knifer"]:
-		assert_gte(int(per.get(l, 0)), 4, l)
+		assert_gte(int(per.get(l, 0)), 2, l)
 
 
 func test_boon_stats_are_implemented():

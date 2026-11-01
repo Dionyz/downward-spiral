@@ -146,8 +146,6 @@ func auto_choice(c: Combatant) -> Dictionary:
 		return {}
 	for ref in c.actives:
 		var a := _ability_def(c, str(ref))
-		if a.get("handler", "") == "stance" and c.stance != "":
-			continue
 		var use_target = c if a.get("target", "enemy") == "self" else tgt
 		if can_use(c, str(ref), use_target):
 			return {"ability": str(ref), "target": use_target, "rule": -1}
@@ -470,23 +468,6 @@ func damage_range(ch: Combatant, dt: String, wield, st0: bool, st4: bool) -> Arr
 	if "vorpal" in wflags:
 		mn += DSStats.idiv(mn, 20)
 		mx += DSStats.idiv(mx, 20)
-	match ch.stance:
-		"mist":
-			if ch.flags.get("boon_mist_walker", false):
-				mn = DSStats.idiv(mn * 2, 3)
-				mx = DSStats.idiv(mx * 2, 3)
-			else:
-				mn = DSStats.idiv(mn, 3)
-				mx = DSStats.idiv(mx, 3)
-		"storm":
-			mn += DSStats.idiv(mn, 3)
-			mx += DSStats.idiv(mx, 3)
-		"cobra":
-			mn -= DSStats.idiv(mn, 10)
-			mx -= DSStats.idiv(mx, 10)
-		"predator":
-			mn += DSStats.idiv(mn, 10)
-			mx += DSStats.idiv(mx, 10)
 	if st0:
 		mn += DSStats.idiv(mn, 2)
 		mx += DSStats.idiv(mx, 2)
@@ -536,12 +517,6 @@ func parry_chance(ch: Combatant, victim: Combatant) -> int:
 	c = clampi(c, 10, 50)
 	if victim.is_stunned():
 		c = 10
-	match victim.stance:
-		"storm":
-			if not victim.flags.get("boon_storm_parry", false):
-				c -= 15
-		"cobra":
-			c += 15
 	if victim.has_status("transfixed"):
 		c = 0
 	return c
@@ -559,15 +534,6 @@ func dodge_chance(ch: Combatant, victim: Combatant) -> int:
 	else:
 		var size_max := {"tiny": 90, "small": 80, "medium": 70, "large": 60, "huge": 50, "giant": 40}
 		c = clampi(c, 10, int(size_max.get(victim.size, 70)))
-	match victim.stance:
-		"mist":
-			c += 15
-		"storm":
-			c -= 15
-		"cobra":
-			c -= 10
-		"predator":
-			c += 10
 	if victim.has_status("transfixed"):
 		c = 0
 	return c
@@ -611,8 +577,6 @@ func _check_parry(ch: Combatant, victim: Combatant) -> bool:
 	_counterstrike(victim, ch)
 	if victim.flags.get("boon_parry_stack", false):
 		victim.flags["parry_stacks"] = mini(5, int(victim.flags.get("parry_stacks", 0)) + 1)
-	if victim.flags.get("boon_cobra_strike", false) and victim.stance == "cobra" and ch.is_alive():
-		_one_hit(victim, ch, "counter", false)
 	return true
 
 
@@ -1027,14 +991,6 @@ func can_use(c: Combatant, ref: String, target) -> bool:
 		"envenom":
 			if c.has_status("envenomed") or c.weapon == null:
 				return false
-		"aoe_strike":
-			var rs = p.get("requires_stance", null)
-			if rs != null and c.stance != str(rs) and not c.flags.get("boon_storm_caller", false):
-				return false
-		"stance":
-			var want := arg if arg != "" else str(p.get("default_stance", "predator"))
-			if c.stance == want:
-				return false
 	return true
 
 
@@ -1089,8 +1045,6 @@ func use_ability(c: Combatant, ref: String, target) -> void:
 			_h_aoe(c, aname, p)
 		"transfix":
 			_h_transfix(c, target, p)
-		"stance":
-			_h_stance(c, arg, p)
 		"monster_strike":
 			_h_monster_strike(c, target, aname, a)
 		"monster_status":
@@ -1432,16 +1386,6 @@ func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
 	if p.get("then_attack", true):
 		_multi_hit(c, v, HIT)
-
-
-## act_combat.c do_dance
-func _h_stance(c: Combatant, arg: String, p: Dictionary) -> void:
-	var want := arg if arg != "" else str(p.get("default_stance", "predator"))
-	if c.stance != "":
-		c.remove_status("stance_" + c.stance)
-	c.stance = want
-	c.add_status("stance_" + want, -1)
-	_emit({"t": "stance", "src": c.name, "stance": want})
 
 
 # ---------------------------------------------------------------------------

@@ -43,7 +43,7 @@ func test_fight_ends_with_a_result():
 
 func test_events_are_structured():
 	var allowed := ["fight_start", "round", "damage", "miss", "parry", "dodge", "block", "ability", "cast",
-		"ability_miss", "resist", "status_applied", "status_expired", "stance", "heal", "mana", "stunned",
+		"ability_miss", "resist", "status_applied", "status_expired", "heal", "mana", "stunned",
 		"death", "fight_end"]
 	for ev in _fight(11, "mage", 5):
 		assert_true(ev.get("t") in allowed, "unknown event %s" % ev.get("t"))
@@ -117,19 +117,6 @@ func test_backstab_needs_a_healthy_target():
 	assert_true(sim.can_use(p, "backstab", m))
 	m.hp = int(m.max_hp / 4)
 	assert_false(sim.can_use(p, "backstab", m), "do_backstab refuses below 1/3 HP")
-
-
-func test_stance_changes_and_cooldown():
-	var sim := CombatSim.new(DSRng.new(3), data)
-	var p := DSFactory.make_player(data, "knifer", 1, 1, {"rules": [{"if": "always", "then": "dance:storm"}]})
-	var m := DSFactory.make_monster(data, "goblin_cutter", 1)
-	m.hp = 10000
-	m.max_hp = 10000
-	sim.begin(p, [m])
-	sim.step()
-	assert_eq(p.stance, "storm")
-	assert_true(p.has_status("stance_storm"))
-	assert_false(sim.can_use(p, "dance:storm", p), "already in that stance")
 
 
 func test_chain_lightning_jumps_between_targets():

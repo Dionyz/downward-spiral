@@ -112,8 +112,6 @@ static func line(ev: Dictionary) -> String:
 			return "%s %s." % [subj(dst), w]
 		"status_expired":
 			return "%s %s no longer %s." % [subj(src), v(src, "are", "is"), str(ev.get("status", "")).replace("_", " ")]
-		"stance":
-			return "%s %s into the %s dance." % [subj(src), v(src, "shift", "shifts"), ev.get("stance", "")]
 		"heal":
 			return "%s %s %d HP." % [subj(dst), v(dst, "recover", "recovers"), int(ev.get("amount", 0))]
 		"mana":

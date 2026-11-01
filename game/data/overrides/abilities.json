@@ -43,8 +43,11 @@
     "duration_rounds": 2
    }
   },
-  "dance": {
-   "cooldown": 2
+  "storm of blades": {
+   "params": {
+    "requires_stance": null
+   },
+   "cooldown": 4
   }
  }
 }

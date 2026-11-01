@@ -267,40 +267,6 @@
    "color": "#ff7a3d",
    "ai": [
     {
-     "if": "hp_below",
-     "value": 35,
-     "then": "dance:cobra"
-    },
-    {
-     "if": "enemies_at_least",
-     "value": 3,
-     "and": [
-      {
-       "if": "hp_below",
-       "value": 35,
-       "not": true
-      }
-     ],
-     "then": "dance:storm"
-    },
-    {
-     "if": "missing_buff",
-     "value": "stance_predator",
-     "and": [
-      {
-       "if": "hp_below",
-       "value": 35,
-       "not": true
-      },
-      {
-       "if": "enemies_at_least",
-       "value": 3,
-       "not": true
-      }
-     ],
-     "then": "dance:predator"
-    },
-    {
      "if": "always",
      "then": "storm of blades"
     },
@@ -343,7 +309,11 @@
      "if": "always",
      "then": "kick"
     }
-   ]
+   ],
+   "starting_actives": [
+    "whirlwind"
+   ],
+   "role": "Fast multi-hit, crowd control"
   }
  }
 }
