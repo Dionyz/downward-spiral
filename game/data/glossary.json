@@ -483,6 +483,16 @@
    "keys": [
     "trophy"
    ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Diminishing returns",
+   "short": "Stuns, knockdowns, sleep and freezes get harder to land on the same target.",
+   "long": "Each stun, knockdown, sleep or freeze that lands on a target makes the next one less likely: the first always lands, then 50%, then 25%, then the target is immune until it has gone 6 turns without one. Nothing can be stun-locked forever, you included. Skills that inflict a status also have a 10% chance to fail outright.",
+   "keys": [
+    "diminishing",
+    "getting used to it"
+   ]
   }
  ]
 }

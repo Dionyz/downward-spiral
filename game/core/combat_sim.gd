@@ -748,7 +748,8 @@ func _on_player_hit(p: Combatant, attacker: Combatant, dealt: int, dt: String) -
 func _freeze(src: Combatant, v: Combatant) -> void:
 	if v.has_status("stunned"):
 		return
-	v.add_status("stunned", 2 + bstat(src, "b_freeze_long"))
+	if not _cc(src, v, "stunned", 2 + bstat(src, "b_freeze_long"), "freeze"):
+		return
 	_emit({"t": "status_applied", "src": src.name, "dst": v.name, "status": "frozen", "rounds": 1 + bstat(src, "b_freeze_long")})
 
 
@@ -1069,6 +1070,34 @@ func _fails(c: Combatant, chance: int) -> bool:
 	return rng.number_percent() >= chance
 
 
+## Player skills that inflict a status still have a small chance to fail (balance.status_fail_pct).
+func _status_skill_fails(c: Combatant) -> bool:
+	return c.is_player and rng.number_percent() <= int(balance.get("status_fail_pct", 10))
+
+
+## Statuses that take a fighter out of the fight: these get diminishing returns.
+const INCAPACITATING := ["stunned", "knocked_down", "asleep"]
+
+
+## Apply an incapacitating status with diminishing returns: each one landed on the same target
+## within `cc_window` turns of the last halves the chance of the next (100%, 50%, 25%), and after
+## that the target is immune until the window runs out. Returns true if it took hold.
+func _cc(src: Combatant, v: Combatant, status: String, rounds: int, label: String = "") -> bool:
+	var cc: Dictionary = balance.get("diminishing", {})
+	if round_num > int(v.flags.get("cc_until", -1)):
+		v.flags["cc_count"] = 0
+	var n := int(v.flags.get("cc_count", 0))
+	var steps: Array = cc.get("chances", [100, 50, 25])
+	var chance := int(steps[n]) if n < steps.size() else 0
+	if chance < 100 and rng.number_percent() > chance:
+		_emit({"t": "resist", "src": v.name, "ability": label if label != "" else status.replace("_", " "), "dr": true})
+		return false
+	v.flags["cc_count"] = n + 1
+	v.flags["cc_until"] = round_num + rounds + int(cc.get("window", 6))
+	v.add_status(status, rounds)
+	return true
+
+
 func _miss(c: Combatant, target, aname: String) -> void:
 	_emit({"t": "ability_miss", "src": c.name, "dst": target.name if target != null else "", "ability": aname})
 
@@ -1081,7 +1110,7 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	chance += int(c.stats.get("str", 15)) - int(v.stats.get("dex", 15))
 	chance -= 5  # victim standing
 	chance += DSStats.idiv(c.mud_level - v.mud_level, 1)
-	if _fails(c, chance):
+	if _fails(c, chance) or _status_skill_fails(c):
 		_miss(c, v, "bash")
 		return
 	var dmg := rng.number_range(DSStats.idiv(c.mud_level, int(p.get("dam_min_level_div", 2))), c.mud_level * int(p.get("dam_max_level_mult", 1)))
@@ -1091,7 +1120,8 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	if v.flags.has("steady") and rng.number_percent() <= int(v.flags["steady"]):
 		_emit({"t": "resist", "src": v.name, "ability": "knockdown"})
 		return
-	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
+	if not _cc(c, v, "knocked_down", int(p.get("knockdown_rounds", 1)) + 1, "knockdown"):
+		return
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
 	if c.flags.get("boon_bash_slow", false):
@@ -1103,8 +1133,8 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 		var sc := DSStats.idiv(stun, 2) if c.line == "warrior" else DSStats.idiv(stun, 4)
 		if rng.number_percent() < sc and rng.number_percent() < rng.dice(2, c.mud_level):
 			var dur := rng.dice(1, 2)
-			v.add_status("stunned", dur + 1)
-			_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
+			if _cc(c, v, "stunned", dur + 1, "stun"):
+				_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
 
 
 ## act_combat.c do_trip
@@ -1114,7 +1144,7 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	chance += (c.mud_level - v.mud_level) * 2
 	if v.size == "giant" or v.flags.get("flying", false):
 		chance = 0
-	if _fails(c, chance):
+	if _fails(c, chance) or _status_skill_fails(c):
 		_miss(c, v, "trip")
 		return
 	apply_damage(c, v, rng.number_range(2, 2 * (DSStats.size_index(v.size) + 1) + 2), "trip", "bash", false)
@@ -1123,7 +1153,8 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	if v.flags.has("steady") and rng.number_percent() <= int(v.flags["steady"]):
 		_emit({"t": "resist", "src": v.name, "ability": "knockdown"})
 		return
-	v.add_status("knocked_down", int(p.get("knockdown_rounds", 1)) + 1)
+	if not _cc(c, v, "knocked_down", int(p.get("knockdown_rounds", 1)) + 1, "knockdown"):
+		return
 	v.add_status("dazed", 2 + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "knocked_down", "rounds": 1})
 
@@ -1137,8 +1168,8 @@ func _h_direct(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> voi
 	var lo := c.mud_level * int(p.get("dam_min_level_mult", 1))
 	var hi := c.mud_level * int(p.get("dam_max_level_mult", 2))
 	apply_damage(c, v, rng.number_range(lo, hi), aname, str(p.get("dam_type", "bash")), false)
-	if c.flags.get("boon_stunning_kick", false) and v.is_alive() and not v.no_stun and rng.number_percent() <= 25:
-		v.add_status("stunned", 2)
+	if c.flags.get("boon_stunning_kick", false) and v.is_alive() and not v.no_stun and rng.number_percent() <= 25 \
+			and _cc(c, v, "stunned", 2, "stun"):
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": 1})
 
 
@@ -1233,7 +1264,7 @@ func _h_debuff(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 		chance += 15
 	var lvl_mult := 5 if m.get("level_diff_x5", false) else 1
 	chance += (c.mud_level - v.mud_level) * lvl_mult
-	if _fails(c, chance):
+	if _fails(c, chance) or _status_skill_fails(c):
 		_miss(c, v, aname)
 		return
 	var dr: Array = p.get("dam", [2, 5])
@@ -1345,7 +1376,11 @@ func _h_spell_status(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 		rounds += 2
 	for disp in p.get("dispels", []):
 		v.remove_status(disp)
-	v.add_status(st, rounds + 1)
+	if INCAPACITATING.has(st):
+		if not _cc(c, v, st, rounds + 1, aname):
+			return
+	else:
+		v.add_status(st, rounds + 1)
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
 
 
@@ -1376,13 +1411,12 @@ func _h_aoe(c: Combatant, aname: String, p: Dictionary) -> void:
 
 ## act_combat.c do_transfix: freeze the target for 1-3 rounds, then a full round of attacks.
 func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
-	if _fails(c, _skill_for(c, "transfix")):
+	if _fails(c, _skill_for(c, "transfix")) or _status_skill_fails(c):
 		_miss(c, v, "transfix")
 		return
 	var r: Array = p.get("stun_rounds_range", [1, 3])
 	var dur := rng.number_range(int(r[0]), int(r[1]))
-	if not v.no_stun:
-		v.add_status("stunned", dur + 1)
+	if not v.no_stun and _cc(c, v, "stunned", dur + 1, "stun"):
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
 	if p.get("then_attack", true):
 		_multi_hit(c, v, HIT)
@@ -1404,7 +1438,11 @@ func _h_monster_status(c: Combatant, v: Combatant, aname: String, a: Dictionary)
 		return
 	var st := str(a.get("status", "poisoned"))
 	var rounds := int(a.get("rounds", 3))
-	v.add_status(st, rounds + 1, {"dmg": int(a.get("dmg", 2))})
+	if INCAPACITATING.has(st):
+		if not _cc(c, v, st, rounds + 1):
+			return
+	else:
+		v.add_status(st, rounds + 1, {"dmg": int(a.get("dmg", 2))})
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
 
 

@@ -274,3 +274,32 @@ func test_rampage_stacks_on_kills():
 	var hp0 := a.hp
 	sim.apply_damage(p, a, 100, "hit", "none", false)
 	assert_eq(hp0 - a.hp, 108)
+
+
+func test_incapacitation_has_diminishing_returns():
+	var sim := _duel([])
+	var p := sim.player
+	var e: Combatant = sim.enemies[0]
+	var landed := 0
+	for i in 12:
+		e.statuses.erase("stunned")
+		if sim._cc(p, e, "stunned", 2):
+			landed += 1
+	assert_lt(landed, 4, "can't be stun-locked: 100%, 50%, 25%, then immune")
+	assert_gte(landed, 1)
+	sim.round_num += 50
+	assert_true(sim._cc(p, e, "stunned", 2), "the window runs out and it resets")
+
+
+func test_status_skills_can_fail_a_little():
+	var data2 := H.data()
+	var fails := 0
+	for s in 200:
+		var sim := CombatSim.new(DSRng.new(s), data2)
+		var p := DSFactory.make_player(data2, "warrior", 1, 10)
+		var e := H.dummy("orc")
+		sim.begin(p, [e])
+		sim.use_ability(p, "bash", e)
+		if not e.has_status("knocked_down"):
+			fails += 1
+	assert_between(fails, 5, 60, "about 10% fail (plus steady/immunity none here)")

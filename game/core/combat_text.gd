@@ -102,6 +102,8 @@ static func line(ev: Dictionary) -> String:
 		"ability_miss":
 			return "%s %s fails." % [poss(src), ev.get("ability", "")]
 		"resist":
+			if ev.get("dr", false):
+				return "%s %s off the %s: %s getting used to it." % [subj(src), v(src, "shrug", "shrugs"), ev.get("ability", ""), "you're" if src == YOU else "it's"]
 			return "%s %s off the %s." % [subj(src), v(src, "shrug", "shrugs"), ev.get("ability", "")]
 		"status_applied":
 			var st: String = ev.get("status", "")

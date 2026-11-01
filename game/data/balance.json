@@ -108,5 +108,15 @@
   "slow": 6,
   "chain lightning": 6,
   "charge": 4
+ },
+ "status_fail_pct": 10,
+ "diminishing": {
+  "chances": [
+   100,
+   50,
+   25
+  ],
+  "window": 6,
+  "_note": "Stun, knockdown, sleep (and freeze) on the same target: each one within `window` turns of the last lands with the next chance in the list; past the list the target is immune until the window runs out."
  }
 }
