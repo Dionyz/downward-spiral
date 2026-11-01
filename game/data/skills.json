@@ -1,0 +1,32 @@
+{
+ "_note": "Player-facing skill descriptions (written for this game). Shown on the Skills screen.",
+ "skills": {
+  "berserk": "Fly into a rage: heal a little and hit harder and more accurately for a while.",
+  "warcry": "A battle shout that raises your accuracy and damage for 8 turns.",
+  "charge": "Rush an enemy up to 4 tiles away and open with a heavy blow. Best with a sword. Only on enemies above a third of their HP.",
+  "bash": "Shoulder-slam an enemy: damage and a chance to knock it down for a turn.",
+  "trip": "Sweep an enemy's legs: knocks it down for a turn and deals a little damage.",
+  "dirt kicking": "Kick dirt in an enemy's eyes: blinds it for 2 turns, making it miss far more.",
+  "kick": "A quick kick for light damage. Short cooldown, always useful.",
+  "envenom": "Coat your weapon in poison for 6 turns: your hits poison enemies.",
+  "backstab": "A brutal opening strike from the shadows. Best with a dagger. Only on enemies above a third of their HP.",
+  "circle": "Slip around an enemy mid-fight and stab it in the back. Best with a dagger.",
+  "toss daggers": "Throw a dagger at an enemy up to 5 tiles away.",
+  "gouge": "Go for the eyes: blinds an enemy for 3 turns.",
+  "sanctuary": "A holy ward that halves all damage you take for a few turns.",
+  "shield": "A shimmering shield that improves your armor for 12 turns.",
+  "haste": "Speed yourself up: you act more often for a while.",
+  "armor": "A protective spell that improves your armor for 12 turns.",
+  "sleep": "Put an enemy to sleep for 2 turns (it may resist). Damage wakes it.",
+  "chain lightning": "Lightning that jumps between enemies near you, weaker with each jump.",
+  "implosion": "Crush one enemy with a heavy blast of force (range 5).",
+  "slow": "Slow an enemy down so it acts less often (it may resist).",
+  "magic fist": "A cheap punch of raw magic at range 6. Your bread-and-butter spell.",
+  "dance": "Switch fighting dance. Mist: hard to hit, low damage. Storm: big damage, easier to hit. Cobra: counter-attacks when you parry. Predator: balanced hunting stance.",
+  "storm of blades": "A whirling flurry that hits every enemy next to you. Needs the storm dance.",
+  "whirlwind": "Spin and strike every enemy next to you.",
+  "transfix": "Lock eyes with an enemy and stun it for 1 to 3 turns, then strike.",
+  "blinding strike": "A slash across the eyes that blinds an enemy for 2 turns.",
+  "cross slash": "Two-bladed slash that opens a fight with heavy damage. Needs two weapons."
+ }
+}

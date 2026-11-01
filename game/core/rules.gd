@@ -109,3 +109,42 @@ static func describe(r: Dictionary) -> String:
 	elif v != null and cond in ["enemy_has_status", "enemy_lacks_status", "missing_buff"]:
 		lhs = "%s: %s" % [label, str(v)]
 	return "IF %s THEN %s" % [lhs, str(r.get("then", "?"))]
+
+
+## Plain-English "when" for a rule, for the Skills screen: "when your HP is below 40%".
+static func plain(r: Dictionary) -> String:
+	var parts: Array = [_plain_one(str(r.get("if", "always")), r.get("value", null), false)]
+	for e in r.get("and", []):
+		parts.append(_plain_one(str(e.get("if", "always")), e.get("value", null), bool(e.get("not", false))))
+	parts = parts.filter(func(p): return p != "")
+	var stance := str(CombatSim.split_ref(str(r.get("then", "")))[1])
+	var head := ("%s: " % stance.capitalize()) if stance != "" else ""
+	if parts.is_empty():
+		return head + "whenever it's ready"
+	return head + "when " + " and ".join(PackedStringArray(parts))
+
+
+static func _plain_one(cond: String, v, neg: bool) -> String:
+	if typeof(v) == TYPE_FLOAT:
+		v = int(v)
+	var st := str(v).replace("stance_", "").replace("_", " ")
+	match cond:
+		"always":
+			return ""
+		"round_one":
+			return "a fight starts"
+		"hp_below":
+			return ("your HP is at least %s%%" if neg else "your HP is below %s%%") % str(v)
+		"mana_below":
+			return ("you have at least %s%% mana" if neg else "your mana is below %s%%") % str(v)
+		"enemy_hp_below":
+			return "the enemy is below %s%% HP" % str(v)
+		"enemies_at_least":
+			return ("fewer than %s enemies are near" if neg else "%s or more enemies are near") % str(v)
+		"enemy_has_status":
+			return "the enemy is %s" % st
+		"enemy_lacks_status":
+			return "the enemy isn't %s" % st
+		"missing_buff":
+			return "you don't have %s" % st
+	return cond

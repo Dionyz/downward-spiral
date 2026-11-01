@@ -55,8 +55,13 @@ func begin(p: Combatant, foes: Array) -> Array:
 	history = []
 	player.flags["second_wind_used"] = false
 	player.flags["last_stand_used"] = false
-	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false)
+	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
+	player.flags["last_stands_used"] = 0
+	player.flags["second_winds_used"] = 0
+	player.flags["rampage"] = 0
+	player.flags["retaliate_ready"] = false
+	player.flags["shield_hp"] = 0
 	player.flags["counter_ready"] = false
 	_emit({"t": "fight_start", "src": player.name, "enemies": foes.map(func(e): return e.name)})
 	if _has_passive(player, "pale_ward"):
@@ -197,6 +202,14 @@ func _tick(c: Combatant) -> void:
 		c.remove_status("poisoned")
 	if c.has_status("poisoned"):
 		var pd := int(c.status_data("poisoned").get("dmg", 1))
+		if not c.is_player and player != null:
+			pd += DSStats.idiv(pd * bstat(player, "b_poison_amp"), 100)
+			if bstat(player, "b_contagion") > 0 and rng.number_percent() <= bstat(player, "b_contagion"):
+				var clean := opponents_of(player).filter(func(f): return f != c and f.is_alive() and not f.has_status("poisoned"))
+				if not clean.is_empty():
+					var t: Combatant = rng.pick(clean)
+					t.add_status("poisoned", 3, c.status_data("poisoned").duplicate())
+					_emit({"t": "status_applied", "src": player.name, "dst": t.name, "status": "poisoned", "rounds": 3})
 		_raw_damage(null, c, pd, "poison")
 		if not c.is_alive():
 			return
@@ -272,8 +285,13 @@ func tick(c: Combatant) -> void:
 func start_encounter() -> void:
 	player.flags["second_wind_used"] = false
 	player.flags["last_stand_used"] = false
-	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false)
+	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
+	player.flags["last_stands_used"] = 0
+	player.flags["second_winds_used"] = 0
+	player.flags["rampage"] = 0
+	player.flags["retaliate_ready"] = false
+	player.flags["shield_hp"] = 0
 	player.flags["counter_ready"] = false
 	if _has_passive(player, "pale_ward"):
 		player.add_status("sanctuary", 3)
@@ -404,7 +422,7 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 		dam += DSStats.idiv(dam, 2)
 		ch.flags["counter_ready"] = false
 	if ch.flags.get("first_blood_ready", false):
-		dam *= 2
+		dam += DSStats.idiv(dam * maxi(100, bstat(ch, "b_first_blood")), 100)
 		ch.flags["first_blood_ready"] = false
 	var mom := int(ch.flags.get("momentum", 0))
 	if mom > 0:
@@ -429,8 +447,7 @@ func _one_hit(ch: Combatant, victim: Combatant, dt: String, offhand: bool) -> vo
 			_emit({"t": "heal", "src": ch.name, "dst": ch.name, "amount": heal, "source": "bloodthirst"})
 	if dealt > 0 and _has_passive(victim, "thornmail") and ch.is_alive():
 		_raw_damage(victim, ch, maxi(1, DSStats.idiv(dealt * 15, 100)), "thorns")
-	if dealt > 0 and victim.flags.get("boon_spiked_hide", false) and ch.is_alive() and dt == HIT:
-		_raw_damage(victim, ch, maxi(1, DSStats.idiv(victim.mud_level, 5)), "thorns")
+
 
 
 ## get_char_min()/get_char_max(). Returns [min, max] before damage() reductions.
@@ -595,6 +612,7 @@ func _check_parry(ch: Combatant, victim: Combatant) -> bool:
 	if c <= 0 or rng.number_percent() >= c:
 		return false
 	_emit({"t": "parry", "src": victim.name, "dst": ch.name})
+	_counterstrike(victim, ch)
 	if victim.flags.get("boon_parry_stack", false):
 		victim.flags["parry_stacks"] = mini(5, int(victim.flags.get("parry_stacks", 0)) + 1)
 	if victim.flags.get("boon_cobra_strike", false) and victim.stance == "cobra" and ch.is_alive():
@@ -607,9 +625,17 @@ func _check_dodge(ch: Combatant, victim: Combatant) -> bool:
 	if c <= 0 or rng.number_percent() >= c:
 		return false
 	_emit({"t": "dodge", "src": victim.name, "dst": ch.name})
+	_counterstrike(victim, ch)
 	if victim.flags.get("boon_evasive_counter", false):
 		victim.flags["counter_ready"] = true
 	return true
+
+
+## Counterstrike boon: after a parry, dodge or block, a chance to swing back at once.
+func _counterstrike(victim: Combatant, ch: Combatant) -> void:
+	if victim.is_player and ch.is_alive() and victim.is_alive() and bstat(victim, "b_riposte") > 0 \
+			and rng.number_percent() <= bstat(victim, "b_riposte"):
+		_one_hit(victim, ch, "counter", false)
 
 
 func _check_block(ch: Combatant, victim: Combatant) -> bool:
@@ -617,6 +643,7 @@ func _check_block(ch: Combatant, victim: Combatant) -> bool:
 	if c <= 0 or rng.number_percent() >= c:
 		return false
 	_emit({"t": "block", "src": victim.name, "dst": ch.name})
+	_counterstrike(victim, ch)
 	return true
 
 
@@ -644,9 +671,23 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 			dam += DSStats.idiv(dam, 2)
 		if ch.flags.get("boon_assassins_mark", false) and dt in ["backstab", "circle"]:
 			dam += DSStats.idiv(dam, 2)
+		if dt not in PROC_DTS:
+			var pct := bstat(ch, "b_dmg_pct")
+			if ch.hp_pct() < 30.0:
+				pct += bstat(ch, "b_berserk_low")
+			if victim.is_stunned() or victim.has_status("slowed"):
+				pct += bstat(ch, "b_cold_snap")
+			if victim.has_status("poisoned"):
+				pct += bstat(ch, "b_wither")
+			if int(ch.flags.get("rampage", 0)) > 0 and round_num <= int(ch.flags.get("rampage_until", 0)):
+				pct += int(ch.flags["rampage"]) * bstat(ch, "b_rampage")
+			if ch.flags.get("retaliate_ready", false) and bstat(ch, "b_retaliate") > 0:
+				pct += bstat(ch, "b_retaliate")
+				ch.flags["retaliate_ready"] = false
+			dam += DSStats.idiv(dam * pct, 100)
 		if bstat(ch, "b_crit") > 0 and not extra.get("crit", false) and dt not in PROC_DTS \
 				and rng.number_percent() <= bstat(ch, "b_crit"):
-			dam = DSStats.idiv(dam * 175, 100)
+			dam = DSStats.idiv(dam * (175 + bstat(ch, "b_crit_dmg")), 100)
 			extra = extra.duplicate()
 			extra["crit"] = true
 	if spell:
@@ -675,8 +716,20 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 			pct += bstat(victim, "b_dr_pack")
 		if dt != HIT and ch != null:
 			pct += bstat(victim, "b_dr_special")
-		dam -= DSStats.idiv(dam * mini(pct, 75), 100)
+		pct += bstat(victim, "b_dr_all")
+		if bstat(victim, "b_dr_chill") > 0 and opponents_of(victim).any(func(f): return f.is_alive() and (f.is_stunned() or f.has_status("slowed"))):
+			pct += bstat(victim, "b_dr_chill")
+		if ch != null and ch.has_status("poisoned"):
+			pct += bstat(victim, "b_venom_weaken")
+		# Total percent damage reduction from boons is capped (DECISIONS.md D-085).
+		dam -= DSStats.idiv(dam * mini(pct, DR_CAP), 100)
 		dam = maxi(1, dam - bstat(victim, "b_dr_flat"))
+		# Bulwark shield soaks what's left.
+		var sh := int(victim.flags.get("shield_hp", 0))
+		if sh > 0 and dam > 0:
+			var soak := mini(sh, dam - 1)
+			victim.flags["shield_hp"] = sh - soak
+			dam -= soak
 	var dtm := float(victim.flags.get("damage_taken_mult", 1.0))
 	if dtm != 1.0 and victim.is_player:
 		dam = maxi(1, int(dam * dtm))
@@ -684,10 +737,65 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 	if ch != null and not ch.is_player and victim.is_player and not extra.get("uncapped", false):
 		var cap := int(victim.max_hp * float(balance.get("enemy_hit_cap_pct", 35)) / 100.0)
 		dam = mini(dam, maxi(1, cap))
+	var victim_hp_before := victim.hp
 	var dealt := _raw_damage(ch, victim, dam, dt, extra)
 	if dealt > 0 and ch != null and ch.is_player and ch.is_alive() and dt not in PROC_DTS:
 		_on_hit_procs(ch, victim)
+		if extra.get("crit", false) and victim.is_alive() and bstat(ch, "b_crit_bleed") > 0:
+			victim.add_status("bleeding", 4, {"dmg": bleed_damage(ch)})
+			_emit({"t": "status_applied", "src": ch.name, "dst": victim.name, "status": "bleeding", "rounds": 3})
+		if victim.is_alive() and victim.hp_pct() < 20.0 and not victim.flags.get("boss", false) \
+				and bstat(ch, "b_execute") > 0 and rng.number_percent() <= bstat(ch, "b_execute"):
+			_emit({"t": "ability", "src": ch.name, "dst": victim.name, "ability": "execute"})
+			_raw_damage(ch, victim, victim.hp, "execute")
+		if not victim.is_alive() and bstat(ch, "b_overkill") > 0:
+			var excess := dam - victim_hp_before
+			var others := opponents_of(ch).filter(func(f): return f.is_alive() and f != victim)
+			if excess > 0 and not others.is_empty():
+				apply_damage(ch, rng.pick(others), maxi(1, DSStats.idiv(excess * bstat(ch, "b_overkill"), 100)), "explosion", "none", false, {"uncapped": true})
+	if dealt > 0 and victim.is_player and ch != null and ch.is_alive() and dt not in PROC_DTS:
+		_on_player_hit(victim, ch, dealt, dt)
 	return dealt
+
+
+## Total percent damage reduction the player can get from boons and families.
+const DR_CAP := 90
+
+
+static func bleed_damage(c: Combatant) -> int:
+	return maxi(2, DSStats.idiv(c.mud_level, 3)) * maxi(1, bstat(c, "b_crit_bleed"))
+
+
+## Boon reactions when the player takes a hit.
+func _on_player_hit(p: Combatant, attacker: Combatant, dealt: int, dt: String) -> void:
+	if bstat(p, "b_retaliate") > 0:
+		p.flags["retaliate_ready"] = true
+	if bstat(p, "b_bulwark") > 0:
+		p.flags["shield_hp"] = maxi(int(p.flags.get("shield_hp", 0)), DSStats.idiv(p.max_hp * bstat(p, "b_bulwark"), 100))
+	if bstat(p, "b_reflect") > 0:
+		_raw_damage(p, attacker, maxi(1, DSStats.idiv(dealt * bstat(p, "b_reflect"), 100)), "thorns")
+	if dt == HIT and bstat(p, "b_thorns") > 0 and attacker.is_alive():
+		_raw_damage(p, attacker, maxi(1, DSStats.idiv(p.mud_level, 5)) * bstat(p, "b_thorns"), "thorns")
+	if dt == HIT and attacker.is_alive() and bstat(p, "b_poison_back") > 0 and not attacker.has_status("poisoned") \
+			and rng.number_percent() <= bstat(p, "b_poison_back"):
+		attacker.add_status("poisoned", 3, {"dmg": maxi(2, DSStats.idiv(p.mud_level, 4))})
+		_emit({"t": "status_applied", "src": p.name, "dst": attacker.name, "status": "poisoned", "rounds": 3})
+	if dt == HIT and attacker.is_alive() and not attacker.no_stun and bstat(p, "b_freeze_back") > 0 \
+			and rng.number_percent() <= bstat(p, "b_freeze_back"):
+		_freeze(p, attacker)
+	if p.is_alive() and p.hp_pct() < 30.0 and bstat(p, "b_second_wind") > 0 \
+			and int(p.flags.get("second_winds_used", 0)) < maxi(1, DSStats.idiv(bstat(p, "b_second_wind"), 15)):
+		p.flags["second_winds_used"] = int(p.flags.get("second_winds_used", 0)) + 1
+		var heal := DSStats.idiv(p.max_hp * 15, 100)
+		p.hp = mini(p.max_hp, p.hp + heal)
+		_emit({"t": "heal", "src": p.name, "dst": p.name, "amount": heal, "source": "second wind"})
+
+
+func _freeze(src: Combatant, v: Combatant) -> void:
+	if v.has_status("stunned"):
+		return
+	v.add_status("stunned", 2 + bstat(src, "b_freeze_long"))
+	_emit({"t": "status_applied", "src": src.name, "dst": v.name, "status": "frozen", "rounds": 1 + bstat(src, "b_freeze_long")})
 
 
 ## Damage types made by boon procs: they never trigger more procs.
@@ -703,8 +811,11 @@ func _on_hit_procs(ch: Combatant, victim: Combatant) -> void:
 			apply_damage(ch, t, rng.number_range(3, 6 + ch.mud_level), "static", "lightning", false)
 	if victim.is_alive() and bstat(ch, "b_freeze") > 0 and not victim.no_stun and not victim.has_status("stunned") \
 			and rng.number_percent() <= bstat(ch, "b_freeze"):
-		victim.add_status("stunned", 2)
-		_emit({"t": "status_applied", "src": ch.name, "dst": victim.name, "status": "frozen", "rounds": 1})
+		_freeze(ch, victim)
+	if victim.is_alive() and bstat(ch, "b_slow_hit") > 0 and not victim.has_status("slowed") \
+			and rng.number_percent() <= bstat(ch, "b_slow_hit"):
+		victim.add_status("slowed", 4)
+		_emit({"t": "status_applied", "src": ch.name, "dst": victim.name, "status": "slowed", "rounds": 3})
 	if victim.is_alive() and bstat(ch, "b_poison") > 0 and rng.number_percent() <= bstat(ch, "b_poison"):
 		var had := victim.has_status("poisoned")
 		victim.add_status("poisoned", 3, {"dmg": maxi(2, DSStats.idiv(ch.mud_level, 4))})
@@ -751,8 +862,9 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 	ev.merge(extra)
 	_emit(ev)
 	# Life leech boon: bank fractions so small hits still add up.
-	if ch != null and ch.is_player and ch.is_alive() and dam > 0 and bstat(ch, "b_leech") > 0 and victim != ch:
-		var bank := float(ch.flags.get("leech_bank", 0.0)) + dam * bstat(ch, "b_leech") / 100.0
+	var leech := (bstat(ch, "b_leech") + (bstat(ch, "b_adrenaline") if ch != null and ch.hp_pct() < 50.0 else 0)) if ch != null else 0
+	if ch != null and ch.is_player and ch.is_alive() and dam > 0 and leech > 0 and victim != ch:
+		var bank := float(ch.flags.get("leech_bank", 0.0)) + dam * leech / 100.0
 		var heal := mini(int(bank), ch.max_hp - ch.hp)
 		ch.flags["leech_bank"] = bank - int(bank)
 		if heal > 0:
@@ -774,13 +886,27 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		victim.flags["revives_used"] = int(victim.flags.get("revives_used", 0)) + 1
 		victim.hp = DSStats.idiv(victim.max_hp, 2)
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": victim.hp, "source": "revive"})
-	if victim.hp <= 0 and victim.flags.get("boon_last_stand", false) and not victim.flags.get("last_stand_used", false):
-		victim.flags["last_stand_used"] = true
+	if victim.hp <= 0 and victim.is_player and int(victim.flags.get("last_stands_used", 0)) < bstat(victim, "b_last_stand"):
+		victim.flags["last_stands_used"] = int(victim.flags.get("last_stands_used", 0)) + 1
 		victim.hp = 1
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": 0, "source": "last stand"})
 	if victim.hp <= 0 and not victim.is_player and player != null and player.is_alive():
 		if player.flags.get("boon_momentum", false):
 			player.flags["momentum"] = int(player.flags.get("momentum", 0)) + 1
+		if bstat(player, "b_rampage") > 0:
+			player.flags["rampage"] = int(player.flags.get("rampage", 0)) + 1
+			player.flags["rampage_until"] = round_num + 5
+		if bstat(player, "b_contagion") > 0 and victim.has_status("poisoned"):
+			for f in opponents_of(player):
+				if f != victim and f.is_alive() and not f.has_status("poisoned"):
+					f.add_status("poisoned", 3, victim.status_data("poisoned").duplicate())
+					_emit({"t": "status_applied", "src": player.name, "dst": f.name, "status": "poisoned", "rounds": 3})
+		if bstat(player, "b_shatter") > 0 and dt != "explosion" and (victim.is_stunned() or victim.has_status("slowed")):
+			var shards := maxi(1, DSStats.idiv(victim.max_hp * bstat(player, "b_shatter"), 100))
+			_emit({"t": "ability", "src": player.name, "dst": victim.name, "ability": "shatter"})
+			for f in opponents_of(player):
+				if f != victim and f.is_alive():
+					apply_damage(player, f, shards, "explosion", "cold", false, {"uncapped": true})
 		if bstat(player, "b_volatile") > 0 and dt != "explosion":
 			var boom := maxi(1, DSStats.idiv(victim.max_hp * bstat(player, "b_volatile"), 100))
 			for f in opponents_of(player):

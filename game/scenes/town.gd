@@ -37,7 +37,10 @@ func _ready() -> void:
 		list.add_child(_npc(n, has_char or n[0] == "inn"))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	for b in [UI.button("Settings", func(): Game.goto("settings"), 52), UI.button("Title", func(): Game.goto("title"), 52)]:
+	var guide := UI.button("Guide", func():
+		load("res://game/scenes/guide.gd").back_to = "town"
+		Game.goto("guide"), 52)
+	for b in [guide, UI.button("Settings", func(): Game.goto("settings"), 52), UI.button("Title", func(): Game.goto("title"), 52)]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(b)
 	v.add_child(row)
@@ -77,6 +80,9 @@ func _character_card() -> PanelContainer:
 	var gl := UI.label("Gear: " + (", ".join(PackedStringArray(gear)) if not gear.is_empty() else "none"), 16, UI.DIM)
 	gl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cv.add_child(gl)
+	var sk := UI.button("Skills", func(): Game.goto("skills"), 52)
+	sk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(sk)
 	return card
 
 

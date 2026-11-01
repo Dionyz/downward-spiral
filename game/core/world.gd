@@ -125,7 +125,8 @@ func refresh_player() -> void:
 		if not player.statuses.has(k):
 			player.statuses[k] = sts[k]
 	player.stance = stance
-	for k in ["second_wind_used", "last_stand_used", "first_blood_ready", "momentum", "counter_ready", "parry_stacks"]:
+	for k in ["second_wind_used", "last_stand_used", "first_blood_ready", "momentum", "counter_ready", "parry_stacks",
+			"last_stands_used", "second_winds_used", "rampage", "rampage_until", "retaliate_ready", "shield_hp", "leech_bank"]:
 		if fl.has(k):
 			player.flags[k] = fl[k]
 	sim.player = player

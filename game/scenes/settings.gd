@@ -54,6 +54,9 @@ func _ready() -> void:
 	)
 	inner.add_child(log_cb)
 
+	inner.add_child(UI.button("Guide: stats, items and terms", func():
+		load("res://game/scenes/guide.gd").back_to = "settings"
+		Game.goto("guide"), 56))
 	inner.add_child(UI.button("Show tips again", func():
 		Game.settings["hints_seen"] = []
 		Game.save_settings()

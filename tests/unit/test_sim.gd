@@ -258,3 +258,40 @@ func test_second_life_revives_once():
 	assert_eq(p.hp, p.max_hp / 2)
 	sim.apply_damage(sim.enemies[0], p, 99999, "hit", "none", false, {"uncapped": true})
 	assert_false(p.is_alive(), "only once")
+
+
+func test_damage_reduction_caps_at_ninety():
+	var sim := _duel([])
+	var p := sim.player
+	p.flags["b_dr_all"] = 500
+	var hp0 := p.hp
+	sim.apply_damage(sim.enemies[0], p, 200, "hit", "none", false)
+	assert_eq(hp0 - p.hp, 20, "90% cap: 200 -> 20")
+
+
+func test_retaliation_and_bulwark():
+	var sim := _duel(["retaliation", "bulwark"])
+	var p := sim.player
+	var e: Combatant = sim.enemies[0]
+	sim.apply_damage(e, p, 50, "hit", "none", false)
+	assert_true(p.flags.get("retaliate_ready", false))
+	assert_eq(int(p.flags["shield_hp"]), 60, "6% of 1000 max HP")
+	var hp0 := p.hp
+	sim.apply_damage(e, p, 40, "hit", "none", false)
+	assert_eq(hp0 - p.hp, 1, "the shield soaks the hit (min 1 gets through)")
+	var ehp := e.hp
+	sim.apply_damage(p, e, 100, "hit", "none", false)
+	assert_eq(ehp - e.hp, 125, "+25% on the next hit")
+	assert_false(p.flags["retaliate_ready"])
+
+
+func test_rampage_stacks_on_kills():
+	var sim := _duel(["rampage"])
+	var p := sim.player
+	var a := H.dummy("a")
+	sim.enemies.append(a)
+	sim.apply_damage(p, sim.enemies[0], 5000, "hit", "none", false)
+	assert_eq(int(p.flags["rampage"]), 1)
+	var hp0 := a.hp
+	sim.apply_damage(p, a, 100, "hit", "none", false)
+	assert_eq(hp0 - a.hp, 108)

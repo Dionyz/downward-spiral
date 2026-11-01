@@ -233,6 +233,9 @@ static func start_run(data: DSData, a: Dictionary, seed_value: int) -> DSRunStat
 		return null
 	var r := DSRunState.new_run(data, str(ch["line"]), seed_value, DSMeta.perks(data, a, str(ch["race"])),
 		str(ch["race"]), ch["loadout"])
+	r.skill_order = ch.get("skill_order", []).duplicate()
+	r.skill_off = ch.get("skill_off", []).duplicate()
+	r._sync_to_world()
 	ch["loadout"] = {"weapon": null, "armor": null, "trinket": null}
 	ch["in_run"] = true
 	return r

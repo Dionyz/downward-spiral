@@ -103,6 +103,12 @@ func _update() -> void:
 	info.add_child(UI.label(str(L.get("role", "")), 17, UI.DIM))
 	info.add_child(UI.label(str(R.get("desc", "")), 17))
 	info.add_child(UI.label(str(R.get("perk", "")), 17, Color("#7fc8a9")))
+	var res: Array = []
+	for k in ["resist", "immune", "vuln"]:
+		if not R.get(k, []).is_empty():
+			res.append("%s: %s" % [{"resist": "Resists", "immune": "Immune to", "vuln": "Weak to"}[k], ", ".join(PackedStringArray(R[k]))])
+	if not res.is_empty():
+		info.add_child(UI.label(" · ".join(PackedStringArray(res)), 15, UI.DIM))
 	var at: Dictionary = R.get("attributes", {})
 	info.add_child(UI.label("Str %d · Int %d · Wis %d · Dex %d · Con %d · %s" % [int(at.get("str", 0)), int(at.get("int", 0)),
 		int(at.get("wis", 0)), int(at.get("dex", 0)), int(at.get("con", 0)), str(R.get("size", "medium")).capitalize()], 15, UI.DIM))

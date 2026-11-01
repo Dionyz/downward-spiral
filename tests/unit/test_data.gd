@@ -70,3 +70,18 @@ func test_starting_weapon():
 	assert_eq([w["min"], w["max"]], [8, 16])
 	var w10 := DSFactory.starting_weapon(data, "dagger", 10)
 	assert_eq([w10["min"], w10["max"]], [44, 88])
+
+
+func test_glossary_covers_item_words():
+	var data := H.data()
+	var keys := {}
+	for e in data.glossary:
+		for k in e["keys"]:
+			keys[str(k)] = true
+	for af in data.items["affixes"].values():
+		for f in af.get("flags", []):
+			assert_true(keys.has(str(f)), "glossary explains %s" % f)
+		for sk in af.get("skill_bonus", {}).keys():
+			assert_true(keys.has(str(sk)), "glossary explains %s" % sk)
+	for k in ["avg dmg", "armor", "hp", "mana", "weapon damage", "extract", "damage reduction"]:
+		assert_true(keys.has(k), k)

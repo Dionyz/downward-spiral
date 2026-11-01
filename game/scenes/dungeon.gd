@@ -84,8 +84,15 @@ func _ready() -> void:
 	pot_mp = UI.button("", func(): _drink("mp"), 60)
 	speed_btn = UI.button("", _toggle_speed, 60)
 	gear_btn = UI.button("Gear", _open_gear, 60)
-	for b in [pot_hp, pot_mp, speed_btn, gear_btn]:
+	var skills_btn := UI.button("Skills", func():
+		timer.stop()
+		_paused = true
+		Game.save_run()
+		Game.goto("skills"), 60)
+	for b in [pot_hp, pot_mp, speed_btn, gear_btn, skills_btn]:
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.add_theme_font_size_override("font_size", 19)
+		b.clip_text = true
 		row.add_child(b)
 	v.add_child(row)
 
@@ -266,7 +273,7 @@ func _refresh() -> void:
 	extract_btn.disabled = not run.can_extract()
 	extract_btn.text = "Ambush!" if run.world.ambush else ("Extracting" if run.world.extracting else "Extract")
 	var ups := run.upgrade_slots()
-	gear_btn.text = ("Gear ▲ upgrade" if not ups.is_empty() else "Gear (%d)" % run.inventory.size())
+	gear_btn.text = ("Gear ▲" if not ups.is_empty() else "Gear")
 	_set_gear_glow(not ups.is_empty())
 	for c in log_strip.get_children():
 		c.queue_free()
@@ -369,7 +376,7 @@ func _show_boons() -> void:
 func _big_boon(id: String, on_take: Callable) -> Button:
 	var b: Dictionary = run.data.boons.get(id, {})
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(0, 170)
+	btn.custom_minimum_size = Vector2(0, 190)
 	btn.pressed.connect(func(): Game.sfx("click"))
 	btn.pressed.connect(on_take)
 	var st := StyleBoxFlat.new()
@@ -409,12 +416,29 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 	var mx := run.boon_max(id)
 	if mx > 1:
 		var have := run.boon_rank(id)
-		var rk := UI.label(("Rank %d of %d" % [have + 1, mx]) + ("  (stacks)" if have == 0 else "  (upgrade)"), 16, Color("#7fc8a9"))
+		var rk := UI.label("Stackable · you have %d" % have if have > 0 else "Stackable", 16, Color("#7fc8a9"))
 		rk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(rk)
 	var d := UI.label(run.boon_desc(id), 19)
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(d)
+	# Families: progress toward the next bonus if you take this boon.
+	var counts := DSFactory.family_counts(run.data, run.boons)
+	for t in b.get("tags", []):
+		var fam: Dictionary = run.data.families.get(t, {})
+		var now := int(counts.get(t, 0))
+		var after := now + (0 if run.boons.has(id) else 1)
+		var next_txt := ""
+		for th in ["2", "4", "6"]:
+			if after < int(th):
+				next_txt = "next at %s: %s" % [th, str(fam.get("tiers", {}).get(th, {}).get("text", ""))]
+				break
+			if after == int(th) and now < int(th):
+				next_txt = "unlocks: %s" % str(fam.get("tiers", {}).get(th, {}).get("text", ""))
+				break
+		var fl := UI.label("◆ %s %d → %d · %s" % [str(fam.get("name", t)), now, after, next_txt] if after != now else "◆ %s %d · %s" % [str(fam.get("name", t)), now, next_txt], 15, Color(str(fam.get("color", "#e6e1d6"))))
+		fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(fl)
 	return btn
 
 
@@ -634,6 +658,10 @@ func _open_settings() -> void:
 		layer.queue_free()
 		_paused = false
 		_resume(), 60))
+	v.add_child(UI.button("Guide", func():
+		Game.save_run()
+		load("res://game/scenes/guide.gd").back_to = "dungeon"
+		Game.goto("guide"), 56))
 	v.add_child(UI.button("Save and quit to title", func():
 		Game.save_run()
 		Game.goto("title"), 56))

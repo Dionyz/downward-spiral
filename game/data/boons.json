@@ -1,6 +1,630 @@
 {
- "_note": "Boons change how fights work. `refs` names the abilities/stats each boon touches (tested against abilities.json). `lines` limits a boon to class lines; empty = shared. `max` = how many times it can be taken (ranks stack). effect keys: flag (read by CombatSim), stats (numbers added per rank, read by CombatSim), skill_bonus, run (read by DSRunState). desc may hold {tokens} filled in with live numbers by DSRunState.boon_desc().",
+ "_note": "Boons. `tags` = families (see `families`): collecting distinct boons of a family unlocks its 2/4/6 bonuses. `stack`: true = can be taken again with no limit, each copy adds its stats again. effect keys: flag (read by CombatSim), stats (numbers summed per stack), skill_bonus. desc may hold {tokens} filled with live numbers by DSRunState.boon_desc(). Total percent damage reduction is capped at 90%.",
  "boons": {
+  "vampiric_edge": {
+   "name": "Vampiric Edge",
+   "desc": "Heal for 6% of all damage you deal.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_leech": 6
+    }
+   }
+  },
+  "bloodlust": {
+   "name": "Bloodlust",
+   "desc": "Every kill heals 8% of your max HP ({kill_heal} HP).",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_kill_heal": 8
+    }
+   }
+  },
+  "hemorrhage": {
+   "name": "Hemorrhage",
+   "desc": "Critical hits make the target bleed for {bleed} damage a turn for 3 turns.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "blood",
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_crit_bleed": 1
+    }
+   }
+  },
+  "adrenaline": {
+   "name": "Adrenaline",
+   "desc": "Below 50% HP, heal for an extra 10% of the damage you deal.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_adrenaline": 10
+    }
+   }
+  },
+  "thick_blood": {
+   "name": "Thick Blood",
+   "desc": "+10% max HP (+{thick} HP).",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood",
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_hp_pct": 10
+    }
+   }
+  },
+  "troll_blood": {
+   "name": "Troll Blood",
+   "desc": "Regenerate 1% of your max HP every turn ({regen} HP).",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_regen": 1
+    }
+   }
+  },
+  "second_life": {
+   "name": "Second Life",
+   "desc": "Once per run, a killing blow leaves you at half HP ({half} HP) instead. Each stack is one more.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "blood"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_revive": 1
+    }
+   }
+  },
+  "static_charge": {
+   "name": "Static Charge",
+   "desc": "Your hits have a 15% chance to zap a nearby enemy for {zap} lightning damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_zap": 15
+    }
+   }
+  },
+  "keen_eye": {
+   "name": "Keen Eye",
+   "desc": "+8% chance for any hit to crit (crits deal +75%).",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_crit": 8
+    }
+   }
+  },
+  "flurry": {
+   "name": "Flurry",
+   "desc": "Each melee turn has a 20% chance to strike one extra time.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "storm",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_flurry": 20
+    }
+   }
+  },
+  "overkill": {
+   "name": "Overkill",
+   "desc": "When you kill, 50% of the leftover damage hits another nearby enemy.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_overkill": 50
+    }
+   }
+  },
+  "whetstone": {
+   "name": "Whetstone",
+   "desc": "+2 damage on every hit you land.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_flat": 2
+    }
+   }
+  },
+  "frostbite": {
+   "name": "Frostbite",
+   "desc": "Your hits have an 8% chance to freeze the target for a turn.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "frost"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_freeze": 8
+    }
+   }
+  },
+  "cold_snap": {
+   "name": "Cold Snap",
+   "desc": "+25% damage to frozen, stunned or slowed enemies.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "frost"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_cold_snap": 25
+    }
+   }
+  },
+  "hoarfrost": {
+   "name": "Hoarfrost",
+   "desc": "Enemies that hit you in melee have a 10% chance to freeze for a turn.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "frost",
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_freeze_back": 10
+    }
+   }
+  },
+  "glacial_edge": {
+   "name": "Glacial Edge",
+   "desc": "Your hits have a 12% chance to slow the target for 3 turns.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "frost"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_slow_hit": 12
+    }
+   }
+  },
+  "rot_touch": {
+   "name": "Rot Touch",
+   "desc": "Your hits have a 15% chance to poison the target: {poison} damage a turn for 3 turns.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "venom"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_poison": 15
+    }
+   }
+  },
+  "virulence": {
+   "name": "Virulence",
+   "desc": "Poison you inflict deals +50% damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "venom"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_poison_amp": 50
+    }
+   }
+  },
+  "contagion": {
+   "name": "Contagion",
+   "desc": "Each poison tick has a 15% chance to spread to another enemy near you, and poisoned enemies spread it to their neighbours when they die.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "venom"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_contagion": 15
+    }
+   }
+  },
+  "volatile": {
+   "name": "Volatile",
+   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you (about {boom} against foes like these).",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "venom",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_volatile": 20
+    }
+   }
+  },
+  "iron_skin": {
+   "name": "Iron Skin",
+   "desc": "Take 2 less damage from every hit.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_dr_flat": 2
+    }
+   }
+  },
+  "bulwark": {
+   "name": "Bulwark",
+   "desc": "After you take damage, gain a shield that absorbs {bulwark} damage for 2 turns.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_bulwark": 6
+    }
+   }
+  },
+  "spiked_hide": {
+   "name": "Spiked Hide",
+   "desc": "Enemies that hit you in melee take {thorns} damage back.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_thorns": 1
+    }
+   }
+  },
+  "last_bastion": {
+   "name": "Last Bastion",
+   "desc": "Below 40% HP, take 25% less damage. (Total damage reduction caps at 90%.)",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_dr_low": 25
+    }
+   }
+  },
+  "back_to_the_wall": {
+   "name": "Back to the Wall",
+   "desc": "While 2 or more enemies are on you, take 15% less damage. (Total damage reduction caps at 90%.)",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_dr_pack": 15
+    }
+   }
+  },
+  "counterstrike": {
+   "name": "Counterstrike",
+   "desc": "After you parry, dodge or block, 30% chance to strike back at once.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "iron",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_riposte": 30
+    }
+   }
+  },
+  "last_stand": {
+   "name": "Last Stand",
+   "desc": "Once per fight, a killing blow leaves you at 1 HP instead. Each stack is one more per fight.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_last_stand": 1
+    }
+   }
+  },
+  "retaliation": {
+   "name": "Retaliation",
+   "desc": "After you take damage, your next hit deals +25% damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_retaliate": 25
+    }
+   }
+  },
+  "rampage": {
+   "name": "Rampage",
+   "desc": "Each kill gives +8% damage for 5 turns. Kills stack it and refresh the timer.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_rampage": 8
+    }
+   }
+  },
+  "second_wind": {
+   "name": "Second Wind",
+   "desc": "The first time you drop below 30% HP in a fight, heal 15% of your max HP. Each stack is one more heal.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "fury",
+    "blood"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_second_wind": 15
+    }
+   }
+  },
+  "executioner": {
+   "name": "Executioner",
+   "desc": "Hits on enemies below 20% HP have a 10% chance to kill them outright (not bosses).",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_execute": 10
+    }
+   }
+  },
+  "first_blood": {
+   "name": "First Blood",
+   "desc": "Your first hit in each fight deals +100% damage.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_first_blood": 100
+    }
+   }
+  },
+  "shatter": {
+   "name": "Shatter",
+   "desc": "Killing a frozen, stunned or slowed enemy deals 30% of its max HP to enemies next to you.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "frost",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_shatter": 30
+    }
+   }
+  },
+  "rime_armor": {
+   "name": "Rime Armor",
+   "desc": "While an enemy next to you is frozen, stunned or slowed, take 15% less damage. (Total damage reduction caps at 90%.)",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "frost",
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_dr_chill": 15
+    }
+   }
+  },
+  "toxic_blood": {
+   "name": "Toxic Blood",
+   "desc": "Enemies that hit you in melee have a 20% chance to be poisoned.",
+   "lines": [],
+   "refs": [
+    "hp"
+   ],
+   "tags": [
+    "venom",
+    "iron"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_poison_back": 20
+    }
+   }
+  },
+  "wither": {
+   "name": "Wither",
+   "desc": "+20% damage to poisoned enemies.",
+   "lines": [],
+   "refs": [
+    "damage"
+   ],
+   "tags": [
+    "venom",
+    "fury"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_wither": 20
+    }
+   }
+  },
   "concussive_bash": {
    "name": "Concussive Bash",
    "desc": "Bash also slows the target for 2 rounds.",
@@ -12,7 +636,10 @@
    ],
    "effect": {
     "flag": "boon_bash_slow"
-   }
+   },
+   "tags": [
+    "frost"
+   ]
   },
   "riposte": {
    "name": "Riposte",
@@ -25,7 +652,10 @@
    ],
    "effect": {
     "flag": "boon_parry_stack"
-   }
+   },
+   "tags": [
+    "iron"
+   ]
   },
   "virulent": {
    "name": "Virulent",
@@ -38,7 +668,10 @@
    ],
    "effect": {
     "flag": "boon_virulent"
-   }
+   },
+   "tags": [
+    "venom"
+   ]
   },
   "forked_bolt": {
    "name": "Forked Bolt",
@@ -51,7 +684,10 @@
    ],
    "effect": {
     "flag": "boon_chain_extra"
-   }
+   },
+   "tags": [
+    "storm"
+   ]
   },
   "deep_well": {
    "name": "Deep Well",
@@ -64,55 +700,10 @@
    ],
    "effect": {
     "flag": "boon_mana_regen"
-   }
-  },
-  "bloodied_fury": {
-   "name": "Bloodied Fury",
-   "desc": "+25% damage while below 40% HP.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "flag": "boon_bloodied"
-   }
-  },
-  "opportunist": {
-   "name": "Opportunist",
-   "desc": "+30% damage against blinded, stunned or knocked-down enemies.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_opportunist"
-   }
-  },
-  "hard_to_pin": {
-   "name": "Hard to Pin",
-   "desc": "+10 to dodge and parry.",
-   "lines": [],
-   "refs": [
-    "dodge",
-    "parry"
-   ],
-   "effect": {
-    "skill_bonus": {
-     "dodge": 10,
-     "parry": 10
-    }
-   }
-  },
-  "field_medic": {
-   "name": "Field Medic",
-   "desc": "Potions restore 50% more.",
-   "lines": [],
-   "refs": [
-    "potion"
-   ],
-   "effect": {
-    "flag": "boon_potion"
-   }
+   },
+   "tags": [
+    "storm"
+   ]
   },
   "war_mender": {
    "name": "War Mender",
@@ -125,7 +716,10 @@
    ],
    "effect": {
     "flag": "boon_warcry_heal"
-   }
+   },
+   "tags": [
+    "blood"
+   ]
   },
   "bone_breaker": {
    "name": "Bone Breaker",
@@ -138,7 +732,10 @@
    ],
    "effect": {
     "flag": "boon_stunning_kick"
-   }
+   },
+   "tags": [
+    "fury"
+   ]
   },
   "evasive_counter": {
    "name": "Evasive Counter",
@@ -152,7 +749,10 @@
    ],
    "effect": {
     "flag": "boon_evasive_counter"
-   }
+   },
+   "tags": [
+    "fury"
+   ]
   },
   "twin_throw": {
    "name": "Twin Throw",
@@ -165,7 +765,10 @@
    ],
    "effect": {
     "flag": "boon_double_toss"
-   }
+   },
+   "tags": [
+    "storm"
+   ]
   },
   "crushing_fist": {
    "name": "Crushing Fist",
@@ -178,7 +781,10 @@
    ],
    "effect": {
     "flag": "boon_empowered_fist"
-   }
+   },
+   "tags": [
+    "storm"
+   ]
   },
   "soul_siphon": {
    "name": "Soul Siphon",
@@ -191,7 +797,10 @@
    ],
    "effect": {
     "flag": "boon_soul_siphon"
-   }
+   },
+   "tags": [
+    "blood"
+   ]
   },
   "whirling_blades": {
    "name": "Whirling Blades",
@@ -204,7 +813,10 @@
    ],
    "effect": {
     "flag": "boon_whirling_blades"
-   }
+   },
+   "tags": [
+    "storm"
+   ]
   },
   "cobra_strike": {
    "name": "Cobra Strike",
@@ -218,7 +830,10 @@
    ],
    "effect": {
     "flag": "boon_cobra_strike"
-   }
+   },
+   "tags": [
+    "iron"
+   ]
   },
   "bleeding_cross": {
    "name": "Bleeding Cross",
@@ -231,7 +846,10 @@
    ],
    "effect": {
     "flag": "boon_bleeding_cross"
-   }
+   },
+   "tags": [
+    "blood"
+   ]
   },
   "storm_caller": {
    "name": "Storm Caller",
@@ -244,230 +862,10 @@
    ],
    "effect": {
     "flag": "boon_storm_caller"
-   }
-  },
-  "thick_blood": {
-   "name": "Thick Blood",
-   "desc": "+10% max HP (+{thick} HP).",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_hp_pct": 10
-    }
    },
-   "max": 3
-  },
-  "first_blood": {
-   "name": "First Blood",
-   "desc": "Your first hit in each fight deals double damage.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_first_blood"
-   },
-   "tier": 3
-  },
-  "executioners_eye": {
-   "name": "Executioner's Eye",
-   "desc": "+20% damage against enemies below 30% HP.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_executioners_eye"
-   },
-   "tier": 2
-  },
-  "last_stand": {
-   "name": "Last Stand",
-   "desc": "Once per fight, a killing blow leaves you at 1 HP instead.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "flag": "boon_last_stand"
-   },
-   "tier": 2
-  },
-  "momentum": {
-   "name": "Momentum",
-   "desc": "Each kill in a fight adds +10% damage for the rest of it.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_momentum"
-   },
-   "tier": 2
-  },
-  "deep_pockets": {
-   "name": "Deep Pockets",
-   "desc": "Carry 2 more potions of each kind, and get one HP potion now.",
-   "lines": [],
-   "refs": [
-    "potion"
-   ],
-   "effect": {
-    "run": "deep_pockets"
-   },
-   "tier": 2
-  },
-  "spiked_hide": {
-   "name": "Spiked Hide",
-   "desc": "Enemies that hit you in melee take {thorns} damage back.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_spiked_hide"
-   },
-   "tier": 3
-  },
-  "keen_edge": {
-   "name": "Keen Edge",
-   "desc": "Your weapon counts as sharp (+15% damage).",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "flag": "boon_keen_edge"
-   },
-   "tier": 3
-  },
-  "whetstone": {
-   "name": "Whetstone",
-   "desc": "+2 damage on every hit you land.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_flat": 2
-    }
-   },
-   "max": 3
-  },
-  "vampiric_edge": {
-   "name": "Vampiric Edge",
-   "desc": "Heal for 6% of all damage you deal.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_leech": 6
-    }
-   },
-   "max": 3
-  },
-  "iron_skin": {
-   "name": "Iron Skin",
-   "desc": "Take 2 less damage from every hit.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_dr_flat": 2
-    }
-   },
-   "max": 3
-  },
-  "last_bastion": {
-   "name": "Last Bastion",
-   "desc": "Below 40% HP, take 30% less damage.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_dr_low": 30
-    }
-   }
-  },
-  "back_to_the_wall": {
-   "name": "Back to the Wall",
-   "desc": "While 2 or more enemies fight you, take 15% less damage.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_dr_pack": 15
-    }
-   },
-   "max": 2
-  },
-  "duelist": {
-   "name": "Duelist",
-   "desc": "+20% damage while only one enemy is fighting you.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_duel": 20
-    }
-   },
-   "max": 2
-  },
-  "giant_slayer": {
-   "name": "Giant Slayer",
-   "desc": "+30% damage to elites and bosses.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_giant": 30
-    }
-   },
-   "tier": 2
-  },
-  "warded": {
-   "name": "Warded",
-   "desc": "Take 25% less damage from spells and special attacks.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_dr_special": 25
-    }
-   },
-   "tier": 2
-  },
-  "bloodlust": {
-   "name": "Bloodlust",
-   "desc": "Every kill heals 8% of your max HP ({kill_heal} HP).",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_kill_heal": 8
-    }
-   },
-   "max": 2
+   "tags": [
+    "storm"
+   ]
   },
   "heavy_hands": {
    "name": "Heavy Hands",
@@ -481,7 +879,10 @@
    ],
    "effect": {
     "flag": "boon_heavy_hands"
-   }
+   },
+   "tags": [
+    "fury"
+   ]
   },
   "assassins_mark": {
    "name": "Assassin's Mark",
@@ -495,135 +896,163 @@
    ],
    "effect": {
     "flag": "boon_assassins_mark"
+   },
+   "tags": [
+    "fury"
+   ]
+  }
+ },
+ "families": {
+  "blood": {
+   "name": "Blood",
+   "color": "#d0453a",
+   "desc": "Life leech, healing on kills, bleeding.",
+   "tiers": {
+    "2": {
+     "text": "+5% life leech.",
+     "stats": {
+      "b_leech": 5
+     }
+    },
+    "4": {
+     "text": "+15% max HP.",
+     "stats": {
+      "b_hp_pct": 15
+     }
+    },
+    "6": {
+     "text": "Kills heal 10% max HP and +10% life leech.",
+     "stats": {
+      "b_kill_heal": 10,
+      "b_leech": 10
+     }
+    }
    }
   },
-  "static_charge": {
-   "name": "Static Charge",
-   "desc": "Your hits have a 15% chance to zap a nearby enemy for {zap} lightning damage.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_zap": 15
+  "storm": {
+   "name": "Storm",
+   "color": "#5f9fd3",
+   "desc": "Crits, extra hits, lightning.",
+   "tiers": {
+    "2": {
+     "text": "+5% crit chance.",
+     "stats": {
+      "b_crit": 5
+     }
+    },
+    "4": {
+     "text": "+15% chance to zap a nearby enemy on hit.",
+     "stats": {
+      "b_zap": 15
+     }
+    },
+    "6": {
+     "text": "Crits deal +75% more damage.",
+     "stats": {
+      "b_crit_dmg": 75
+     }
     }
-   },
-   "max": 3
+   }
   },
-  "frostbite": {
-   "name": "Frostbite",
-   "desc": "Your hits have an 8% chance to freeze the target for a turn.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_freeze": 8
+  "frost": {
+   "name": "Frost",
+   "color": "#8fd3ff",
+   "desc": "Freezing and slowing enemies.",
+   "tiers": {
+    "2": {
+     "text": "+5% freeze chance on hit.",
+     "stats": {
+      "b_freeze": 5
+     }
+    },
+    "4": {
+     "text": "+25% damage to frozen, stunned or slowed enemies.",
+     "stats": {
+      "b_cold_snap": 25
+     }
+    },
+    "6": {
+     "text": "Freezes last one turn longer.",
+     "stats": {
+      "b_freeze_long": 1
+     }
     }
-   },
-   "max": 3
+   }
   },
-  "rot_touch": {
-   "name": "Rot Touch",
-   "desc": "Your hits have a 15% chance to poison the target: {poison} damage a turn for 3 turns.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_poison": 15
+  "venom": {
+   "name": "Venom",
+   "color": "#7fc84a",
+   "desc": "Poison and things that spread.",
+   "tiers": {
+    "2": {
+     "text": "+15% poison chance on hit.",
+     "stats": {
+      "b_poison": 15
+     }
+    },
+    "4": {
+     "text": "Poison deals +50% damage.",
+     "stats": {
+      "b_poison_amp": 50
+     }
+    },
+    "6": {
+     "text": "Poisoned enemies deal 25% less damage to you.",
+     "stats": {
+      "b_venom_weaken": 25
+     }
     }
-   },
-   "max": 2
+   }
   },
-  "volatile": {
-   "name": "Volatile",
-   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you (about {boom} against foes like these).",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_volatile": 20
+  "iron": {
+   "name": "Iron",
+   "color": "#b8b0a0",
+   "desc": "Damage reduction, shields, thorns.",
+   "tiers": {
+    "2": {
+     "text": "Take 2 less damage from every hit.",
+     "stats": {
+      "b_dr_flat": 2
+     }
+    },
+    "4": {
+     "text": "Take 10% less damage from everything.",
+     "stats": {
+      "b_dr_all": 10
+     }
+    },
+    "6": {
+     "text": "Reflect 20% of the damage you take back at the attacker.",
+     "stats": {
+      "b_reflect": 20
+     }
     }
-   },
-   "tier": 2,
-   "max": 2
+   }
   },
-  "keen_eye": {
-   "name": "Keen Eye",
-   "desc": "8% chance for any hit to crit for +75% damage.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_crit": 8
+  "fury": {
+   "name": "Fury",
+   "color": "#ff7a3d",
+   "desc": "Damage that builds as the fight goes on.",
+   "tiers": {
+    "2": {
+     "text": "+10% damage.",
+     "stats": {
+      "b_dmg_pct": 10
+     }
+    },
+    "4": {
+     "text": "After you take damage, your next hit deals +50%.",
+     "stats": {
+      "b_retaliate": 50
+     }
+    },
+    "6": {
+     "text": "Below 30% HP, deal +40% damage.",
+     "stats": {
+      "b_berserk_low": 40
+     }
     }
-   },
-   "max": 3
-  },
-  "flurry": {
-   "name": "Flurry",
-   "desc": "Each melee round has a 20% chance to strike one extra time.",
-   "lines": [],
-   "refs": [
-    "damage"
-   ],
-   "effect": {
-    "stats": {
-     "b_flurry": 20
-    }
-   },
-   "max": 2
-  },
-  "quickened": {
-   "name": "Quickened",
-   "desc": "Abilities with long cooldowns come back a turn sooner.",
-   "lines": [],
-   "refs": [
-    "bash"
-   ],
-   "effect": {
-    "stats": {
-     "b_cdr": 1
-    }
-   },
-   "tier": 2,
-   "max": 2
-  },
-  "troll_blood": {
-   "name": "Troll Blood",
-   "desc": "Regenerate 1% of your max HP every turn ({regen} HP).",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_regen": 1
-    }
-   },
-   "max": 2
-  },
-  "second_life": {
-   "name": "Second Life",
-   "desc": "Once per run, a killing blow leaves you at half HP ({half} HP) instead.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "effect": {
-    "stats": {
-     "b_revive": 1
-    }
-   },
-   "tier": 3
+   }
   }
  }
 }

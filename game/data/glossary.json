@@ -1,0 +1,445 @@
+{
+ "_note": "Glossary for the Guide screen and tap tooltips. keys = lowercase text that points at the entry. Boon families and legendary powers are added from boons.json and items.json at runtime.",
+ "entries": [
+  {
+   "cat": "Stats",
+   "term": "Avg dmg",
+   "short": "Average damage of one weapon swing, before armor.",
+   "long": "A weapon's average damage per swing, halfway between its minimum and maximum (shown in brackets). Abilities, crits and boons add to it.",
+   "keys": [
+    "avg dmg"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Weapon damage",
+   "short": "Extra damage added to every hit you make.",
+   "long": "Flat damage added to each of your weapon hits. Comes from gear and some buffs.",
+   "keys": [
+    "weapon damage"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Armor",
+   "short": "Reduces the damage you take from every hit.",
+   "long": "Armor shaves a share of the damage off every hit you take: the more armor, the bigger the share (up to 30% at very high armor). Shown as a positive number; higher is better.",
+   "keys": [
+    "armor"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "HP",
+   "short": "Hit points. At 0 you die.",
+   "long": "Hit points. At 0 you die, and lose everything you carry. Potions, campfires, shrines and some boons heal you.",
+   "keys": [
+    "hp"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Mana",
+   "short": "Fuel for a mage's spells.",
+   "long": "Mages spend mana on spells; it slowly comes back every turn. Other classes use cooldowns instead.",
+   "keys": [
+    "mana"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Parry",
+   "short": "Chance to turn aside melee blows with your weapon.",
+   "long": "Skill at deflecting melee attacks with your weapon. A successful parry means the blow does no damage.",
+   "keys": [
+    "parry"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Dodge",
+   "short": "Chance to step out of the way of melee blows.",
+   "long": "Skill at dodging melee attacks entirely.",
+   "keys": [
+    "dodge"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Shield Block",
+   "short": "Chance to catch blows on your shield.",
+   "long": "Only works if you carry a shield (warriors do). A block stops the blow.",
+   "keys": [
+    "shield block"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Second Attack",
+   "short": "Chance of a second swing each melee turn.",
+   "long": "Each melee turn, a chance to swing a second time. Higher is more often.",
+   "keys": [
+    "second attack"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Third Attack",
+   "short": "Chance of a third swing each melee turn.",
+   "long": "Each melee turn, a chance to swing a third time (after the second).",
+   "keys": [
+    "third attack"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Enhanced Damage",
+   "short": "Chance for a hit to deal bonus damage.",
+   "long": "Each hit has this % chance to deal extra damage.",
+   "keys": [
+    "enhanced damage"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Crit",
+   "short": "A critical hit: +75% damage.",
+   "long": "A critical hit deals +75% damage. Some classes and boons crit; the Storm family makes crits stronger.",
+   "keys": [
+    "crit"
+   ]
+  },
+  {
+   "cat": "Stats",
+   "term": "Damage reduction",
+   "short": "Boon effects that cut the damage you take, capped at 90%.",
+   "long": "Percent damage reduction from boons and families adds up, but is capped at 90% in total, so you can never become unkillable. Flat reductions (like Iron Skin) still apply after the cap, but every hit does at least 1 damage.",
+   "keys": [
+    "damage reduction"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Sharp",
+   "short": "+15% weapon damage.",
+   "long": "A sharp weapon deals 15% more damage.",
+   "keys": [
+    "sharp"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Vorpal",
+   "short": "+5% weapon damage.",
+   "long": "A vorpal weapon deals 5% more damage.",
+   "keys": [
+    "vorpal"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Flaming",
+   "short": "Each hit adds a burst of fire damage.",
+   "long": "Every hit that lands also burns the target for extra fire damage.",
+   "keys": [
+    "flaming"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Frost",
+   "short": "Each hit adds a bite of cold damage.",
+   "long": "Every hit that lands also chills the target for extra cold damage.",
+   "keys": [
+    "frost"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Poison",
+   "short": "Hits can poison the target.",
+   "long": "Hits can poison the target, dealing damage every turn for 3 turns (unless it resists).",
+   "keys": [
+    "poison"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Vampiric",
+   "short": "Hits drain extra life and heal you.",
+   "long": "Every hit drains a little extra life and heals you for half of it.",
+   "keys": [
+    "vampiric"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Legendary power",
+   "short": "The ★ line on a legendary item.",
+   "long": "Legendary items carry a special power (the ★ line). Bulk sell never sells legendaries.",
+   "keys": [
+    "★",
+    "legendary"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Item level",
+   "short": "How deep an item comes from; higher rolls bigger numbers.",
+   "long": "Item level (ilvl) grows with the floor you find it on. Higher item levels roll bigger stats.",
+   "keys": [
+    "ilvl"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Rarity",
+   "short": "Common, uncommon, rare, epic, legendary.",
+   "long": "Rarer items have bigger numbers and more extra properties: common (grey), uncommon (green), rare (blue), epic (purple), legendary (orange, with a ★ power).",
+   "keys": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Upgrade ▲",
+   "short": "Better than what you wear in every way.",
+   "long": "▲ marks an item that beats what you have equipped in every stat and loses nothing. Items that are better in one way but worse in another don't get it.",
+   "keys": [
+    "upgrade",
+    "▲"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Knocked down",
+   "short": "Can't defend well and loses its next action.",
+   "long": "A knocked-down target is easier to hit and loses its next turn getting up.",
+   "keys": [
+    "knocked down",
+    "knocked_down"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Blind",
+   "short": "Misses far more often.",
+   "long": "A blind fighter misses most of its attacks until it can see again.",
+   "keys": [
+    "blind"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Stunned",
+   "short": "Loses its turns.",
+   "long": "A stunned fighter can't act until it recovers.",
+   "keys": [
+    "stunned"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Frozen",
+   "short": "Frozen solid for a turn: can't act.",
+   "long": "Frozen works like a short stun. The Frost family makes it last longer and hit harder.",
+   "keys": [
+    "frozen"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Slowed",
+   "short": "Acts less often.",
+   "long": "A slowed fighter gets fewer turns.",
+   "keys": [
+    "slowed",
+    "slow"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Hasted",
+   "short": "Acts more often.",
+   "long": "A hasted fighter gets extra turns.",
+   "keys": [
+    "haste",
+    "hasted"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Asleep",
+   "short": "Out cold until hit.",
+   "long": "A sleeping fighter does nothing until it takes damage.",
+   "keys": [
+    "asleep",
+    "sleep"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Poisoned",
+   "short": "Takes damage every turn.",
+   "long": "Poison deals damage every turn for a few turns.",
+   "keys": [
+    "poisoned"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Bleeding",
+   "short": "Takes damage every turn.",
+   "long": "Bleeding deals damage every turn for a few turns.",
+   "keys": [
+    "bleeding",
+    "bleed"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Sanctuary",
+   "short": "Takes half damage.",
+   "long": "A holy ward that halves all damage taken.",
+   "keys": [
+    "sanctuary"
+   ]
+  },
+  {
+   "cat": "Statuses",
+   "term": "Berserk",
+   "short": "Hits harder, heals a little.",
+   "long": "A rage that raises accuracy and damage.",
+   "keys": [
+    "berserk"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Extract",
+   "short": "Leave the Spiral with everything you carry.",
+   "long": "Press Extract and your character walks back to the floor's entrance. There you can attempt the extraction: 80% of the time you're ambushed and must clear one short stretch first. Make it out and you keep your gold and every item you carry.",
+   "keys": [
+    "extract",
+    "extraction"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Ambush",
+   "short": "A short floor you must clear to finish extracting.",
+   "long": "Three small rooms with a few awake enemies. Clear them all and you're out. Only ever one ambush per extraction.",
+   "keys": [
+    "ambush"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Death",
+   "short": "Lose everything you carry.",
+   "long": "Dying loses your gold and every item you carry, including gear you brought in. (Your account's very first death is a one-time rescue.)",
+   "keys": [
+    "death",
+    "die"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Elite",
+   "short": "A tougher monster with an orange ring. Kill it for a boon.",
+   "long": "Elites hit harder and have more HP; killing one always gives a boon pick and good loot.",
+   "keys": [
+    "elite"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Boss",
+   "short": "The floor-6 guardian. The stairs stay sealed until it dies.",
+   "long": "The boss waits on the last floor. The way out is sealed until it's dead.",
+   "keys": [
+    "boss"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Shrine",
+   "short": "Walk over it for a free blessing.",
+   "long": "Shrines grant a random blessing: healing, a potion, gold, a rare item or XP.",
+   "keys": [
+    "shrine"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Campfire",
+   "short": "Walk over it to recover 40% HP and mana.",
+   "long": "Each campfire can be used once.",
+   "keys": [
+    "campfire"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Potion",
+   "short": "Heals 50% of your max HP. You drink them.",
+   "long": "You start each run with 3 healing potions (mages also get mana potions). Monsters drop more now and then.",
+   "keys": [
+    "potion"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Boon",
+   "short": "A power that lasts the rest of the run.",
+   "long": "Pick one of three on every level-up and elite kill. Stackable boons can be taken again and again; each copy adds its effect.",
+   "keys": [
+    "boon",
+    "stackable"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Skip / Reroll / Banish",
+   "short": "Limited ways to change a boon offer.",
+   "long": "Skip takes nothing; Reroll replaces all three offers; Banish removes one boon from the pool for the run. Buy more per run at the Trainer.",
+   "keys": [
+    "skip",
+    "reroll",
+    "banish"
+   ]
+  },
+  {
+   "cat": "Town",
+   "term": "Stash",
+   "short": "Storage shared by all your characters.",
+   "long": "Everything you bring home lands in the stash (up to 500 items). Equip characters from it or sell in bulk.",
+   "keys": [
+    "stash"
+   ]
+  },
+  {
+   "cat": "Town",
+   "term": "Trainer",
+   "short": "Power-ups bought with gold.",
+   "long": "Permanent power-ups for every character: more HP, more damage, extra potions and Skip/Reroll/Banish charges.",
+   "keys": [
+    "trainer",
+    "power-up"
+   ]
+  },
+  {
+   "cat": "Town",
+   "term": "Quartermaster",
+   "short": "Buys gear for your stash.",
+   "long": "New stock after every run, sized to the deepest floor you've reached.",
+   "keys": [
+    "quartermaster",
+    "shop"
+   ]
+  }
+ ]
+}

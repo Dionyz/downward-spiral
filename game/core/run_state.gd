@@ -20,6 +20,8 @@ var rng: DSRng
 var seed_value: int = 1
 var line: String = "warrior"
 var race: String = "human"
+var skill_order: Array = []   # Skills screen priority (skill names); empty = class default
+var skill_off: Array = []     # skills switched off
 var start_loadout := {}       # gear the character brought in (kept by the one-time rescue)
 var level: int = 1
 var xp: int = 0               # toward next level
@@ -80,7 +82,8 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 func to_dict() -> Dictionary:
 	_sync_from_world()
 	return {
-		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "start_loadout": start_loadout.duplicate(true), "level": level, "xp": xp,
+		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "start_loadout": start_loadout.duplicate(true),
+		"skill_order": skill_order.duplicate(), "skill_off": skill_off.duplicate(), "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
 		"floor_num": floor_num, "world": world.to_dict() if world != null else {}, "phase": phase,
@@ -100,6 +103,8 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.line = str(d.get("line", "warrior"))
 	r.race = str(d.get("race", "human"))
 	r.start_loadout = _normalize(d.get("start_loadout", {}))
+	r.skill_order = d.get("skill_order", [])
+	r.skill_off = d.get("skill_off", [])
 	r.level = int(d.get("level", 1))
 	r.xp = int(d.get("xp", 0))
 	r.xp_total = int(d.get("xp_total", 0))
@@ -435,7 +440,7 @@ func _has_mana() -> bool:
 ## A fresh Combatant reflecting the run: level, gear, boons, current HP/mana.
 ## The character carries every ability it knows and fights by its class's built-in priorities.
 func make_player() -> Combatant:
-	var opts := {"rules": DSFactory.class_ai(data, line, tier(), level), "actives": known_actives(), "weapon": items["weapon"],
+	var opts := {"rules": DSFactory.class_ai(data, line, tier(), level, skill_order, skill_off), "actives": known_actives(), "weapon": items["weapon"],
 		"meta_hp_pct": int(perks.get("hp_pct", 0)), "meta_damage_pct": int(perks.get("damage_pct", 0))}
 	if items["armor"] != null:
 		opts["armor"] = items["armor"]
@@ -612,11 +617,14 @@ func boon_desc(id: String) -> String:
 		"thorns": str(maxi(1, DSStats.idiv(ml, 5))),
 		"half": str(DSStats.idiv(p.max_hp, 2)),
 		"thick": str(DSStats.idiv(p.max_hp, 10)),
+		"bleed": str(maxi(2, DSStats.idiv(ml, 3))),
+		"bulwark": str(DSStats.idiv(p.max_hp * 6, 100)),
 	})
 
 
+## Stackable boons have no limit (owner: "let the player build overpowered stuff").
 func boon_max(id: String) -> int:
-	return int(data.boons.get(id, {}).get("max", 1))
+	return 1 << 30 if data.boons.get(id, {}).get("stack", false) else 1
 
 
 func add_boon(id: String) -> void:

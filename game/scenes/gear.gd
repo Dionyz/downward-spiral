@@ -43,7 +43,12 @@ func _ready() -> void:
 	list.add_theme_constant_override("separation", 10)
 	scroll.add_child(list)
 	v.add_child(scroll)
-	v.add_child(UI.button("Back to the dungeon", func(): Game.goto("dungeon"), 64))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	for bt in [UI.button("Boons", _show_boons, 60), UI.button("Back to the dungeon", func(): Game.goto("dungeon"), 60)]:
+		bt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(bt)
+	v.add_child(row)
 	_select("weapon")
 	if Game.autoplay != "":
 		_select("armor")
@@ -61,7 +66,7 @@ func _refresh() -> void:
 	var p := run.make_player()
 	var w = run.items.get("weapon")
 	var dmg := "%s avg" % Cards._num((int(w.get("min", 0)) + int(w.get("max", 0))) / 2.0) if w != null else "-"
-	summary.text = "HP %d · Weapon %s · +%d weapon damage · Armor %d · %d boons" % [p.max_hp, dmg, p.damroll, -p.ac, run.boons.size()]
+	summary.text = "HP %d · Weapon %s · +%s weapon damage · Armor %d · %d boons" % [p.max_hp, dmg, Cards._num(p.damroll / 10.0), -p.ac, run.boons.size()]
 	bag_label.text = "Bag %d/%d" % [run.inventory.size(), DSRunState.INVENTORY_MAX]
 	for c in equipped_box.get_children():
 		c.queue_free()
@@ -124,3 +129,47 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 		v.add_child(UI.label(sub, 15, UI.DIM))
 	v.add_child(Cards.stat_flow(Cards.compare_lines(run.data, it, eq)))
 	return card
+
+
+## Boons taken this run (with stacks) and the family bonuses they've unlocked.
+func _show_boons() -> void:
+	var layer := PanelContainer.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 60
+	add_child(layer)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+	layer.add_child(v)
+	v.add_child(UI.label("Boons", 30, UI.ACCENT))
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var inner := VBoxContainer.new()
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	inner.add_theme_constant_override("separation", 6)
+	scroll.add_child(inner)
+	v.add_child(scroll)
+	var counts := DSFactory.family_counts(run.data, run.boons)
+	inner.add_child(UI.label("Families (distinct boons)", 20, UI.DIM))
+	for f in run.data.families.keys():
+		var fam: Dictionary = run.data.families[f]
+		var n := int(counts.get(f, 0))
+		var col := Color(str(fam.get("color", "#e6e1d6")))
+		inner.add_child(Tip.attach(UI.label("◆ %s  %d  — %s" % [str(fam["name"]), n, str(fam.get("desc", ""))], 18, col if n > 0 else UI.DIM), str(fam["name"])))
+		for th in ["2", "4", "6"]:
+			var on := n >= int(th)
+			inner.add_child(UI.label("     %s %s: %s" % ["✓" if on else "·", th, str(fam["tiers"][th]["text"])], 16, col if on else UI.DIM))
+	inner.add_child(UI.label("Your boons", 20, UI.DIM))
+	if run.boons.is_empty():
+		inner.add_child(UI.label("None yet. Level up or kill an elite to pick one.", 17, UI.DIM))
+	var seen := {}
+	for id in run.boons:
+		if seen.has(id):
+			continue
+		seen[id] = true
+		var b: Dictionary = run.data.boons.get(id, {})
+		var n := run.boon_rank(id)
+		inner.add_child(UI.label("%s%s" % [str(b.get("name", id)), (" ×%d" % n) if n > 1 else ""], 19, UI.ACCENT))
+		inner.add_child(UI.label(run.boon_desc(id), 16))
+	inner.add_child(Tip.attach(UI.label("Total damage reduction from boons is capped at 90%.", 15, UI.DIM), "damage reduction"))
+	v.add_child(UI.button("Close", func(): layer.queue_free(), 56))

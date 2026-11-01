@@ -257,16 +257,16 @@ func test_boon_stats_are_implemented():
 			assert_true(src.contains('"%s"' % k), "%s: stat %s is read somewhere" % [id, k])
 
 
-func test_boons_stack_up_to_max():
+func test_stackable_boons_have_no_limit():
 	var r := DSRunState.new_run(data, "warrior", 5)
-	for i in 5:
+	for i in 12:
 		r.add_boon("whetstone")
-	assert_eq(r.boon_rank("whetstone"), 3, "capped at max")
-	assert_false(r.available_boons().has("whetstone"))
-	assert_eq(int(r.make_player().flags["b_flat"]), 6, "+2 per rank")
-	r.add_boon("last_bastion")
-	r.add_boon("last_bastion")
-	assert_eq(r.boon_rank("last_bastion"), 1)
+	assert_eq(r.boon_rank("whetstone"), 12, "stackable boons have no limit")
+	assert_true(r.available_boons().has("whetstone"))
+	assert_eq(int(r.make_player().flags["b_flat"]), 24, "+2 per stack")
+	r.add_boon("twin_throw")
+	r.add_boon("twin_throw")
+	assert_eq(r.boon_rank("twin_throw"), 1, "on/off class boons are taken once")
 
 
 func test_shrines_bless_automatically():
@@ -431,3 +431,29 @@ func test_one_time_rescue():
 	var r2 := DSAccount.start_run(data, a, 5)
 	r2.end_run("death")
 	assert_false(DSAccount.apply_rescue(a, r2), "only once, ever")
+
+
+func test_boon_families_count_distinct_boons():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	for i in 5:
+		r.add_boon("vampiric_edge")
+	assert_eq(int(DSFactory.family_counts(data, r.boons).get("blood", 0)), 1, "stacks of one boon count once")
+	r.add_boon("bloodlust")
+	var fb := DSFactory.family_bonuses(data, r.boons)
+	assert_true(fb.any(func(b): return b["family"] == "blood" and b["tier"] == 2))
+	var p := r.make_player()
+	assert_eq(int(p.flags["b_leech"]), 6 * 5 + 5, "5 stacks + the Blood 2 bonus")
+	for id in ["hemorrhage", "adrenaline"]:
+		r.add_boon(id)
+	var hp4 := r.make_player().max_hp
+	assert_true(DSFactory.family_bonuses(data, r.boons).any(func(b): return b["family"] == "blood" and b["tier"] == 4))
+	assert_gt(hp4, p.max_hp, "Blood 4: +15% max HP")
+
+
+func test_every_family_reaches_six():
+	var per := {}
+	for id in data.boons.keys():
+		for t in data.boons[id].get("tags", []):
+			per[t] = int(per.get(t, 0)) + 1
+	for f in data.families.keys():
+		assert_gte(int(per.get(f, 0)), 6, "%s has at least 6 boons" % f)

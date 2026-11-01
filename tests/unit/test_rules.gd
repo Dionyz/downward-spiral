@@ -136,3 +136,37 @@ func test_no_single_enemy_hit_exceeds_the_cap():
 			for ev in sim.run(p, [m]):
 				if ev.get("t") == "damage" and ev.get("dst") == p.name and ev.get("dt") not in ["poison", "bleed"]:
 					assert_true(int(ev["amount"]) <= int(p.max_hp * 0.35), "%s vs %s: %d" % [line, id, ev["amount"]])
+
+
+func test_skill_order_and_off():
+	var data := H.data()
+	var def := DSFactory.class_ai(data, "warrior", 3, 10)
+	assert_eq(DSFactory.class_ai(data, "warrior", 3, 10, [], []), def, "empty order = default")
+	var custom := DSFactory.class_ai(data, "warrior", 3, 10, ["kick", "bash"], ["charge"])
+	assert_eq(str(custom[0]["then"]), "kick")
+	assert_eq(str(custom[1]["then"]), "kick", "both kick entries move together")
+	assert_eq(str(custom[2]["then"]), "bash")
+	assert_false(custom.any(func(r): return r["then"] == "charge"), "switched off")
+	var skills := DSFactory.class_skills(data, "knifer", 3)
+	assert_true(skills.any(func(s): return s["name"] == "dance" and s["rules"].size() == 3), "three dances on one card")
+	for l in ["warrior", "thief", "mage", "knifer"]:
+		for s in DSFactory.class_skills(data, l, 3):
+			assert_true(str(data.skills.get(s["name"], "")) != "", "%s has a description" % s["name"])
+			for r in s["rules"]:
+				assert_false(DSRules.plain(r).contains("_"), DSRules.plain(r))
+
+
+func test_run_uses_character_skill_order():
+	var data := H.data()
+	var a := DSAccount.fresh()
+	DSAccount.create_character(data, a, "Ash", "warrior", "human")
+	DSAccount.current(a)["skill_order"] = ["kick"]
+	DSAccount.current(a)["skill_off"] = ["bash"]
+	var r := DSAccount.start_run(data, a, 3)
+	var p := r.make_player()
+	assert_eq(str(p.rules[0]["then"]), "kick")
+	assert_false(p.rules.any(func(x): return x["then"] == "bash"))
+
+
+func test_plain_rule_text_has_whole_numbers():
+	assert_eq(DSRules.plain({"if": "hp_below", "value": 35.0, "then": "berserk"}), "when your HP is below 35%")

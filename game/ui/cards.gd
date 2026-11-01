@@ -18,7 +18,7 @@ static func item_lines(data: DSData, it: Dictionary) -> Array:
 		"trinket":
 			out.append("Trinket")
 	if int(it.get("damroll", 0)) != 0:
-		out.append("+%d weapon damage" % int(it["damroll"]))
+		out.append("+%s weapon damage" % _num(int(it["damroll"]) / 10.0))
 	if int(it.get("hp", 0)) != 0:
 		out.append("+%d HP" % int(it["hp"]))
 	if int(it.get("mana", 0)) != 0:
@@ -87,7 +87,7 @@ static func item_stats(it) -> Array:
 	if int(it.get("ac", 0)) != 0:
 		s.append(["Armor", -int(it.get("ac", 0))])
 	if int(it.get("damroll", 0)) != 0:
-		s.append(["Weapon damage", int(it.get("damroll", 0))])
+		s.append(["Weapon damage", int(it.get("damroll", 0)) / 10.0])   # what it adds to each hit
 	if int(it.get("hp", 0)) != 0:
 		s.append(["HP", int(it.get("hp", 0))])
 	if int(it.get("mana", 0)) != 0:
@@ -154,10 +154,14 @@ static func stat_flow(lines: Array, size: int = 17) -> Control:
 	flow.add_theme_constant_override("v_separation", 2)
 	box.add_child(flow)
 	for line in lines:
+		var l: Label
 		if line.get("wide", false):
-			box.add_child(UI.label(line["text"], size, line["color"]))
+			l = UI.label(line["text"], size, line["color"])
+			box.add_child(l)
 		else:
-			flow.add_child(UI.label(line["text"], size, line["color"], false))
+			l = UI.label(line["text"], size, line["color"], false)
+			flow.add_child(l)
+		Tip.attach(l, str(line["text"]))
 	return box
 
 
@@ -185,8 +189,8 @@ static func item_row(data: DSData, it: Dictionary, eq, actions: Array, note: Str
 	if note != "":
 		sub += " · " + note
 	if eq != null and DSRunState.is_pure_upgrade(it, eq):
-		v.add_child(UI.label(sub + "  ·  ▲ UPGRADE", 14, Color("#5fd35f")))
+		v.add_child(Tip.attach(UI.label(sub + "  ·  ▲ UPGRADE", 14, Color("#5fd35f")), "upgrade"))
 	else:
-		v.add_child(UI.label(sub, 14, UI.DIM))
+		v.add_child(Tip.attach(UI.label(sub, 14, UI.DIM), str(it.get("rarity", "common"))))
 	v.add_child(stat_flow(compare_lines(data, it, eq), 16))
 	return card

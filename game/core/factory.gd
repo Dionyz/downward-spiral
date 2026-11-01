@@ -77,14 +77,42 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 
 ## The class's built-in fighting priorities (overrides/classes.json "ai"), limited to abilities it
 ## knows at `level`. Checked top to bottom each round; the first usable one fires. DECISIONS.md D-060.
-static func class_ai(data: DSData, line: String, tier: int, level: int) -> Array:
+## `order` (skill names, from the Skills screen) reorders the list: every entry for a skill moves
+## together, in its own original order; skills not named keep their place after the named ones.
+## Empty `order` = the class default. Skills in `off` are never used.
+static func class_ai(data: DSData, line: String, tier: int, level: int, order: Array = [], off: Array = []) -> Array:
 	var L: Dictionary = data.classes.get(line, {})
 	var out: Array = []
-	for r in L.get("ai", []):
+	var keyed: Array = []
+	var ai: Array = L.get("ai", [])
+	for i in ai.size():
+		var r: Dictionary = ai[i]
 		var aname := str(CombatSim.split_ref(str(r.get("then", "")))[0])
+		if off.has(aname):
+			continue
 		var ul := data.unlock_level(aname, line, tier)
 		if ul >= 1 and ul <= level:
-			out.append(r.duplicate(true))
+			var pos := order.find(aname)
+			keyed.append([pos if pos >= 0 else 1000 + i, i, r.duplicate(true)])
+	if not order.is_empty():
+		keyed.sort_custom(func(x, y): return x[0] < y[0] or (x[0] == y[0] and x[1] < y[1]))
+	for k in keyed:
+		out.append(k[2])
+	return out
+
+
+## The class's skills in default priority order (first appearance in its AI list), each
+## {name, rules: [rule], unlock: level}.
+static func class_skills(data: DSData, line: String, tier: int) -> Array:
+	var L: Dictionary = data.classes.get(line, {})
+	var out: Array = []
+	var idx := {}
+	for r in L.get("ai", []):
+		var aname := str(CombatSim.split_ref(str(r.get("then", "")))[0])
+		if not idx.has(aname):
+			idx[aname] = out.size()
+			out.append({"name": aname, "rules": [], "unlock": data.unlock_level(aname, line, tier)})
+		out[idx[aname]]["rules"].append(r)
 	return out
 
 
@@ -199,7 +227,35 @@ static func make_monster(data: DSData, id: String, level: int, idx: int = 0) -> 
 
 
 ## Apply boons (ids from boons.json) to a player. Run-level effects (gold, xp) live in DSRunState.
+## Distinct boons per family: {family: count}.
+static func family_counts(data: DSData, boon_ids: Array) -> Dictionary:
+	var out := {}
+	var seen := {}
+	for id in boon_ids:
+		if seen.has(id):
+			continue
+		seen[id] = true
+		for t in data.boons.get(id, {}).get("tags", []):
+			out[t] = int(out.get(t, 0)) + 1
+	return out
+
+
+## Family bonuses unlocked: [{family, tier, text, stats}].
+static func family_bonuses(data: DSData, boon_ids: Array) -> Array:
+	var out: Array = []
+	var counts := family_counts(data, boon_ids)
+	for f in data.families.keys():
+		var tiers: Dictionary = data.families[f].get("tiers", {})
+		for t in tiers.keys():
+			if int(counts.get(f, 0)) >= int(t):
+				out.append({"family": f, "tier": int(t), "text": str(tiers[t].get("text", "")), "stats": tiers[t].get("stats", {})})
+	return out
+
+
 static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
+	for fb in family_bonuses(data, boon_ids):
+		for k in fb["stats"].keys():
+			c.flags[k] = int(c.flags.get(k, 0)) + int(fb["stats"][k])
 	for id in boon_ids:
 		var b: Dictionary = data.boons.get(id, {})
 		var e: Dictionary = b.get("effect", {})
