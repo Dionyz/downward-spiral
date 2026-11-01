@@ -833,6 +833,59 @@
    "tags": [
     "fury"
    ]
+  },
+  "spinning_steel": {
+   "name": "Spinning Steel",
+   "desc": "Whirlwind and Storm of Blades deal +{b_aoe_dmg}% damage.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "whirlwind",
+    "storm of blades"
+   ],
+   "tags": [
+    "storm"
+   ],
+   "stack": true,
+   "effect": {
+    "stats": {
+     "b_aoe_dmg": 20
+    }
+   }
+  },
+  "hamstring": {
+   "name": "Hamstring",
+   "desc": "Cross Slash and Blinding Strike also slow the target for 3 turns.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "cross slash",
+    "blinding strike"
+   ],
+   "tags": [
+    "frost"
+   ],
+   "effect": {
+    "flag": "boon_hamstring"
+   }
+  },
+  "mesmerist": {
+   "name": "Mesmerist",
+   "desc": "The attack round after Transfix deals +50% damage.",
+   "lines": [
+    "knifer"
+   ],
+   "refs": [
+    "transfix"
+   ],
+   "tags": [
+    "fury"
+   ],
+   "effect": {
+    "flag": "boon_mesmerist"
+   }
   }
  },
  "families": {

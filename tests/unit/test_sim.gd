@@ -303,3 +303,21 @@ func test_status_skills_can_fail_a_little():
 		if not e.has_status("knocked_down"):
 			fails += 1
 	assert_between(fails, 5, 60, "about 10% fail (plus steady/immunity none here)")
+
+
+func test_jackal_boons():
+	var data2 := H.data()
+	var sim := _duel(["spinning_steel", "spinning_steel"])
+	var p := sim.player
+	var e: Combatant = sim.enemies[0]
+	var hp0 := e.hp
+	sim.apply_damage(p, e, 100, "whirlwind", "none", false)
+	assert_eq(hp0 - e.hp, 140, "+20% per stack")
+	var p2 := DSFactory.make_player(data2, "knifer", 1, 10)
+	DSFactory.apply_boons(data2, p2, ["hamstring"])
+	var e2 := H.dummy("orc")
+	var sim2 := CombatSim.new(DSRng.new(3), data2)
+	sim2.begin(p2, [e2])
+	sim2._hamstring(p2, e2)
+	assert_true(e2.has_status("slowed"))
+	assert_true(data2.boons["mesmerist"]["lines"].has("knifer"))

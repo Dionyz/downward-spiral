@@ -639,6 +639,10 @@ func apply_damage(ch, victim: Combatant, dam: int, dt: String, dam_type: String,
 				pct += bstat(ch, "b_cold_snap")
 			if victim.has_status("poisoned"):
 				pct += bstat(ch, "b_wither")
+			if dt in ["whirlwind", "storm of blades"]:
+				pct += bstat(ch, "b_aoe_dmg")
+			if ch.flags.get("mesmerist_round", false):
+				pct += 50
 			if int(ch.flags.get("rampage", 0)) > 0 and round_num <= int(ch.flags.get("rampage_until", 0)):
 				pct += int(ch.flags["rampage"]) * bstat(ch, "b_rampage")
 			if ch.flags.get("retaliate_ready", false) and bstat(ch, "b_retaliate") > 0:
@@ -1235,6 +1239,8 @@ func _h_opener(c: Combatant, v: Combatant, aname: String) -> void:
 			c.damroll += DSStats.idiv(c.mud_level, 4)
 		_multi_hit(c, v, aname)
 		c.damroll = saved
+		if aname == "cross slash":
+			_hamstring(c, v)
 		if aname == "cross slash" and c.flags.get("boon_bleeding_cross", false) and v.is_alive():
 			v.add_status("bleeding", 4, {"dmg": maxi(1, DSStats.idiv(c.mud_level, 4))})
 			_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "bleeding", "rounds": 3})
@@ -1278,6 +1284,15 @@ func _h_debuff(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 	var hr := int(p.get("hitroll", -DSStats.idiv(c.mud_level, int(p.get("hitroll_level_div", 4)))))
 	v.add_status(st, rounds + 1, {"hitroll": hr})
 	_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": st, "rounds": rounds})
+	if aname == "blinding strike":
+		_hamstring(c, v)
+
+
+## Hamstring boon (Jackal): Cross Slash and Blinding Strike also slow for 3 turns.
+func _hamstring(c: Combatant, v: Combatant) -> void:
+	if c.flags.get("boon_hamstring", false) and v.is_alive() and not v.has_status("slowed"):
+		v.add_status("slowed", 4)
+		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "slowed", "rounds": 3})
 
 
 ## act_obj.c do_envenom: coats the weapon; swings may poison.
@@ -1419,7 +1434,9 @@ func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
 	if not v.no_stun and _cc(c, v, "stunned", dur + 1, "stun"):
 		_emit({"t": "status_applied", "src": c.name, "dst": v.name, "status": "stunned", "rounds": dur})
 	if p.get("then_attack", true):
+		c.flags["mesmerist_round"] = c.flags.get("boon_mesmerist", false)
 		_multi_hit(c, v, HIT)
+		c.flags["mesmerist_round"] = false
 
 
 # ---------------------------------------------------------------------------
