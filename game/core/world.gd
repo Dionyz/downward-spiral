@@ -71,7 +71,7 @@ static func create(p_run, p_level: Dictionary, p_rng: DSRng) -> DSWorld:
 		if sp.get("elite", false):
 			ml += int(p_run._cfg().get("elite_level_bonus", 0))
 		if sp.get("boss", false):
-			ml = int(p_run._cfg().get("boss_level", 10))
+			ml += int(p_run.data.dungeons.get("boss_level_bonus", 1))
 		var st0 := "asleep" if sp.get("boss", false) else ("wander" if p_rng.number_percent() <= 25 else "asleep")
 		if wd.ambush:
 			st0 = "hunt"

@@ -251,14 +251,6 @@ func test_life_leech_heals():
 	assert_gt(p.hp, 50, "18% of damage dealt comes back")
 
 
-func test_second_life_revives_once():
-	var sim := _duel(["second_life"])
-	var p := sim.player
-	sim.apply_damage(sim.enemies[0], p, 99999, "hit", "none", false, {"uncapped": true})
-	assert_eq(p.hp, p.max_hp / 2)
-	sim.apply_damage(sim.enemies[0], p, 99999, "hit", "none", false, {"uncapped": true})
-	assert_false(p.is_alive(), "only once")
-
 
 func test_damage_reduction_caps_at_ninety():
 	var sim := _duel([])

@@ -13,6 +13,8 @@ static func roll_rarity(data: DSData, rng: DSRng, floor_bonus: float = 0.0) -> S
 		var k: String = order[i]
 		# Deeper floors shift weight toward rarer items. Weights x100 to keep integer picks.
 		var w := float(rar[k].get("weight", 1)) * (1.0 + floor_bonus * float(i))
+		if w <= 0.0:
+			continue   # mythic: only rolled on purpose (Abyss depths)
 		weights["%d_%s" % [i, k]] = int(round(w * 100.0))
 	var picked: String = rng.weighted_pick(weights)
 	return picked.substr(picked.find("_") + 1)
@@ -98,7 +100,10 @@ static func roll_item(data: DSData, rng: DSRng, ilvl: int, slot: String = "", ra
 				lkeys.append(k)
 		lkeys.sort()
 		if not lkeys.is_empty():
-			item["passive"] = rng.pick(lkeys)
+			rng.shuffle(lkeys)
+			item["passive"] = lkeys[0]
+			if int(rdef.get("passives", 1)) >= 2 and lkeys.size() > 1:
+				item["passive2"] = lkeys[1]
 		var ln: Array = it.get("legendary_names", [])
 		item["name"] = "%s, %s" % [base_name, rng.pick(ln)] if not ln.is_empty() else base_name
 	else:
@@ -128,5 +133,7 @@ static func power(item: Dictionary) -> int:
 		p += int(v) * 6
 	p += item.get("flags", []).size() * 25
 	if item.has("passive"):
+		p += 150
+	if item.has("passive2"):
 		p += 150
 	return p

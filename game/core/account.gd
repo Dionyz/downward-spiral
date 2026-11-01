@@ -17,7 +17,8 @@ const SLOTS := ["weapon", "armor", "trinket"]
 
 static func fresh() -> Dictionary:
 	return {"gold": 0, "upgrades": {}, "stash": [], "characters": [], "current": -1, "shop": [],
-		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0, "rescue_used": false, "mastery": {}}
+		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0, "rescue_used": false, "mastery": {},
+		"cleared": [], "abyss_cleared": []}
 
 
 ## The one-time rescue: the account's first death (any character) is turned into an emergency
@@ -159,7 +160,7 @@ static func bulk_preview(data: DSData, a: Dictionary, rarities: Array, only_wors
 	for i in a["stash"].size():
 		var it: Dictionary = a["stash"][i]
 		var rar := str(it.get("rarity", "common"))
-		if rar == "legendary" or not rarities.has(rar):
+		if rar == "legendary" or rar == "mythic" or not rarities.has(rar):
 			continue
 		if only_worse:
 			var eq = ch["loadout"].get(it.get("slot", "")) if not ch.is_empty() else null
@@ -227,12 +228,16 @@ static func buy(data: DSData, a: Dictionary, i: int) -> bool:
 # --- runs -------------------------------------------------------------------------
 
 ## Start a run for the current character: its loadout goes with it (and is at risk).
-static func start_run(data: DSData, a: Dictionary, seed_value: int) -> DSRunState:
+static func start_run(data: DSData, a: Dictionary, seed_value: int, dungeon_id: String = "", abyss: bool = false) -> DSRunState:
 	var ch := current(a)
 	if ch.is_empty():
 		return null
+	if dungeon_id == "":
+		dungeon_id = str(data.dungeon_list()[0]["id"])
+	if not dungeon_unlocked(data, a, dungeon_id) or (abyss and not a["cleared"].has(dungeon_id)):
+		return null
 	var r := DSRunState.new_run(data, str(ch["line"]), seed_value, DSMeta.perks(data, a, str(ch["race"]), str(ch["line"])),
-		str(ch["race"]), ch["loadout"])
+		str(ch["race"]), ch["loadout"], dungeon_id, abyss)
 	r.skill_order = ch.get("skill_order", []).duplicate()
 	r.skill_off = ch.get("skill_off", []).duplicate()
 	r._sync_to_world()
@@ -270,6 +275,14 @@ static func bank_run(data: DSData, a: Dictionary, run: DSRunState) -> Dictionary
 	for s in SLOTS:
 		if run.items.get(s) != null:
 			carried.append(run.items[s])
+	# Dungeon progress: beating a dungeon opens the next; beating its Abyss earns a trophy.
+	if run.result == "victory":
+		if not a["cleared"].has(run.dungeon):
+			a["cleared"].append(run.dungeon)
+			out["unlocked"] = next_dungeon(data, run.dungeon)
+		if run.abyss and not a["abyss_cleared"].has(run.dungeon):
+			a["abyss_cleared"].append(run.dungeon)
+			out["trophy"] = run.dungeon
 	if run.result == "rescued":
 		# Keep the gear brought in and half the gold; everything found this run is lost.
 		a["rescue_used"] = true
@@ -299,3 +312,19 @@ static func bank_run(data: DSData, a: Dictionary, run: DSRunState) -> Dictionary
 	stash_add(data, a, run.inventory)
 	out["items"] = carried.size()
 	return out
+
+
+
+# --- dungeons -----------------------------------------------------------------------
+
+## The first dungeon is always open; each later one opens when the one before is cleared.
+static func dungeon_unlocked(data: DSData, a: Dictionary, id: String) -> bool:
+	var i := data.dungeon_index(id)
+	return i == 0 or a.get("cleared", []).has(data.dungeon_list()[i - 1]["id"])
+
+
+## Id of the dungeon after `id`, or "" if it's the last.
+static func next_dungeon(data: DSData, id: String) -> String:
+	var l := data.dungeon_list()
+	var i := data.dungeon_index(id)
+	return str(l[i + 1]["id"]) if i + 1 < l.size() else ""

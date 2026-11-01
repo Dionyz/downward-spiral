@@ -72,10 +72,10 @@ func _path(p: String) -> String:
 # --- runs -----------------------------------------------------------------
 
 ## Start a run for the current character (its loadout goes along, at risk).
-func new_run(seed_value: int = 0) -> void:
+func new_run(seed_value: int = 0, dungeon_id: String = "", abyss: bool = false) -> void:
 	if seed_value == 0:
 		seed_value = int(Time.get_unix_time_from_system() * 1000.0) % 2147483646 + 1
-	run = DSAccount.start_run(data, account, seed_value)
+	run = DSAccount.start_run(data, account, seed_value, dungeon_id, abyss)
 	save_account()
 	save_run()
 

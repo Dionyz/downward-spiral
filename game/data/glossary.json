@@ -194,7 +194,7 @@
    "cat": "Item properties",
    "term": "Rarity",
    "short": "Common, uncommon, rare, epic, legendary.",
-   "long": "Rarer items have bigger numbers and more extra properties: common (grey), uncommon (green), rare (blue), epic (purple), legendary (orange, with a special power).",
+   "long": "Rarer items have bigger numbers and more extra properties: common (grey), uncommon (green), rare (blue), epic (purple), legendary (orange, with a special power), mythic (red, two powers, Abyss only).",
    "keys": [
     "common",
     "uncommon",
@@ -356,8 +356,8 @@
   {
    "cat": "The run",
    "term": "Boss",
-   "short": "The floor-6 guardian. The stairs stay sealed until it dies.",
-   "long": "The boss waits on the last floor. The way out is sealed until it's dead.",
+   "short": "Guards floor 10 (and 20 in the Abyss). The stairs stay sealed until it dies.",
+   "long": "Each dungeon's boss waits on floor 10, and again on floor 20 in the Abyss. The way down (or out) is sealed until it's dead.",
    "keys": [
     "boss"
    ]
@@ -446,6 +446,42 @@
    "long": "Each class has a mastery level (1 to 10) shared by all your characters of that class. Every run adds its XP, however it ends. Mastery decides which skills the class knows and how well it uses passive skills like parry and dodge. Levels inside a run only raise HP and damage.",
    "keys": [
     "mastery"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "Dungeons",
+   "short": "Three dungeons, 10 floors each. Clear one to open the next.",
+   "long": "Each dungeon has 10 floors with a boss on floor 10. Beat the boss to clear it: that opens the next, harder dungeon and the cleared dungeon's Abyss.",
+   "keys": [
+    "dungeon"
+   ]
+  },
+  {
+   "cat": "The run",
+   "term": "The Abyss",
+   "short": "A cleared dungeon, 20 floors deep, with better rewards below floor 10.",
+   "long": "Replay a cleared dungeon all the way down to floor 20 (bosses on 10 and 20). Floors 11-20 give better boon odds and can drop mythic items. Beating floor 20 earns that dungeon's trophy.",
+   "keys": [
+    "abyss"
+   ]
+  },
+  {
+   "cat": "Item properties",
+   "term": "Mythic",
+   "short": "Above legendary: two special powers. Only from the Abyss depths.",
+   "long": "Mythic items roll bigger numbers than legendaries and carry two special powers. They only drop on floors 11-20 of The Abyss. Bulk sell never sells them.",
+   "keys": [
+    "mythic"
+   ]
+  },
+  {
+   "cat": "Town",
+   "term": "Trophy",
+   "short": "Earned by beating a dungeon's Abyss.",
+   "long": "One trophy per dungeon, for beating floor 20 of its Abyss. Shown in town.",
+   "keys": [
+    "trophy"
    ]
   }
  ]

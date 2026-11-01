@@ -106,24 +106,6 @@
     }
    }
   },
-  "second_life": {
-   "name": "Second Life",
-   "desc": "Once per run, a killing blow leaves you at {b_revive_pct}% HP ({half} HP) instead. Each copy is one more.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "tags": [
-    "blood"
-   ],
-   "stack": true,
-   "effect": {
-    "stats": {
-     "b_revive": 1,
-     "b_revive_pct": 50
-    }
-   }
-  },
   "static_charge": {
    "name": "Static Charge",
    "desc": "Your hits have a {b_zap}% chance to zap a nearby enemy for {zap} lightning damage.",
@@ -502,25 +484,6 @@
      "b_rampage": 8
     }
    }
-  },
-  "second_wind": {
-   "name": "Second Wind",
-   "desc": "The first time you drop below 30% HP in a fight, heal 15% of your max HP. Each copy is one more heal per fight.",
-   "lines": [],
-   "refs": [
-    "hp"
-   ],
-   "tags": [
-    "fury",
-    "blood"
-   ],
-   "stack": true,
-   "effect": {
-    "stats": {
-     "b_second_wind": 15
-    }
-   },
-   "fixed_rarity": "legendary"
   },
   "executioner": {
    "name": "Executioner",
@@ -1086,9 +1049,7 @@
   }
  },
  "no_scale": [
-  "b_last_stand",
-  "b_revive",
-  "b_second_wind"
+  "b_last_stand"
  ],
  "luck_shift": {
   "common": -7,

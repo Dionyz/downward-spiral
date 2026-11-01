@@ -57,7 +57,6 @@ func begin(p: Combatant, foes: Array) -> Array:
 	player.flags["last_stand_used"] = false
 	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
-	player.flags["second_winds_used"] = 0
 	player.flags["rampage"] = 0
 	player.flags["retaliate_ready"] = false
 	player.flags["shield_hp"] = 0
@@ -286,7 +285,6 @@ func start_encounter() -> void:
 	player.flags["last_stand_used"] = false
 	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
-	player.flags["second_winds_used"] = 0
 	player.flags["rampage"] = 0
 	player.flags["retaliate_ready"] = false
 	player.flags["shield_hp"] = 0
@@ -781,12 +779,6 @@ func _on_player_hit(p: Combatant, attacker: Combatant, dealt: int, dt: String) -
 	if dt == HIT and attacker.is_alive() and not attacker.no_stun and bstat(p, "b_freeze_back") > 0 \
 			and rng.number_percent() <= bstat(p, "b_freeze_back"):
 		_freeze(p, attacker)
-	if p.is_alive() and p.hp_pct() < 30.0 and bstat(p, "b_second_wind") > 0 \
-			and int(p.flags.get("second_winds_used", 0)) < maxi(1, DSStats.idiv(bstat(p, "b_second_wind"), 15)):
-		p.flags["second_winds_used"] = int(p.flags.get("second_winds_used", 0)) + 1
-		var heal := DSStats.idiv(p.max_hp * 15, 100)
-		p.hp = mini(p.max_hp, p.hp + heal)
-		_emit({"t": "heal", "src": p.name, "dst": p.name, "amount": heal, "source": "second wind"})
 
 
 func _freeze(src: Combatant, v: Combatant) -> void:
@@ -880,11 +872,6 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": sw, "source": "second wind"})
 	if victim.hp > 0 and not victim.is_player:
 		_check_phase(victim)
-	if victim.hp <= 0 and victim.is_player and bstat(victim, "b_revive") > int(victim.flags.get("revives_used", 0)):
-		victim.flags["revives_used"] = int(victim.flags.get("revives_used", 0)) + 1
-		var pct := clampi(DSStats.idiv(bstat(victim, "b_revive_pct"), maxi(1, bstat(victim, "b_revive"))), 50, 100)
-		victim.hp = DSStats.idiv(victim.max_hp * pct, 100)
-		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": victim.hp, "source": "revive"})
 	if victim.hp <= 0 and victim.is_player and int(victim.flags.get("last_stands_used", 0)) < bstat(victim, "b_last_stand"):
 		victim.flags["last_stands_used"] = int(victim.flags.get("last_stands_used", 0)) + 1
 		victim.hp = 1

@@ -120,23 +120,25 @@ static func generate(data: DSData, rng: DSRng, floor_num: int) -> Dictionary:
 		objects.append({"type": t, "x": p.x, "y": p.y})
 	# Monsters.
 	var spawns: Array = []
-	var lvl_floor := floor_num
-	var count := int(cfg.get("monsters_base", 4)) + int(float(cfg.get("monsters_per_floor", 1.5)) * floor_num) + rng.number_range(0, 2)
-	var pool := DSEncounters.pool(data, lvl_floor, "normal")
+	var count_floor := mini(floor_num, int(cfg.get("monsters_floor_cap", 10)))
+	var count := int(cfg.get("monsters_base", 4)) + int(float(cfg.get("monsters_per_floor", 1.0)) * count_floor) + rng.number_range(0, 2)
+	var pool := DSEncounters.pool(data, data.pool_floor(floor_num), "normal")
 	for i in count:
 		var room: Dictionary = cells[rng.pick(others)]
 		var p := _random_floor(rng, room, used)
 		used[_pk(p)] = true
 		spawns.append({"id": rng.pick(pool), "x": p.x, "y": p.y})
-	var spec: Array = DSDungeonGen.FLOORS.get(floor_num, [3, 3, "fight"])
-	if spec[2] == "elite":
-		var ep := DSEncounters.pool(data, floor_num, "elite")
+	var kind := data.floor_kind(floor_num)
+	if kind == "elite":
+		var ep := DSEncounters.pool(data, data.pool_floor(floor_num), "elite")
+		if ep.is_empty():
+			ep = DSEncounters.pool(data, 4, "elite")
 		var room: Dictionary = cells[rng.pick(others)]
 		var p := _random_floor(rng, room, used)
 		used[_pk(p)] = true
 		spawns.append({"id": rng.pick(ep), "x": p.x, "y": p.y, "elite": true})
-	if spec[2] == "boss":
-		var bp := DSEncounters.pool(data, floor_num, "boss")
+	if kind == "boss":
+		var bp := DSEncounters.pool(data, 6, "boss")
 		var p := _random_floor(rng, cells[stairs_room], used)
 		used[_pk(p)] = true
 		spawns.append({"id": rng.pick(bp), "x": p.x, "y": p.y, "boss": true})
@@ -263,9 +265,9 @@ static func ambush(data: DSData, rng: DSRng, floor_num: int) -> Dictionary:
 			for x in range(x0 + RW, x0 + RW + HALL):
 				grid[2][x] = CORRIDOR
 	var cfg: Dictionary = data.balance.get("level", {})
-	var normal := int(cfg.get("monsters_base", 4)) + int(float(cfg.get("monsters_per_floor", 1.5)) * floor_num) + 1
+	var normal := int(cfg.get("monsters_base", 4)) + int(float(cfg.get("monsters_per_floor", 1.0)) * mini(floor_num, int(cfg.get("monsters_floor_cap", 10)))) + 1
 	var count := maxi(1, int(round(normal * float(cfg.get("ambush_pct", 25)) / 100.0)))
-	var pool := DSEncounters.pool(data, floor_num, "normal")
+	var pool := DSEncounters.pool(data, data.pool_floor(floor_num), "normal")
 	var used := {"1,1": true}
 	var spawns: Array = []
 	for i in count:

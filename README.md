@@ -10,7 +10,7 @@ Single-player Android roguelike: auto-exploration and rule-driven auto combat th
 | 2. Headless combat sim | Done, all four classes. |
 | 3. Rules | Done (telegraphs dropped by owner). |
 | 4. Playable text prototype | Done on desktop (Android export deferred by owner). |
-| 5. Run loop | Done: 6 Rogue-style floors (random maze levels, monsters on the map), turn combat, loot, boons, events, boss, extraction, death, save/resume. |
+| 5. Run loop | Done: 3 dungeons of 10 Rogue-style floors (plus 20-floor Abyss replays), turn combat, loot, boons, boss, extraction, death, save/resume. |
 | 6. All four classes | Done: 40 boons, boss, 1,000-run balance within 3.7 points. |
 | 7. Art and feel | Done on desktop: icons, combat stage animations, screen shake, sound, log toggle. 60 fps on Android unverified. |
 | 8. Meta-progression and polish | Done: account levels and unlocks, settings, credits, tutorial tips. |

@@ -153,13 +153,33 @@ func test_class_mastery_unlocks_skills_and_grows():
 	var p1 := r.make_player()
 	r.level = 8
 	assert_eq(r.known_actives(), known, "in-run levels no longer unlock skills")
-	r.xp_total = 1600
+	r.xp_total = 6400
 	r.end_run("death")
 	var out := DSAccount.bank_run(data, a, r)
-	assert_eq(int(out["mastery_after"]), 4, "1600 XP = mastery 4")
+	assert_eq(int(out["mastery_after"]), 4, "6400 XP = mastery 4")
 	var r2 := DSAccount.start_run(data, a, 8)
 	assert_true(r2.known_actives().has("berserk"))
 	assert_gt(r2.make_player().skill("parry"), p1.skill("parry"), "mastery raises proficiency")
 	DSAccount.create_character(data, a, "Bo", "warrior", "dwarf")
 	assert_eq(DSMeta.mastery_level(data, a, "warrior"), 4, "mastery is shared by the class")
 	assert_eq(DSMeta.mastery_level(data, a, "mage"), 1)
+
+
+func test_dungeons_unlock_in_order_and_abyss_trophy():
+	var a := DSAccount.fresh()
+	DSAccount.create_character(data, a, "Ash", "warrior", "human")
+	assert_true(DSAccount.dungeon_unlocked(data, a, "spiral"))
+	assert_false(DSAccount.dungeon_unlocked(data, a, "deep_spiral"))
+	assert_null(DSAccount.start_run(data, a, 3, "deep_spiral"), "locked")
+	assert_null(DSAccount.start_run(data, a, 3, "spiral", true), "no Abyss before clearing")
+	var r := DSAccount.start_run(data, a, 3, "spiral")
+	r.end_run("victory")
+	var out := DSAccount.bank_run(data, a, r)
+	assert_eq(out.get("unlocked", ""), "deep_spiral")
+	assert_true(DSAccount.dungeon_unlocked(data, a, "deep_spiral"))
+	var ab := DSAccount.start_run(data, a, 4, "spiral", true)
+	assert_true(ab.abyss)
+	ab.end_run("victory")
+	var out2 := DSAccount.bank_run(data, a, ab)
+	assert_eq(out2.get("trophy", ""), "spiral")
+	assert_true(a["abyss_cleared"].has("spiral"))

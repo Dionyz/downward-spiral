@@ -189,6 +189,14 @@
    "affixes": 2,
    "passive": true,
    "color": "#ff9a2e"
+  },
+  "mythic": {
+   "weight": 0,
+   "mult": 1.6,
+   "affixes": 3,
+   "passive": true,
+   "passives": 2,
+   "color": "#ff3d6e"
   }
  },
  "rarity_order": [
@@ -196,7 +204,8 @@
   "uncommon",
   "rare",
   "epic",
-  "legendary"
+  "legendary",
+  "mythic"
  ],
  "affixes": {
   "keen": {

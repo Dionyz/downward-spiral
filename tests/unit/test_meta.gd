@@ -14,7 +14,7 @@ func test_everything_unlocked_from_the_start():
 	assert_eq(p["classes"].size(), 4)
 	var r := DSRunState.new_run(data, "warrior", 1, p)
 	assert_true(r.available_boons().has("executioner"), "every boon open")
-	assert_true(r.available_boons().has("second_life"), "tier-3 boons open")
+	assert_true(r.available_boons().has("last_stand"), "tier-3 boons open")
 
 
 func test_power_ups_change_the_player():

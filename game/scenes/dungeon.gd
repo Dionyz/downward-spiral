@@ -256,7 +256,7 @@ func _refresh() -> void:
 		return
 	var p := run.world.player
 	var L: Dictionary = run.data.classes.get(run.line, {})
-	header.text = "Floor %d/%d · %s lv %d · Gold %d" % [run.floor_num, DSRunState.FLOORS, str(L.get("display", run.line)), run.level, run.gold]
+	header.text = "%s%s · Floor %d/%d · Lv %d · Gold %d" % [run.dungeon_name(), " Abyss" if run.abyss else "", run.floor_num, run.floors(), run.level, run.gold]
 	hp_bar.max_value = p.max_hp
 	hp_bar.value = p.hp
 	mana_bar.visible = p.max_mana > 0

@@ -5,13 +5,13 @@ extends RefCounted
 ## immediately if the hint was already seen), so callers can pause timers meanwhile.
 
 const TEXT := {
-	"welcome": ["Welcome to the Spiral", "Six floors down, a boss at the bottom. Your character explores and fights on its own; you pick its boons and drink its potions.
+	"welcome": ["Welcome to the Spiral", "Ten floors down, a boss at the bottom. Beat it to open the next dungeon, and that dungeon's 20-floor Abyss. Your character explores and fights on its own; you pick its boons and drink its potions.
 
 Make a character: every class and race is open. You can have up to 10."],
 	"dungeon": ["The floor", "Each floor is a fresh maze. Your character explores it on its own, picks up loot, opens chests and fights whatever wakes up, turn by turn, using its whole kit.\n\nYou drink the potions: tap Potion when things get rough. Tap the log to read the full blow-by-blow. Gear opens your bag."],
 	"boon": ["Boons", "Level-ups and elite kills each grant a boon: pick one of three. Boons last the rest of the run; some stack, so taking one again ranks it up.\n\nSkip, Reroll and Banish are limited per run. Buy more between runs under Upgrades with the gold you bring home."],
 	"event": ["Something strange", "Events are gambles. Read carefully: some choices cost HP or gold, some pay off."],
-	"floor_end": ["Descend or extract", "From floor 2 on you can extract: you keep your gold and bring home everything you carry. Dying loses all of it, including the gear you brought."],
+	"floor_end": ["Descend or extract", "Press Extract any time to head back out with your gold and everything you carry. Dying loses all of it, including the gear you brought."],
 	"run_end": ["Back to town", "Gold and loot you bring home stay with you. Every run, win or lose, also adds to your class mastery, which unlocks that class's skills.
 
 In town, equip characters from the shared stash, buy and sell gear, and spend gold on power-ups at the Trainer."],

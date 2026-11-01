@@ -4,7 +4,7 @@ extends Control
 ## Trainer (power-ups), and the Spiral Gate to start a run.
 
 const NPCS := [
-	["gate", "The Spiral Gate", "Descend with your current character.", "town_gate", "#d6a64f"],
+	["gate", "The Spiral Gate", "Choose a dungeon (or its Abyss) and descend.", "town_gate", "#d6a64f"],
 	["inn", "The Innkeeper", "Your characters: switch, create (up to 10) or retire.", "town_inn", "#ff9a2e"],
 	["stash", "The Stash", "Shared storage. Equip your character, sell in bulk.", "town_stash", "#7fc8a9"],
 	["shop", "The Quartermaster", "Sells gear (sell yours at the Stash). New stock after every run.", "town_shop", "#5f9fd3"],
@@ -24,6 +24,13 @@ func _ready() -> void:
 	top.add_child(UI.label(" %d gold" % int(Game.account.get("gold", 0)), 22, UI.ACCENT, false))
 	v.add_child(top)
 	v.add_child(_character_card())
+	var trophies: Array = Game.account.get("abyss_cleared", [])
+	if not trophies.is_empty():
+		var tr := HBoxContainer.new()
+		tr.add_theme_constant_override("separation", 14)
+		for id in trophies:
+			tr.add_child(Tip.attach(UI.tag("town_trophy", str(Game.data.dungeon(str(id)).get("name", id)), 16, Color("#ffd24a")), "trophy"))
+		v.add_child(tr)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -47,7 +54,7 @@ func _ready() -> void:
 	Hint.show(self, "town")
 	if Game.autoplay != "":
 		print("[autoplay] town")
-		Game.auto_next("town", _descend)
+		Game.auto_next("town", _descend)   # autoplay: straight into the first dungeon
 	elif not has_char:
 		Game.goto.call_deferred("create")
 
@@ -126,7 +133,7 @@ func _npc(n: Array, enabled: bool) -> Button:
 func _visit(id: String) -> void:
 	match id:
 		"gate":
-			_descend()
+			Game.goto("gate")
 		"inn":
 			Game.goto("characters")
 		"stash":

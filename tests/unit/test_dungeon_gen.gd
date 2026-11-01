@@ -31,9 +31,9 @@ func test_levels_hold_over_1000_seeds():
 				bad.append("%s: monster on start" % tag)
 			elites += 1 if sp.get("elite", false) else 0
 			bosses += 1 if sp.get("boss", false) else 0
-		if fl in [2, 4] and elites != 1:
+		if fl in [3, 6, 9, 13, 16, 19] and elites != 1:
 			bad.append("%s: %d elites" % [tag, elites])
-		if fl == 6 and bosses != 1:
+		if fl in [10, 20] and bosses != 1:
 			bad.append("%s: %d bosses" % [tag, bosses])
 		if lv["rooms"].size() < 6:
 			bad.append("%s: only %d rooms" % [tag, lv["rooms"].size()])

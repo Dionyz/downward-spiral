@@ -140,9 +140,11 @@ static func compare_lines(data: DSData, it: Dictionary, equipped) -> Array:
 		for f in equipped.get("flags", []):
 			if not it.get("flags", []).has(f):
 				out.append({"text": "no %s" % str(f).capitalize(), "color": Color("#ff8c7a")})
-	if it.has("passive"):
-		var lp: Dictionary = data.items.get("legendary_passives", {}).get(it["passive"], {})
-		out.append({"text": "%s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e"), "wide": true, "icon": "ui_star", "tip": "legendary"})
+	for pk in ["passive", "passive2"]:
+		if it.has(pk):
+			var lp: Dictionary = data.items.get("legendary_passives", {}).get(it[pk], {})
+			out.append({"text": "%s: %s" % [lp.get("name", it[pk]), lp.get("desc", "")], "color": rarity_color(data, str(it.get("rarity", "legendary"))),
+				"wide": true, "icon": "ui_star", "tip": "mythic" if str(it.get("rarity", "")) == "mythic" else "legendary"})
 	return out
 
 

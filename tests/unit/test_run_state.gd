@@ -350,7 +350,7 @@ func test_pure_upgrade_detection():
 
 func test_boss_seals_the_stairs():
 	var r := DSRunState.new_run(data, "warrior", 3)
-	r.floor_num = 6
+	r.floor_num = 10
 	r._new_floor()
 	assert_true(r.world.stairs_sealed())
 	r.world.heading_down = true
@@ -468,7 +468,6 @@ func test_boon_rarities_scale_stats():
 	assert_true(r.boon_desc("vampiric_edge", "legendary").contains("15%"))
 	r.add_boon("last_stand", "common")
 	assert_eq(r.boon_rarity.back(), "legendary", "last stand is always legendary")
-	assert_eq(r.roll_boon_rarity("second_wind"), "legendary")
 	assert_eq(r.roll_boon_rarity("twin_throw"), "common", "on/off boons have no rarity")
 	var r2 := DSRunState.from_dict(data, JSON.parse_string(JSON.stringify(r.to_dict())))
 	assert_eq(r2.boon_rarity, r.boon_rarity)
@@ -498,3 +497,42 @@ func test_last_stand_once_per_copy_per_run():
 	p.hp = 5
 	r.world.sim.apply_damage(null, p, 99999, "hit", "none", false)
 	assert_false(p.is_alive(), "a new fight doesn't reset it")
+
+
+func test_ten_floors_and_level_scaling():
+	var r := DSRunState.new_run(data, "warrior", 4)
+	assert_eq(r.floors(), 10)
+	var a := DSRunState.new_run(data, "warrior", 4, {}, "human", {}, "spiral", true)
+	assert_eq(a.floors(), 20)
+	assert_eq(data.floor_kind(10), "boss")
+	assert_eq(data.floor_kind(20), "boss")
+	assert_eq(data.floor_kind(6), "elite")
+	assert_gt(data.monster_level_at("deep_spiral", 1), data.monster_level_at("spiral", 1))
+	assert_gt(data.monster_level_at("spiral", 20), data.monster_level_at("spiral", 10))
+
+
+func test_abyss_floor_ten_boss_continues_down():
+	var r := DSRunState.new_run(data, "warrior", 4, {}, "human", {}, "spiral", true)
+	r.floor_num = 10
+	r.world.pending = {"kind": "stairs"}
+	r.tick()
+	assert_eq(r.phase, "floor_end", "the Abyss goes on past floor 10")
+	var n := DSRunState.new_run(data, "warrior", 4)
+	n.floor_num = 10
+	n.world.pending = {"kind": "stairs"}
+	n.tick()
+	assert_eq(n.result, "victory")
+
+
+func test_mythic_items_only_in_the_abyss_depths():
+	var r := DSRunState.new_run(data, "warrior", 4, {}, "human", {}, "spiral", true)
+	r.floor_num = 5
+	assert_eq(r._maybe_mythic("boss"), [])
+	r.floor_num = 12
+	var got: Array = r._maybe_mythic("boss")
+	assert_eq(got.size(), 1)
+	assert_eq(got[0]["rarity"], "mythic")
+	assert_true(got[0].has("passive") and got[0].has("passive2"), "two powers")
+	var rng := DSRng.new(5)
+	for i in 300:
+		assert_ne(DSLoot.roll_rarity(data, rng, 0.5), "mythic", "never from normal drops")

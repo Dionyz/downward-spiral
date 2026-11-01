@@ -29,6 +29,16 @@ func _ready() -> void:
 		var s := UI.label(l, 20, UI.DIM)
 		s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(s)
+	if str(bank.get("unlocked", "")) != "":
+		var ul := UI.label("New dungeon open: %s!" % str(Game.data.dungeon(str(bank["unlocked"])).get("name", "")), 26, UI.ACCENT)
+		ul.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(ul)
+	if run.result == "victory" and not run.abyss:
+		var ab := UI.label("The Abyss below %s is open: 20 floors, mythic items." % run.dungeon_name(), 18, Color("#ff3d6e"))
+		ab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(ab)
+	if str(bank.get("trophy", "")) != "":
+		v.add_child(UI.tag("town_trophy", "Trophy: %s Abyss cleared!" % run.dungeon_name(), 24, Color("#ffd24a")))
 	if int(bank.get("mastery_after", 0)) > int(bank.get("mastery_before", 0)):
 		Game.sfx("level_up")
 		var up := UI.label("%s mastery %d! New skills may be unlocked: check Skills." % [str(L.get("display", run.line)), int(bank["mastery_after"])], 24, UI.ACCENT)

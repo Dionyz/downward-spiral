@@ -3,7 +3,7 @@ extends RefCounted
 ## Loads game/data/*.json and deep-merges game/data/overrides/<same name>.json on top.
 ## Pure logic: FileAccess only, no Nodes. Tests can also build one from dictionaries.
 
-const FILES := ["classes", "abilities", "items", "monsters", "boons", "events", "rooms", "meta", "balance", "races", "skills", "glossary"]
+const FILES := ["classes", "abilities", "items", "monsters", "boons", "events", "rooms", "meta", "balance", "races", "skills", "glossary", "dungeons"]
 
 var classes: Dictionary = {}     # line id -> line dict
 var abilities: Dictionary = {}   # ability name -> ability dict
@@ -13,7 +13,8 @@ var boons: Dictionary = {}       # boon id -> boon dict
 var races: Dictionary = {}       # race id -> race dict
 var glossary: Array = []          # [{cat, term, short, long, keys}]
 var families: Dictionary = {}
-var boons_meta: Dictionary = {}    # boons.json top level (rarities, no_scale, luck_shift)    # boon family id -> {name, color, desc, tiers}
+var boons_meta: Dictionary = {}
+var dungeons: Dictionary = {}      # dungeons.json (list, floors, elite/boss floors, abyss rules)    # boons.json top level (rarities, no_scale, luck_shift)    # boon family id -> {name, color, desc, tiers}
 var skills: Dictionary = {}      # skill name -> player-facing description
 var events: Dictionary = {}    # event id -> event dict
 var rooms: Dictionary = {}     # room text templates
@@ -50,6 +51,7 @@ func apply(raw: Dictionary) -> void:
 	boons = raw.get("boons", {}).get("boons", {})
 	families = raw.get("boons", {}).get("families", {})
 	boons_meta = raw.get("boons", {})
+	dungeons = raw.get("dungeons", {})
 	races = raw.get("races", {}).get("races", {})
 	skills = raw.get("skills", {}).get("skills", {})
 	glossary = raw.get("glossary", {}).get("entries", [])
@@ -134,3 +136,44 @@ static func deep_merge(base, over):
 
 func boon_rarities() -> Dictionary:
 	return boons_meta.get("rarities", {"common": {"mult": 1.0, "weight": 1}})
+
+
+# --- dungeons -----------------------------------------------------------------------
+
+func dungeon_list() -> Array:
+	return dungeons.get("dungeons", [{"id": "spiral", "name": "The Spiral", "level_offset": 0}])
+
+
+func dungeon(id: String) -> Dictionary:
+	for d in dungeon_list():
+		if d["id"] == id:
+			return d
+	return dungeon_list()[0]
+
+
+func dungeon_index(id: String) -> int:
+	var l := dungeon_list()
+	for i in l.size():
+		if l[i]["id"] == id:
+			return i
+	return 0
+
+
+## "boss", "elite" or "fight" for a floor number.
+func floor_kind(floor_num: int) -> String:
+	if dungeons.get("boss_floors", [10, 20]).map(func(x): return int(x)).has(floor_num):
+		return "boss"
+	if dungeons.get("elite_floors", [3, 6, 9]).map(func(x): return int(x)).has(floor_num):
+		return "elite"
+	return "fight"
+
+
+## Which monster roster (monsters.json "floors" 1-6) a floor draws from.
+func pool_floor(floor_num: int) -> int:
+	return clampi(ceili(floor_num * 0.6), 1, 6)
+
+
+## Monster level on `floor_num` of dungeon `id` (bosses get boss_level_bonus on top).
+func monster_level_at(id: String, floor_num: int) -> int:
+	var d := dungeon(id)
+	return int(d.get("level_offset", 0)) + 1 + int(round((floor_num - 1) * float(dungeons.get("level_per_floor", 0.9))))

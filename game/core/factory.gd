@@ -60,6 +60,8 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 		apply_item_stats(c, item)
 		if item.has("passive"):
 			passives.append(item["passive"])
+		if item.has("passive2"):
+			passives.append(item["passive2"])
 	c.flags["passives"] = passives
 	if passives.has("quickened"):
 		c.add_status("haste", -1)

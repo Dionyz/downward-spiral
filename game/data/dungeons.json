@@ -1,0 +1,45 @@
+{
+ "_note": "Dungeons unlock in order: clear one (beat its floor-10 boss) to open the next. A cleared dungeon can be replayed as The Abyss: floors 1-20, bosses on 10 and 20, better boon odds and mythic items on floors 11-20, and a trophy for beating floor 20. Monsters reuse the same roster at higher levels: monster level = level_offset + 1 + (floor - 1) * level_per_floor.",
+ "dungeons": [
+  {
+   "id": "spiral",
+   "name": "The Spiral",
+   "level_offset": 0
+  },
+  {
+   "id": "deep_spiral",
+   "name": "The Deep Spiral",
+   "level_offset": 6
+  },
+  {
+   "id": "black_spiral",
+   "name": "The Black Spiral",
+   "level_offset": 12
+  }
+ ],
+ "floors": 10,
+ "abyss_floors": 20,
+ "level_per_floor": 0.9,
+ "boss_level_bonus": 1,
+ "elite_floors": [
+  3,
+  6,
+  9,
+  13,
+  16,
+  19
+ ],
+ "boss_floors": [
+  10,
+  20
+ ],
+ "abyss": {
+  "boon_luck": 3,
+  "mythic_pct": {
+   "normal": 1,
+   "elite": 15,
+   "boss": 100,
+   "chest": 6
+  }
+ }
+}

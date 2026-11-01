@@ -11,7 +11,7 @@ extends RefCounted
 ##   "floor_end" standing on the stairs: descend() or extract() (extract from floor 2 on)
 ##   "over"      run ended; result is "death", "extract" or "victory"
 
-const FLOORS := 6
+const FLOORS := 10                 # floors in a normal dungeon run (The Abyss: 20, see floors())
 const SLOTS := ["weapon", "armor", "trinket"]
 const INVENTORY_MAX := 500
 
@@ -20,6 +20,8 @@ var rng: DSRng
 var seed_value: int = 1
 var line: String = "warrior"
 var race: String = "human"
+var dungeon: String = "spiral"   # dungeons.json id
+var abyss := false               # The Abyss: floors 1-20 of a cleared dungeon
 var skill_order: Array = []   # Skills screen priority (skill names); empty = class default
 var skill_off: Array = []     # skills switched off
 var start_loadout := {}       # gear the character brought in (kept by the one-time rescue)
@@ -60,9 +62,11 @@ var banished: Array = []      # boons banished from the pool this run
 ## `p_perks` = DSMeta.perks(...) for the player's account; omitted = everything unlocked, no bonuses.
 ## `p_race` = race id (races.json); `p_loadout` = gear the character brings ({weapon, armor, trinket}).
 static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictionary = {}, p_race: String = "human",
-		p_loadout: Dictionary = {}) -> DSRunState:
+		p_loadout: Dictionary = {}, p_dungeon: String = "spiral", p_abyss: bool = false) -> DSRunState:
 	var r := DSRunState.new()
 	r.data = p_data
+	r.dungeon = p_data.dungeon(p_dungeon)["id"]
+	r.abyss = p_abyss
 	r.race = p_race if p_data.races.has(p_race) else "human"
 	r.perks = p_perks.duplicate(true) if not p_perks.is_empty() else DSMeta.all_unlocked(p_data)
 	r.mastery = int(r.perks.get("mastery", 10))
@@ -86,7 +90,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 func to_dict() -> Dictionary:
 	_sync_from_world()
 	return {
-		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "start_loadout": start_loadout.duplicate(true),
+		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "dungeon": dungeon, "abyss": abyss, "start_loadout": start_loadout.duplicate(true),
 		"skill_order": skill_order.duplicate(), "skill_off": skill_off.duplicate(), "level": level, "mastery": mastery, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(), "boon_rarity": boon_rarity.duplicate(), "offer_rarity": offer_rarity.duplicate(),
@@ -106,6 +110,8 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.rng.load_state(int(d.get("rng", 1)))
 	r.line = str(d.get("line", "warrior"))
 	r.race = str(d.get("race", "human"))
+	r.dungeon = str(d.get("dungeon", "spiral"))
+	r.abyss = bool(d.get("abyss", false))
 	r.start_loadout = _normalize(d.get("start_loadout", {}))
 	r.skill_order = d.get("skill_order", [])
 	r.skill_off = d.get("skill_off", [])
@@ -169,7 +175,7 @@ func tick() -> Array:
 		end_run("death")
 	elif p.get("kind", "") == "stairs":
 		world.pending = {}
-		if floor_num >= FLOORS:
+		if floor_num >= floors():
 			end_run("victory")
 		else:
 			phase = "floor_end"
@@ -295,6 +301,7 @@ func on_kill(c: Combatant, elite: bool, boss: bool) -> Array:
 	var drops: Array = []
 	if elite or rng.number_percent() <= int(cfg.get("loot_drop_pct", 25)):
 		drops.append_array(_fight_loot(elite))
+	drops.append_array(_maybe_mythic(kind))
 	var pchance := int(cfg.get("potion_drop_pct_elite", 50)) if elite else int(cfg.get("potion_drop_pct", 8))
 	if rng.number_percent() <= pchance:
 		var kp := "mp" if _has_mana() and rng.number_percent() <= 35 else "hp"
@@ -349,6 +356,7 @@ func open_chest() -> Array:
 	var found: Array = []
 	for i in int(_cfg().get("treasure_items", 3)):
 		found.append(_roll_item("uncommon" if i == 0 else ""))
+	found.append_array(_maybe_mythic("chest"))
 	var got := gain_items(found)
 	_sync_to_world()
 	return got
@@ -491,12 +499,36 @@ func known_actives() -> Array:
 
 
 func monster_level() -> int:
-	var fl: Dictionary = _cfg().get("floor_monster_level", {})
-	return int(fl.get(str(floor_num), floor_num))
+	return data.monster_level_at(dungeon, floor_num)
+
+
+## Floors in this run: 10, or 20 in The Abyss.
+func floors() -> int:
+	return int(data.dungeons.get("abyss_floors", 20)) if abyss else int(data.dungeons.get("floors", FLOORS))
+
+
+## Floors 11-20 of The Abyss: better boons and mythic drops.
+func in_abyss_depths() -> bool:
+	return abyss and floor_num > int(data.dungeons.get("floors", FLOORS))
+
+
+func dungeon_name() -> String:
+	return str(data.dungeon(dungeon).get("name", "The Spiral"))
 
 
 func item_level() -> int:
-	return clampi(monster_level(), 1, 10)
+	return clampi(monster_level(), 1, 40)
+
+
+## Mythic items: only in the Abyss depths. `kind` = normal / elite / boss / chest.
+func _maybe_mythic(kind: String) -> Array:
+	if not in_abyss_depths():
+		return []
+	var pct := float(data.dungeons.get("abyss", {}).get("mythic_pct", {}).get(kind, 0))
+	if rng.number_range(1, 1000) <= int(pct * 10.0):
+		messages.append("A mythic item!")
+		return [_roll_item("mythic")]
+	return []
 
 
 ## Put `item` in its slot. Whatever was there goes back into the inventory.
@@ -570,9 +602,11 @@ static func is_pure_upgrade(it: Dictionary, eq) -> bool:
 	for f in eq.get("flags", []):
 		if not it.get("flags", []).has(f):
 			return false
-	if eq.has("passive") and str(it.get("passive", "")) != str(eq["passive"]):
-		return false
-	if it.has("passive") and not eq.has("passive"):
+	var have := [it.get("passive", ""), it.get("passive2", "")]
+	for pk in ["passive", "passive2"]:
+		if eq.has(pk) and not have.has(eq[pk]):
+			return false
+	if (it.has("passive") and not eq.has("passive")) or (it.has("passive2") and not eq.has("passive2")):
 		better = true
 	for f in it.get("flags", []):
 		if not eq.get("flags", []).has(f):
@@ -673,6 +707,8 @@ func roll_boon_rarity(id: String) -> String:
 	var rar: Dictionary = data.boon_rarities()
 	var shift: Dictionary = data.boons_meta.get("luck_shift", {})
 	var luck := int(perks.get("boon_luck", 0))
+	if in_abyss_depths():
+		luck += int(data.dungeons.get("abyss", {}).get("boon_luck", 3))
 	var weights := {}
 	var total := 0.0
 	for k in rar.keys():
@@ -759,7 +795,7 @@ func add_xp(amount: int) -> int:
 	xp += amount
 	xp_total += amount
 	var gained := 0
-	while level < 10 and xp >= xp_to_next():
+	while level < 40 and xp >= xp_to_next():
 		xp -= xp_to_next()
 		var before := make_player()
 		level += 1
@@ -770,7 +806,7 @@ func add_xp(amount: int) -> int:
 		if mana >= 0:
 			mana += after.max_mana - before.max_mana
 		messages.append("Level %d!" % level)
-	if level >= 10:
+	if level >= 40:
 		xp = 0
 	return gained
 
