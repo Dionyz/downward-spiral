@@ -175,10 +175,9 @@
   {
    "cat": "Item properties",
    "term": "Legendary power",
-   "short": "The ★ line on a legendary item.",
-   "long": "Legendary items carry a special power (the ★ line). Bulk sell never sells legendaries.",
+   "short": "The star line on a legendary item.",
+   "long": "Legendary items carry a special power (the line marked with a star). Bulk sell never sells legendaries.",
    "keys": [
-    "★",
     "legendary"
    ]
   },
@@ -195,7 +194,7 @@
    "cat": "Item properties",
    "term": "Rarity",
    "short": "Common, uncommon, rare, epic, legendary.",
-   "long": "Rarer items have bigger numbers and more extra properties: common (grey), uncommon (green), rare (blue), epic (purple), legendary (orange, with a ★ power).",
+   "long": "Rarer items have bigger numbers and more extra properties: common (grey), uncommon (green), rare (blue), epic (purple), legendary (orange, with a special power).",
    "keys": [
     "common",
     "uncommon",
@@ -205,12 +204,11 @@
   },
   {
    "cat": "Item properties",
-   "term": "Upgrade ▲",
+   "term": "Upgrade",
    "short": "Better than what you wear in every way.",
-   "long": "▲ marks an item that beats what you have equipped in every stat and loses nothing. Items that are better in one way but worse in another don't get it.",
+   "long": "The green upgrade arrow marks an item that beats what you have equipped in every stat and loses nothing. Items that are better in one way but worse in another don't get it.",
    "keys": [
-    "upgrade",
-    "▲"
+    "upgrade"
    ]
   },
   {
@@ -439,6 +437,15 @@
    "keys": [
     "quartermaster",
     "shop"
+   ]
+  },
+  {
+   "cat": "Town",
+   "term": "Class mastery",
+   "short": "Grows with every run of a class; unlocks its skills.",
+   "long": "Each class has a mastery level (1 to 10) shared by all your characters of that class. Every run adds its XP, however it ends. Mastery decides which skills the class knows and how well it uses passive skills like parry and dodge. Levels inside a run only raise HP and damage.",
+   "keys": [
+    "mastery"
    ]
   }
  ]

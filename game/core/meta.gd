@@ -4,7 +4,7 @@ extends RefCounted
 ## No account levels: every class, race and boon is open from the start. perks() is what a new
 ## run gets from the account.
 
-const UPGRADES := ["skip", "reroll", "banish", "vitality", "might", "provisions"]
+const UPGRADES := ["skip", "reroll", "banish", "vitality", "might", "provisions", "fortune"]
 const CHARGES := ["skip", "reroll", "banish"]
 
 
@@ -47,13 +47,37 @@ static func charges(data: DSData, account: Dictionary, race: String = "") -> Dic
 	return out
 
 
-## What a new run starts with: power-up bonuses and charges. Everything is unlocked.
-static func perks(data: DSData, account: Dictionary = {}, race: String = "") -> Dictionary:
+## Class mastery: per class, account-wide. Level 1-10 from total class XP (meta.json mastery_xp).
+static func mastery_xp(account: Dictionary, line: String) -> int:
+	return int(account.get("mastery", {}).get(line, 0))
+
+
+static func mastery_level(data: DSData, account: Dictionary, line: String) -> int:
+	var th: Array = data.meta.get("mastery_xp", [0])
+	var xp := mastery_xp(account, line)
+	var lvl := 1
+	for i in th.size():
+		if xp >= int(th[i]):
+			lvl = i + 1
+	return lvl
+
+
+## XP needed for the next mastery level, or -1 at max.
+static func mastery_next(data: DSData, level: int) -> int:
+	var th: Array = data.meta.get("mastery_xp", [0])
+	return int(th[level]) if level < th.size() else -1
+
+
+## What a new run starts with: power-up bonuses, charges, and the class's mastery.
+## No `line` (tests, balance): full mastery.
+static func perks(data: DSData, account: Dictionary = {}, race: String = "", line: String = "") -> Dictionary:
 	var ups: Dictionary = data.meta.get("upgrades", {})
 	return {"classes": data.classes.keys(), "boon_tier": 99, "legendary_tier": 99,
 		"hp_pct": owned(account, "vitality") * int(ups.get("vitality", {}).get("per", 4)),
 		"damage_pct": owned(account, "might") * int(ups.get("might", {}).get("per", 4)),
 		"potions": owned(account, "provisions"),
+		"boon_luck": owned(account, "fortune"),
+		"mastery": mastery_level(data, account, line) if line != "" else 10,
 		"charges": charges(data, account, race)}
 
 

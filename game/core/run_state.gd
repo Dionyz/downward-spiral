@@ -24,6 +24,7 @@ var skill_order: Array = []   # Skills screen priority (skill names); empty = cl
 var skill_off: Array = []     # skills switched off
 var start_loadout := {}       # gear the character brought in (kept by the one-time rescue)
 var level: int = 1
+var mastery: int = 10         # class mastery this run started with: decides the skills known
 var xp: int = 0               # toward next level
 var xp_total: int = 0         # earned this run (converted to account XP at the end)
 var gold: int = 0
@@ -33,6 +34,8 @@ var potions := {"hp": 3, "mp": 2}
 var items := {"weapon": null, "armor": null, "trinket": null}   # equipped, one per slot
 var inventory: Array = []     # everything else you carry (max INVENTORY_MAX)
 var boons: Array = []
+var boon_rarity: Array = []   # rarity of each copy in `boons` (same order)
+var offer_rarity: Array = []  # rarity of each boon on offer
 var floor_num: int = 1
 var world: DSWorld
 var phase: String = "explore"
@@ -62,6 +65,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 	r.data = p_data
 	r.race = p_race if p_data.races.has(p_race) else "human"
 	r.perks = p_perks.duplicate(true) if not p_perks.is_empty() else DSMeta.all_unlocked(p_data)
+	r.mastery = int(r.perks.get("mastery", 10))
 	r.seed_value = p_seed
 	r.rng = DSRng.new(p_seed)
 	r.line = p_line
@@ -83,9 +87,9 @@ func to_dict() -> Dictionary:
 	_sync_from_world()
 	return {
 		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "start_loadout": start_loadout.duplicate(true),
-		"skill_order": skill_order.duplicate(), "skill_off": skill_off.duplicate(), "level": level, "xp": xp,
+		"skill_order": skill_order.duplicate(), "skill_off": skill_off.duplicate(), "level": level, "mastery": mastery, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
-		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
+		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(), "boon_rarity": boon_rarity.duplicate(), "offer_rarity": offer_rarity.duplicate(),
 		"floor_num": floor_num, "world": world.to_dict() if world != null else {}, "phase": phase,
 		"offer": offer.duplicate(), "offer_source": offer_source, "pending_boons": pending_boons,
 		"event_id": event_id, "event_outcome": event_outcome.duplicate(), "result": result,
@@ -106,6 +110,7 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.skill_order = d.get("skill_order", [])
 	r.skill_off = d.get("skill_off", [])
 	r.level = int(d.get("level", 1))
+	r.mastery = int(d.get("mastery", 10))
 	r.xp = int(d.get("xp", 0))
 	r.xp_total = int(d.get("xp_total", 0))
 	r.gold = int(d.get("gold", 0))
@@ -115,6 +120,10 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.items = _normalize(d.get("items", r.items))
 	r.inventory = _normalize(d.get("inventory", []))
 	r.boons = _normalize(d.get("boons", []))
+	r.boon_rarity = d.get("boon_rarity", [])
+	while r.boon_rarity.size() < r.boons.size():
+		r.boon_rarity.append("common")
+	r.offer_rarity = d.get("offer_rarity", [])
 	r.floor_num = int(d.get("floor_num", 1))
 	r.phase = str(d.get("phase", "explore"))
 	r.offer = _normalize(d.get("offer", []))
@@ -188,6 +197,7 @@ func tick() -> Array:
 
 func _open_offer(source: String) -> void:
 	offer = _boon_offers(3).map(func(o): return o["id"])
+	offer_rarity = offer.map(func(id): return roll_boon_rarity(str(id)))
 	offer_source = source
 	if offer.is_empty():
 		phase = "explore"
@@ -201,6 +211,7 @@ func _sync_from_world() -> void:
 		hp = world.player.hp
 		mana = world.player.mana
 		stats["revives"] = int(world.player.flags.get("revives_used", 0))
+		stats["last_stands"] = int(world.player.flags.get("last_stands_used", 0))
 
 
 func _sync_to_world() -> void:
@@ -211,7 +222,7 @@ func _sync_to_world() -> void:
 func take_boon(i: int) -> void:
 	if phase != "boon" or i < 0 or i >= offer.size():
 		return
-	add_boon(str(offer[i]))
+	add_boon(str(offer[i]), str(offer_rarity[i]) if i < offer_rarity.size() else "common")
 	_close_offer()
 
 
@@ -235,6 +246,7 @@ func reroll_boons() -> bool:
 	rng.shuffle(pool)
 	var n := offer.size()
 	offer = pool.slice(0, n)
+	offer_rarity = offer.map(func(id): return roll_boon_rarity(str(id)))
 	return true
 
 
@@ -247,8 +259,10 @@ func banish_boon(i: int) -> bool:
 	var pool := available_boons().filter(func(id): return not offer.has(id))
 	if pool.is_empty():
 		offer.remove_at(i)
+		offer_rarity.remove_at(i)
 	else:
 		offer[i] = rng.pick(pool)
+		offer_rarity[i] = roll_boon_rarity(str(offer[i]))
 	if offer.is_empty():
 		_close_offer()
 	return true
@@ -256,6 +270,7 @@ func banish_boon(i: int) -> bool:
 
 func _close_offer() -> void:
 	offer = []
+	offer_rarity = []
 	offer_source = ""
 	phase = "explore"
 	_sync_to_world()
@@ -387,6 +402,12 @@ func request_extract() -> void:
 		world.extracting = true
 
 
+## Changed your mind: stop walking back and explore as normal.
+func cancel_extract() -> void:
+	if world != null:
+		world.extracting = false
+
+
 ## At the entrance. `attempt` = false: back to exploring. true: 80% (balance.run.ambush_pct)
 ## of the time an ambush floor must be cleared first; otherwise the run ends extracted.
 ## Never more than one ambush per extraction.
@@ -440,7 +461,7 @@ func _has_mana() -> bool:
 ## A fresh Combatant reflecting the run: level, gear, boons, current HP/mana.
 ## The character carries every ability it knows and fights by its class's built-in priorities.
 func make_player() -> Combatant:
-	var opts := {"rules": DSFactory.class_ai(data, line, tier(), level, skill_order, skill_off), "actives": known_actives(), "weapon": items["weapon"],
+	var opts := {"rules": DSFactory.class_ai(data, line, tier(), mastery, skill_order, skill_off), "skill_level": mastery, "actives": known_actives(), "weapon": items["weapon"],
 		"meta_hp_pct": int(perks.get("hp_pct", 0)), "meta_damage_pct": int(perks.get("damage_pct", 0))}
 	if items["armor"] != null:
 		opts["armor"] = items["armor"]
@@ -448,8 +469,9 @@ func make_player() -> Combatant:
 		opts["trinket"] = items["trinket"]
 	var p := DSFactory.make_player(data, line, tier(), level, opts)
 	DSFactory.apply_race(data, p, race)
-	DSFactory.apply_boons(data, p, boons)
+	DSFactory.apply_boons(data, p, boons, boon_rarity)
 	p.flags["revives_used"] = int(stats.get("revives", 0))
+	p.flags["last_stands_used"] = int(stats.get("last_stands", 0))
 	if hp >= 0:
 		p.hp = clampi(hp, 1, p.max_hp)
 	if mana >= 0:
@@ -463,9 +485,9 @@ func tier() -> int:
 	return int(data.balance.get("unlock_tier", 3))
 
 
-## Every active the character knows at its level (all are used in fights).
+## Every active the character knows at its class mastery (all are used in fights).
 func known_actives() -> Array:
-	return data.kit_abilities(line, tier(), level, "active")
+	return data.kit_abilities(line, tier(), mastery, "active")
 
 
 func monster_level() -> int:
@@ -597,29 +619,34 @@ func boon_rank(id: String) -> int:
 	return boons.count(id)
 
 
-## Boon text with live numbers for this character ({zap}, {poison}, ... in boons.json).
-func boon_desc(id: String) -> String:
-	var t := str(data.boons.get(id, {}).get("desc", ""))
+## Boon text with live numbers for this character at `rarity` ({b_stat} = the boon's own stat
+## after rarity; {zap}, {poison}, ... = derived numbers; see boons.json).
+func boon_desc(id: String, rarity: String = "common") -> String:
+	var b: Dictionary = data.boons.get(id, {})
+	var t := str(b.get("desc", ""))
 	if not t.contains("{"):
 		return t
 	var p: Combatant = world.player if world != null and world.player != null else make_player()
 	var ml := p.mud_level
+	var v := {}
+	for k in b.get("effect", {}).get("stats", {}).keys():
+		v[k] = boon_value(id, k, rarity)
 	var foe_hp := 0
 	if world != null:
 		for m in world.monsters:
 			foe_hp = maxi(foe_hp, int(m["c"].max_hp)) if not m["boss"] and not m["elite"] else foe_hp
-	return t.format({
-		"zap": "%d-%d" % [3, 6 + ml],
-		"poison": str(maxi(2, DSStats.idiv(ml, 4))),
-		"boom": str(maxi(1, DSStats.idiv(foe_hp * 20, 100))),
-		"kill_heal": str(DSStats.idiv(p.max_hp * 8, 100)),
-		"regen": str(maxi(1, DSStats.idiv(p.max_hp, 100))),
-		"thorns": str(maxi(1, DSStats.idiv(ml, 5))),
-		"half": str(DSStats.idiv(p.max_hp, 2)),
-		"thick": str(DSStats.idiv(p.max_hp, 10)),
-		"bleed": str(maxi(2, DSStats.idiv(ml, 3))),
-		"bulwark": str(DSStats.idiv(p.max_hp * 6, 100)),
-	})
+	var f := v.duplicate()
+	f["zap"] = "%d-%d" % [3, 6 + ml]
+	f["poison"] = str(maxi(2, DSStats.idiv(ml, 4)))
+	f["boom"] = str(maxi(1, DSStats.idiv(foe_hp * int(v.get("b_volatile", 20)), 100)))
+	f["kill_heal"] = str(DSStats.idiv(p.max_hp * int(v.get("b_kill_heal", 8)), 100))
+	f["regen"] = str(maxi(1, DSStats.idiv(p.max_hp * int(v.get("b_regen", 1)), 100)))
+	f["thorns"] = str(maxi(1, DSStats.idiv(ml, 5)) * int(v.get("b_thorns", 1)))
+	f["half"] = str(DSStats.idiv(p.max_hp * mini(100, int(v.get("b_revive_pct", 50))), 100))
+	f["thick"] = str(DSStats.idiv(p.max_hp * int(v.get("b_hp_pct", 10)), 100))
+	f["bleed"] = str(maxi(2, DSStats.idiv(ml, 3)) * int(v.get("b_crit_bleed", 1)))
+	f["bulwark"] = str(DSStats.idiv(p.max_hp * int(v.get("b_bulwark", 6)), 100))
+	return t.format(f)
 
 
 ## Stackable boons have no limit (owner: "let the player build overpowered stuff").
@@ -627,12 +654,41 @@ func boon_max(id: String) -> int:
 	return 1 << 30 if data.boons.get(id, {}).get("stack", false) else 1
 
 
-func add_boon(id: String) -> void:
+func add_boon(id: String, rarity: String = "common") -> void:
 	if data.boons.has(id) and boon_rank(id) < boon_max(id):
+		var fixed := str(data.boons[id].get("fixed_rarity", ""))
 		boons.append(id)
-		if id == "deep_pockets":
-			_add_potion("hp")
-		messages.append("Boon: %s." % data.boons[id].get("name", id))
+		boon_rarity.append(fixed if fixed != "" else rarity)
+		messages.append("Boon: %s (%s)." % [data.boons[id].get("name", id), str(boon_rarity.back()).capitalize()])
+
+
+## Roll a rarity for an offered boon. Boons with no numbers (on/off class boons) are always
+## common; Last Stand and Second Wind are always legendary. Fortune power-ups shift the odds.
+func roll_boon_rarity(id: String) -> String:
+	var b: Dictionary = data.boons.get(id, {})
+	if b.has("fixed_rarity"):
+		return str(b["fixed_rarity"])
+	if b.get("effect", {}).get("stats", {}).is_empty():
+		return "common"
+	var rar: Dictionary = data.boon_rarities()
+	var shift: Dictionary = data.boons_meta.get("luck_shift", {})
+	var luck := int(perks.get("boon_luck", 0))
+	var weights := {}
+	var total := 0.0
+	for k in rar.keys():
+		weights[k] = maxf(1.0, float(rar[k].get("weight", 1)) + luck * float(shift.get(k, 0)))
+		total += weights[k]
+	var roll := rng.number_range(1, 10000) / 10000.0 * total
+	for k in rar.keys():
+		roll -= weights[k]
+		if roll <= 0.0:
+			return str(k)
+	return "common"
+
+
+## Value of stat `k` on one copy of boon `id` at `rarity`.
+func boon_value(id: String, k: String, rarity: String) -> int:
+	return DSFactory.scaled_stat(data, id, k, rarity)
 
 
 func event_def() -> Dictionary:
@@ -706,7 +762,6 @@ func add_xp(amount: int) -> int:
 	while level < 10 and xp >= xp_to_next():
 		xp -= xp_to_next()
 		var before := make_player()
-		var before_known := known_actives()
 		level += 1
 		gained += 1
 		var after := make_player()
@@ -714,9 +769,6 @@ func add_xp(amount: int) -> int:
 			hp += after.max_hp - before.max_hp
 		if mana >= 0:
 			mana += after.max_mana - before.max_mana
-		for a in known_actives():
-			if not before_known.has(a):
-				messages.append("Learned %s." % a)
 		messages.append("Level %d!" % level)
 	if level >= 10:
 		xp = 0

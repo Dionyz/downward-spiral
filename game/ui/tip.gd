@@ -33,7 +33,7 @@ static func entries() -> Array:
 
 ## Best entry for a piece of UI text: the longest key the text starts with (or contains).
 static func find(text: String) -> Dictionary:
-	var t := text.to_lower().strip_edges().trim_prefix("+").trim_prefix("no ").trim_prefix("◆ ")
+	var t := text.to_lower().strip_edges().trim_prefix("+").trim_prefix("no ")
 	var best := {}
 	var best_len := 0
 	for e in entries():
@@ -100,4 +100,4 @@ static func show_tip(from: Control, e: Dictionary) -> void:
 	card.add_child(v)
 	v.add_child(UI.label(str(e["term"]), 24, UI.ACCENT))
 	v.add_child(UI.label(str(e["short"]), 19))
-	v.add_child(UI.label("More in Settings → Guide. Tap to close.", 14, UI.DIM))
+	v.add_child(UI.label("More in the Guide (Settings). Tap to close.", 14, UI.DIM))

@@ -12,7 +12,8 @@ var monsters: Dictionary = {}    # monster id -> monster dict
 var boons: Dictionary = {}       # boon id -> boon dict
 var races: Dictionary = {}       # race id -> race dict
 var glossary: Array = []          # [{cat, term, short, long, keys}]
-var families: Dictionary = {}    # boon family id -> {name, color, desc, tiers}
+var families: Dictionary = {}
+var boons_meta: Dictionary = {}    # boons.json top level (rarities, no_scale, luck_shift)    # boon family id -> {name, color, desc, tiers}
 var skills: Dictionary = {}      # skill name -> player-facing description
 var events: Dictionary = {}    # event id -> event dict
 var rooms: Dictionary = {}     # room text templates
@@ -48,6 +49,7 @@ func apply(raw: Dictionary) -> void:
 	monsters = raw.get("monsters", {}).get("monsters", {})
 	boons = raw.get("boons", {}).get("boons", {})
 	families = raw.get("boons", {}).get("families", {})
+	boons_meta = raw.get("boons", {})
 	races = raw.get("races", {}).get("races", {})
 	skills = raw.get("skills", {}).get("skills", {})
 	glossary = raw.get("glossary", {}).get("entries", [])
@@ -128,3 +130,7 @@ static func deep_merge(base, over):
 				out[k] = over[k]
 		return out
 	return over
+
+
+func boon_rarities() -> Dictionary:
+	return boons_meta.get("rarities", {"common": {"mult": 1.0, "weight": 1}})

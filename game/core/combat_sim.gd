@@ -57,7 +57,6 @@ func begin(p: Combatant, foes: Array) -> Array:
 	player.flags["last_stand_used"] = false
 	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
-	player.flags["last_stands_used"] = 0
 	player.flags["second_winds_used"] = 0
 	player.flags["rampage"] = 0
 	player.flags["retaliate_ready"] = false
@@ -287,7 +286,6 @@ func start_encounter() -> void:
 	player.flags["last_stand_used"] = false
 	player.flags["first_blood_ready"] = player.flags.get("boon_first_blood", false) or bstat(player, "b_first_blood") > 0
 	player.flags["momentum"] = 0
-	player.flags["last_stands_used"] = 0
 	player.flags["second_winds_used"] = 0
 	player.flags["rampage"] = 0
 	player.flags["retaliate_ready"] = false
@@ -884,7 +882,8 @@ func _raw_damage(ch, victim: Combatant, dam: int, dt: String, extra: Dictionary 
 		_check_phase(victim)
 	if victim.hp <= 0 and victim.is_player and bstat(victim, "b_revive") > int(victim.flags.get("revives_used", 0)):
 		victim.flags["revives_used"] = int(victim.flags.get("revives_used", 0)) + 1
-		victim.hp = DSStats.idiv(victim.max_hp, 2)
+		var pct := clampi(DSStats.idiv(bstat(victim, "b_revive_pct"), maxi(1, bstat(victim, "b_revive"))), 50, 100)
+		victim.hp = DSStats.idiv(victim.max_hp * pct, 100)
 		_emit({"t": "heal", "src": victim.name, "dst": victim.name, "amount": victim.hp, "source": "revive"})
 	if victim.hp <= 0 and victim.is_player and int(victim.flags.get("last_stands_used", 0)) < bstat(victim, "b_last_stand"):
 		victim.flags["last_stands_used"] = int(victim.flags.get("last_stands_used", 0)) + 1
@@ -1121,6 +1120,14 @@ func _skill_for(c: Combatant, aname: String) -> int:
 	return c.skill(aname)
 
 
+## Skill roll for an active ability. The player's actives never fail (owner); monsters still roll.
+## (Defenses like dodge and parry, and saves against spells, are separate and still apply.)
+func _fails(c: Combatant, chance: int) -> bool:
+	if c.is_player:
+		return false
+	return rng.number_percent() >= chance
+
+
 func _miss(c: Combatant, target, aname: String) -> void:
 	_emit({"t": "ability_miss", "src": c.name, "dst": target.name if target != null else "", "ability": aname})
 
@@ -1133,7 +1140,7 @@ func _h_bash(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	chance += int(c.stats.get("str", 15)) - int(v.stats.get("dex", 15))
 	chance -= 5  # victim standing
 	chance += DSStats.idiv(c.mud_level - v.mud_level, 1)
-	if rng.number_percent() >= chance:
+	if _fails(c, chance):
 		_miss(c, v, "bash")
 		return
 	var dmg := rng.number_range(DSStats.idiv(c.mud_level, int(p.get("dam_min_level_div", 2))), c.mud_level * int(p.get("dam_max_level_mult", 1)))
@@ -1166,7 +1173,7 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	chance += (c.mud_level - v.mud_level) * 2
 	if v.size == "giant" or v.flags.get("flying", false):
 		chance = 0
-	if rng.number_percent() >= chance:
+	if _fails(c, chance):
 		_miss(c, v, "trip")
 		return
 	apply_damage(c, v, rng.number_range(2, 2 * (DSStats.size_index(v.size) + 1) + 2), "trip", "bash", false)
@@ -1183,7 +1190,7 @@ func _h_trip(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 ## act_combat.c do_kick
 func _h_direct(c: Combatant, v: Combatant, _a: Dictionary, p: Dictionary) -> void:
 	var aname := "kick"
-	if rng.number_percent() >= _skill_for(c, aname):
+	if _fails(c, _skill_for(c, aname)):
 		_miss(c, v, aname)
 		return
 	var lo := c.mud_level * int(p.get("dam_min_level_mult", 1))
@@ -1200,7 +1207,7 @@ func _h_berserk(c: Combatant, a: Dictionary, p: Dictionary) -> void:
 	chance -= DSStats.idiv(DSStats.idiv(c.hp * 100, maxi(1, c.max_hp)), 2)
 	chance += int(p.get("flat_bonus", 25))
 	chance = maxi(chance, int(p.get("min_chance", 10)))
-	if rng.number_percent() >= chance:
+	if _fails(c, chance):
 		_miss(c, null, "berserk")
 		return
 	var heal := c.mud_level * int(p.get("heal_level_mult", 2))
@@ -1217,7 +1224,7 @@ func _h_berserk(c: Combatant, a: Dictionary, p: Dictionary) -> void:
 ## Generic self-buff: warcry, armor, shield, sanctuary, haste.
 func _h_buff(c: Combatant, a: Dictionary, p: Dictionary) -> void:
 	var aname: String = a.get("name", "")
-	if c.is_player and c.line != "mage" and rng.number_percent() >= _skill_for(c, aname):
+	if c.is_player and c.line != "mage" and _fails(c, _skill_for(c, aname)):
 		_miss(c, null, aname)
 		return
 	var st := str(p.get("status", aname))
@@ -1250,7 +1257,7 @@ func _h_opener(c: Combatant, v: Combatant, aname: String) -> void:
 	var chance := _skill_for(c, aname)
 	if not v.can_see():
 		chance += 25 if aname == "backstab" else 0
-	if rng.number_percent() < chance or (chance > 1 and not v.is_awake()):
+	if not _fails(c, chance) or (chance > 1 and not v.is_awake()):
 		var saved := c.damroll
 		if aname == "charge" and c.weapon != null and str(c.weapon.get("type", "")) == "sword":
 			c.damroll += DSStats.idiv(c.mud_level, 4)
@@ -1285,7 +1292,7 @@ func _h_debuff(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 		chance += 15
 	var lvl_mult := 5 if m.get("level_diff_x5", false) else 1
 	chance += (c.mud_level - v.mud_level) * lvl_mult
-	if rng.number_percent() >= chance:
+	if _fails(c, chance):
 		_miss(c, v, aname)
 		return
 	var dr: Array = p.get("dam", [2, 5])
@@ -1303,7 +1310,7 @@ func _h_debuff(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void
 
 ## act_obj.c do_envenom: coats the weapon; swings may poison.
 func _h_envenom(c: Combatant, p: Dictionary) -> void:
-	if rng.number_percent() >= _skill_for(c, "envenom"):
+	if _fails(c, _skill_for(c, "envenom")):
 		_miss(c, null, "envenom")
 		return
 	var rounds := int(p.get("duration_rounds", 6))
@@ -1315,7 +1322,7 @@ func _h_envenom(c: Combatant, p: Dictionary) -> void:
 func _h_strike(c: Combatant, v: Combatant, aname: String, p: Dictionary) -> void:
 	var chance := _skill_for(c, aname)
 	chance = DSStats.idiv(chance * int(p.get("chance_num", 4)), int(p.get("chance_den", 5)))
-	if rng.number_percent() >= chance:
+	if _fails(c, chance):
 		_miss(c, v, aname)
 		return
 	var swings := int(p.get("swings", 1))
@@ -1403,7 +1410,7 @@ func _h_spell_status(c: Combatant, v: Combatant, aname: String, p: Dictionary) -
 
 ## whirlwind, storm of blades: every opponent takes one swing plus bonus swings on a percent roll.
 func _h_aoe(c: Combatant, aname: String, p: Dictionary) -> void:
-	if rng.number_percent() >= _skill_for(c, aname):
+	if _fails(c, _skill_for(c, aname)):
 		_miss(c, null, aname)
 		return
 	for v in opponents_of(c, aname):
@@ -1428,7 +1435,7 @@ func _h_aoe(c: Combatant, aname: String, p: Dictionary) -> void:
 
 ## act_combat.c do_transfix: freeze the target for 1-3 rounds, then a full round of attacks.
 func _h_transfix(c: Combatant, v: Combatant, p: Dictionary) -> void:
-	if rng.number_percent() >= _skill_for(c, "transfix"):
+	if _fails(c, _skill_for(c, "transfix")):
 		_miss(c, v, "transfix")
 		return
 	var r: Array = p.get("stun_rounds_range", [1, 3])

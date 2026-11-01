@@ -9,7 +9,7 @@ var index := 0
 
 func _get_drag_data(_pos: Vector2):
 	var preview := Label.new()
-	preview.text = "  ↕ " + str(get_meta("skill_name", ""))
+	preview.text = "  " + str(get_meta("skill_name", "")).capitalize()
 	preview.add_theme_font_size_override("font_size", 22)
 	preview.add_theme_color_override("font_color", UI.ACCENT)
 	set_drag_preview(preview)

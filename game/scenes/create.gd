@@ -101,6 +101,7 @@ func _update() -> void:
 	var R: Dictionary = Game.data.races.get(race, {})
 	info.add_child(UI.label("%s %s" % [str(R.get("name", race)), str(L.get("display", line))], 24, Color(str(L.get("color", "#d6a64f")))))
 	info.add_child(UI.label(str(L.get("role", "")), 17, UI.DIM))
+	info.add_child(UI.label("%s mastery %d (shared by all your %ss)" % [str(L.get("display", line)), DSMeta.mastery_level(Game.data, Game.account, line), str(L.get("display", line))], 16, Color("#7fc8a9")))
 	info.add_child(UI.label(str(R.get("desc", "")), 17))
 	info.add_child(UI.label(str(R.get("perk", "")), 17, Color("#7fc8a9")))
 	var res: Array = []
@@ -109,7 +110,12 @@ func _update() -> void:
 			res.append("%s: %s" % [{"resist": "Resists", "immune": "Immune to", "vuln": "Weak to"}[k], ", ".join(PackedStringArray(R[k]))])
 	if not res.is_empty():
 		info.add_child(UI.label(" · ".join(PackedStringArray(res)), 15, UI.DIM))
-	var at: Dictionary = R.get("attributes", {})
+	# Final attributes: the class's, shifted by the race (15 = no change).
+	var ra: Dictionary = R.get("attributes", {})
+	var ca: Dictionary = L.get("stats", {}).get("attributes", {})
+	var at := {}
+	for k in ["str", "int", "wis", "dex", "con"]:
+		at[k] = int(ca.get(k, 15)) + int(ra.get(k, 15)) - 15
 	info.add_child(UI.label("Str %d · Int %d · Wis %d · Dex %d · Con %d · %s" % [int(at.get("str", 0)), int(at.get("int", 0)),
 		int(at.get("wis", 0)), int(at.get("dex", 0)), int(at.get("con", 0)), str(R.get("size", "medium")).capitalize()], 15, UI.DIM))
 	create_btn.disabled = name_edit.text.strip_edges() == ""

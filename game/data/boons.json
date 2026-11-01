@@ -1,9 +1,9 @@
 {
- "_note": "Boons. `tags` = families (see `families`): collecting distinct boons of a family unlocks its 2/4/6 bonuses. `stack`: true = can be taken again with no limit, each copy adds its stats again. effect keys: flag (read by CombatSim), stats (numbers summed per stack), skill_bonus. desc may hold {tokens} filled with live numbers by DSRunState.boon_desc(). Total percent damage reduction is capped at 90%.",
+ "_note": "Boons. `tags` = families (see `families`): collecting distinct boons of a family unlocks its 2/4/6 bonuses. `stack`: true = can be taken again with no limit, each copy adds its stats again. effect keys: flag (read by CombatSim), stats (numbers summed per stack), skill_bonus. desc may hold {tokens} filled with live numbers by DSRunState.boon_desc(). Total percent damage reduction is capped at 90%. Boons with stats roll a rarity when offered (`rarities`: weight and stat multiplier; `fixed_rarity` overrides; stats in `no_scale` never scale). Each Fortune power-up applies `luck_shift` to the weights once.",
  "boons": {
   "vampiric_edge": {
    "name": "Vampiric Edge",
-   "desc": "Heal for 6% of all damage you deal.",
+   "desc": "Heal for {b_leech}% of all damage you deal.",
    "lines": [],
    "refs": [
     "hp"
@@ -20,7 +20,7 @@
   },
   "bloodlust": {
    "name": "Bloodlust",
-   "desc": "Every kill heals 8% of your max HP ({kill_heal} HP).",
+   "desc": "Every kill heals {b_kill_heal}% of your max HP ({kill_heal} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -55,7 +55,7 @@
   },
   "adrenaline": {
    "name": "Adrenaline",
-   "desc": "Below 50% HP, heal for an extra 10% of the damage you deal.",
+   "desc": "Below 50% HP, heal for an extra {b_adrenaline}% of the damage you deal.",
    "lines": [],
    "refs": [
     "hp"
@@ -73,7 +73,7 @@
   },
   "thick_blood": {
    "name": "Thick Blood",
-   "desc": "+10% max HP (+{thick} HP).",
+   "desc": "+{b_hp_pct}% max HP (+{thick} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -91,7 +91,7 @@
   },
   "troll_blood": {
    "name": "Troll Blood",
-   "desc": "Regenerate 1% of your max HP every turn ({regen} HP).",
+   "desc": "Regenerate {b_regen}% of your max HP every turn ({regen} HP).",
    "lines": [],
    "refs": [
     "hp"
@@ -108,7 +108,7 @@
   },
   "second_life": {
    "name": "Second Life",
-   "desc": "Once per run, a killing blow leaves you at half HP ({half} HP) instead. Each stack is one more.",
+   "desc": "Once per run, a killing blow leaves you at {b_revive_pct}% HP ({half} HP) instead. Each copy is one more.",
    "lines": [],
    "refs": [
     "hp"
@@ -119,13 +119,14 @@
    "stack": true,
    "effect": {
     "stats": {
-     "b_revive": 1
+     "b_revive": 1,
+     "b_revive_pct": 50
     }
    }
   },
   "static_charge": {
    "name": "Static Charge",
-   "desc": "Your hits have a 15% chance to zap a nearby enemy for {zap} lightning damage.",
+   "desc": "Your hits have a {b_zap}% chance to zap a nearby enemy for {zap} lightning damage.",
    "lines": [],
    "refs": [
     "damage"
@@ -142,7 +143,7 @@
   },
   "keen_eye": {
    "name": "Keen Eye",
-   "desc": "+8% chance for any hit to crit (crits deal +75%).",
+   "desc": "+{b_crit}% chance for any hit to crit (crits deal +75%).",
    "lines": [],
    "refs": [
     "damage"
@@ -159,7 +160,7 @@
   },
   "flurry": {
    "name": "Flurry",
-   "desc": "Each melee turn has a 20% chance to strike one extra time.",
+   "desc": "Each melee turn has a {b_flurry}% chance to strike one extra time.",
    "lines": [],
    "refs": [
     "damage"
@@ -177,7 +178,7 @@
   },
   "overkill": {
    "name": "Overkill",
-   "desc": "When you kill, 50% of the leftover damage hits another nearby enemy.",
+   "desc": "When you kill, {b_overkill}% of the leftover damage hits another nearby enemy.",
    "lines": [],
    "refs": [
     "damage"
@@ -194,7 +195,7 @@
   },
   "whetstone": {
    "name": "Whetstone",
-   "desc": "+2 damage on every hit you land.",
+   "desc": "+{b_flat} damage on every hit you land.",
    "lines": [],
    "refs": [
     "damage"
@@ -211,7 +212,7 @@
   },
   "frostbite": {
    "name": "Frostbite",
-   "desc": "Your hits have an 8% chance to freeze the target for a turn.",
+   "desc": "Your hits have a {b_freeze}% chance to freeze the target for a turn.",
    "lines": [],
    "refs": [
     "damage"
@@ -228,7 +229,7 @@
   },
   "cold_snap": {
    "name": "Cold Snap",
-   "desc": "+25% damage to frozen, stunned or slowed enemies.",
+   "desc": "+{b_cold_snap}% damage to frozen, stunned or slowed enemies.",
    "lines": [],
    "refs": [
     "damage"
@@ -245,7 +246,7 @@
   },
   "hoarfrost": {
    "name": "Hoarfrost",
-   "desc": "Enemies that hit you in melee have a 10% chance to freeze for a turn.",
+   "desc": "Enemies that hit you in melee have a {b_freeze_back}% chance to freeze for a turn.",
    "lines": [],
    "refs": [
     "hp"
@@ -263,7 +264,7 @@
   },
   "glacial_edge": {
    "name": "Glacial Edge",
-   "desc": "Your hits have a 12% chance to slow the target for 3 turns.",
+   "desc": "Your hits have a {b_slow_hit}% chance to slow the target for 3 turns.",
    "lines": [],
    "refs": [
     "damage"
@@ -280,7 +281,7 @@
   },
   "rot_touch": {
    "name": "Rot Touch",
-   "desc": "Your hits have a 15% chance to poison the target: {poison} damage a turn for 3 turns.",
+   "desc": "Your hits have a {b_poison}% chance to poison the target: {poison} damage a turn for 3 turns.",
    "lines": [],
    "refs": [
     "damage"
@@ -297,7 +298,7 @@
   },
   "virulence": {
    "name": "Virulence",
-   "desc": "Poison you inflict deals +50% damage.",
+   "desc": "Poison you inflict deals +{b_poison_amp}% damage.",
    "lines": [],
    "refs": [
     "damage"
@@ -314,7 +315,7 @@
   },
   "contagion": {
    "name": "Contagion",
-   "desc": "Each poison tick has a 15% chance to spread to another enemy near you, and poisoned enemies spread it to their neighbours when they die.",
+   "desc": "Each poison tick has a {b_contagion}% chance to spread to another enemy near you, and poisoned enemies spread it to their neighbours when they die.",
    "lines": [],
    "refs": [
     "damage"
@@ -331,7 +332,7 @@
   },
   "volatile": {
    "name": "Volatile",
-   "desc": "Slain enemies explode, dealing 20% of their max HP to enemies next to you (about {boom} against foes like these).",
+   "desc": "Slain enemies explode, dealing {b_volatile}% of their max HP to enemies next to you (about {boom} against foes like these).",
    "lines": [],
    "refs": [
     "damage"
@@ -349,7 +350,7 @@
   },
   "iron_skin": {
    "name": "Iron Skin",
-   "desc": "Take 2 less damage from every hit.",
+   "desc": "Take {b_dr_flat} less damage from every hit.",
    "lines": [],
    "refs": [
     "hp"
@@ -400,7 +401,7 @@
   },
   "last_bastion": {
    "name": "Last Bastion",
-   "desc": "Below 40% HP, take 25% less damage. (Total damage reduction caps at 90%.)",
+   "desc": "Below 40% HP, take {b_dr_low}% less damage. (Total damage reduction caps at 90%.)",
    "lines": [],
    "refs": [
     "hp"
@@ -417,7 +418,7 @@
   },
   "back_to_the_wall": {
    "name": "Back to the Wall",
-   "desc": "While 2 or more enemies are on you, take 15% less damage. (Total damage reduction caps at 90%.)",
+   "desc": "While 2 or more enemies are on you, take {b_dr_pack}% less damage. (Total damage reduction caps at 90%.)",
    "lines": [],
    "refs": [
     "hp"
@@ -434,7 +435,7 @@
   },
   "counterstrike": {
    "name": "Counterstrike",
-   "desc": "After you parry, dodge or block, 30% chance to strike back at once.",
+   "desc": "After you parry, dodge or block, {b_riposte}% chance to strike back at once.",
    "lines": [],
    "refs": [
     "damage"
@@ -452,7 +453,7 @@
   },
   "last_stand": {
    "name": "Last Stand",
-   "desc": "Once per fight, a killing blow leaves you at 1 HP instead. Each stack is one more per fight.",
+   "desc": "Once per run, a killing blow leaves you at 1 HP instead. Each copy works once.",
    "lines": [],
    "refs": [
     "hp"
@@ -465,11 +466,12 @@
     "stats": {
      "b_last_stand": 1
     }
-   }
+   },
+   "fixed_rarity": "legendary"
   },
   "retaliation": {
    "name": "Retaliation",
-   "desc": "After you take damage, your next hit deals +25% damage.",
+   "desc": "After you take damage, your next hit deals +{b_retaliate}% damage.",
    "lines": [],
    "refs": [
     "damage"
@@ -486,7 +488,7 @@
   },
   "rampage": {
    "name": "Rampage",
-   "desc": "Each kill gives +8% damage for 5 turns. Kills stack it and refresh the timer.",
+   "desc": "Each kill gives +{b_rampage}% damage for 5 turns. Kills stack it and refresh the timer.",
    "lines": [],
    "refs": [
     "damage"
@@ -503,7 +505,7 @@
   },
   "second_wind": {
    "name": "Second Wind",
-   "desc": "The first time you drop below 30% HP in a fight, heal 15% of your max HP. Each stack is one more heal.",
+   "desc": "The first time you drop below 30% HP in a fight, heal 15% of your max HP. Each copy is one more heal per fight.",
    "lines": [],
    "refs": [
     "hp"
@@ -517,11 +519,12 @@
     "stats": {
      "b_second_wind": 15
     }
-   }
+   },
+   "fixed_rarity": "legendary"
   },
   "executioner": {
    "name": "Executioner",
-   "desc": "Hits on enemies below 20% HP have a 10% chance to kill them outright (not bosses).",
+   "desc": "Hits on enemies below 20% HP have a {b_execute}% chance to kill them outright (not bosses).",
    "lines": [],
    "refs": [
     "damage"
@@ -538,7 +541,7 @@
   },
   "first_blood": {
    "name": "First Blood",
-   "desc": "Your first hit in each fight deals +100% damage.",
+   "desc": "Your first hit in each fight deals +{b_first_blood}% damage.",
    "lines": [],
    "refs": [
     "damage"
@@ -555,7 +558,7 @@
   },
   "shatter": {
    "name": "Shatter",
-   "desc": "Killing a frozen, stunned or slowed enemy deals 30% of its max HP to enemies next to you.",
+   "desc": "Killing a frozen, stunned or slowed enemy deals {b_shatter}% of its max HP to enemies next to you.",
    "lines": [],
    "refs": [
     "damage"
@@ -573,7 +576,7 @@
   },
   "rime_armor": {
    "name": "Rime Armor",
-   "desc": "While an enemy next to you is frozen, stunned or slowed, take 15% less damage. (Total damage reduction caps at 90%.)",
+   "desc": "While an enemy next to you is frozen, stunned or slowed, take {b_dr_chill}% less damage. (Total damage reduction caps at 90%.)",
    "lines": [],
    "refs": [
     "hp"
@@ -591,7 +594,7 @@
   },
   "toxic_blood": {
    "name": "Toxic Blood",
-   "desc": "Enemies that hit you in melee have a 20% chance to be poisoned.",
+   "desc": "Enemies that hit you in melee have a {b_poison_back}% chance to be poisoned.",
    "lines": [],
    "refs": [
     "hp"
@@ -609,7 +612,7 @@
   },
   "wither": {
    "name": "Wither",
-   "desc": "+20% damage to poisoned enemies.",
+   "desc": "+{b_wither}% damage to poisoned enemies.",
    "lines": [],
    "refs": [
     "damage"
@@ -1054,5 +1057,44 @@
     }
    }
   }
+ },
+ "rarities": {
+  "common": {
+   "mult": 1.0,
+   "weight": 55,
+   "color": "#c8c8c8"
+  },
+  "uncommon": {
+   "mult": 1.3,
+   "weight": 25,
+   "color": "#5fd35f"
+  },
+  "rare": {
+   "mult": 1.6,
+   "weight": 12,
+   "color": "#4f9cff"
+  },
+  "epic": {
+   "mult": 2.0,
+   "weight": 6,
+   "color": "#b25fff"
+  },
+  "legendary": {
+   "mult": 2.5,
+   "weight": 2,
+   "color": "#ff9a2e"
+  }
+ },
+ "no_scale": [
+  "b_last_stand",
+  "b_revive",
+  "b_second_wind"
+ ],
+ "luck_shift": {
+  "common": -7,
+  "uncommon": 2,
+  "rare": 2.5,
+  "epic": 1.75,
+  "legendary": 0.75
  }
 }

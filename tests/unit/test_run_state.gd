@@ -457,3 +457,44 @@ func test_every_family_reaches_six():
 			per[t] = int(per.get(t, 0)) + 1
 	for f in data.families.keys():
 		assert_gte(int(per.get(f, 0)), 6, "%s has at least 6 boons" % f)
+
+
+func test_boon_rarities_scale_stats():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	r.add_boon("vampiric_edge", "common")
+	r.add_boon("vampiric_edge", "legendary")
+	assert_eq(r.boon_rarity, ["common", "legendary"])
+	assert_eq(int(r.make_player().flags["b_leech"]), 6 + 15, "6 + 6*2.5")
+	assert_true(r.boon_desc("vampiric_edge", "legendary").contains("15%"))
+	r.add_boon("last_stand", "common")
+	assert_eq(r.boon_rarity.back(), "legendary", "last stand is always legendary")
+	assert_eq(r.roll_boon_rarity("second_wind"), "legendary")
+	assert_eq(r.roll_boon_rarity("twin_throw"), "common", "on/off boons have no rarity")
+	var r2 := DSRunState.from_dict(data, JSON.parse_string(JSON.stringify(r.to_dict())))
+	assert_eq(r2.boon_rarity, r.boon_rarity)
+
+
+func test_fortune_shifts_rarity_odds():
+	var plain := DSRunState.new_run(data, "warrior", 5)
+	var lucky := DSRunState.new_run(data, "warrior", 5, DSMeta.perks(data, {"upgrades": {"fortune": 5}}))
+	var hi := {"plain": 0, "lucky": 0}
+	for i in 600:
+		if plain.roll_boon_rarity("whetstone") in ["rare", "epic", "legendary"]:
+			hi["plain"] += 1
+		if lucky.roll_boon_rarity("whetstone") in ["rare", "epic", "legendary"]:
+			hi["lucky"] += 1
+	assert_gt(hi["lucky"], hi["plain"] + 60, "Fortune makes rare+ boons much more common")
+
+
+func test_last_stand_once_per_copy_per_run():
+	var r := DSRunState.new_run(data, "warrior", 5)
+	r.add_boon("last_stand")
+	r._sync_to_world()
+	var p := r.world.player
+	r.world.sim.start_encounter()
+	r.world.sim.apply_damage(null, p, 99999, "hit", "none", false)
+	assert_eq(p.hp, 1, "saved once")
+	r.world.sim.start_encounter()
+	p.hp = 5
+	r.world.sim.apply_damage(null, p, 99999, "hit", "none", false)
+	assert_false(p.is_alive(), "a new fight doesn't reset it")

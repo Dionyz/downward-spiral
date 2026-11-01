@@ -1,5 +1,5 @@
 {
- "_note": "Between runs: power-ups bought in town with gold (no account levels). price doubles per purchase; max per power-up (default upgrade_max). Shop and stash settings below.",
+ "_note": "Between runs: power-ups bought in town with gold (no account levels). price doubles per purchase; max per power-up (default upgrade_max). Shop and stash settings below. mastery_xp: total class XP for mastery levels 1-10 (every run adds its XP to its class, death included). Mastery decides which skills a class knows (the MUD's base-class unlock levels) and how well.",
  "upgrade_max": 5,
  "upgrades": {
   "skip": {
@@ -40,6 +40,12 @@
    "base": 0,
    "price": 200,
    "max": 3
+  },
+  "fortune": {
+   "name": "Fortune",
+   "desc": "Better odds of rare, epic and legendary boons.",
+   "base": 0,
+   "price": 200
   }
  },
  "max_characters": 10,
@@ -49,5 +55,17 @@
   "refresh_on_run": true,
   "buy_mult": 5,
   "sell_div": 20
- }
+ },
+ "mastery_xp": [
+  0,
+  300,
+  800,
+  1500,
+  2500,
+  4000,
+  6000,
+  9000,
+  13000,
+  18000
+ ]
 }

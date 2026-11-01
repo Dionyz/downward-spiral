@@ -139,3 +139,27 @@ func test_bulk_sell_keeps_legendaries_and_upgrades():
 	var pick := DSAccount.bulk_preview(data, a, ["common", "legendary"])
 	assert_eq(pick, [0], "only the stick: the godblade is an upgrade, the relic is legendary")
 	assert_eq(DSAccount.preview_gold(data, a, pick), DSAccount.sell_value(data, weak))
+
+
+func test_class_mastery_unlocks_skills_and_grows():
+	var a := DSAccount.fresh()
+	DSAccount.create_character(data, a, "Ash", "warrior", "human")
+	var r := DSAccount.start_run(data, a, 7)
+	assert_eq(r.mastery, 1)
+	var known := r.known_actives()
+	assert_true(known.has("bash"))
+	assert_false(known.has("charge"), "charge needs mastery 6")
+	assert_false(known.has("berserk"), "berserk needs mastery 3")
+	var p1 := r.make_player()
+	r.level = 8
+	assert_eq(r.known_actives(), known, "in-run levels no longer unlock skills")
+	r.xp_total = 1600
+	r.end_run("death")
+	var out := DSAccount.bank_run(data, a, r)
+	assert_eq(int(out["mastery_after"]), 4, "1600 XP = mastery 4")
+	var r2 := DSAccount.start_run(data, a, 8)
+	assert_true(r2.known_actives().has("berserk"))
+	assert_gt(r2.make_player().skill("parry"), p1.skill("parry"), "mastery raises proficiency")
+	DSAccount.create_character(data, a, "Bo", "warrior", "dwarf")
+	assert_eq(DSMeta.mastery_level(data, a, "warrior"), 4, "mastery is shared by the class")
+	assert_eq(DSMeta.mastery_level(data, a, "mage"), 1)

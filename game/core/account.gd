@@ -17,7 +17,7 @@ const SLOTS := ["weapon", "armor", "trinket"]
 
 static func fresh() -> Dictionary:
 	return {"gold": 0, "upgrades": {}, "stash": [], "characters": [], "current": -1, "shop": [],
-		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0, "rescue_used": false}
+		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0, "rescue_used": false, "mastery": {}}
 
 
 ## The one-time rescue: the account's first death (any character) is turned into an emergency
@@ -231,7 +231,7 @@ static func start_run(data: DSData, a: Dictionary, seed_value: int) -> DSRunStat
 	var ch := current(a)
 	if ch.is_empty():
 		return null
-	var r := DSRunState.new_run(data, str(ch["line"]), seed_value, DSMeta.perks(data, a, str(ch["race"])),
+	var r := DSRunState.new_run(data, str(ch["line"]), seed_value, DSMeta.perks(data, a, str(ch["race"]), str(ch["line"])),
 		str(ch["race"]), ch["loadout"])
 	r.skill_order = ch.get("skill_order", []).duplicate()
 	r.skill_off = ch.get("skill_off", []).duplicate()
@@ -247,6 +247,14 @@ static func bank_run(data: DSData, a: Dictionary, run: DSRunState) -> Dictionary
 	var ch := current(a)
 	var out := {"gold": 0, "items": 0, "lost": 0}
 	a["runs"] = int(a["runs"]) + 1
+	# Class mastery grows with every run of that class, however it ended.
+	var before := DSMeta.mastery_level(data, a, run.line)
+	var m: Dictionary = a.get("mastery", {})
+	m[run.line] = int(m.get(run.line, 0)) + run.xp_total
+	a["mastery"] = m
+	out["mastery_xp"] = run.xp_total
+	out["mastery_before"] = before
+	out["mastery_after"] = DSMeta.mastery_level(data, a, run.line)
 	a["best_floor"] = maxi(int(a["best_floor"]), run.floor_num)
 	var key: String = {"death": "deaths", "rescued": "deaths", "extract": "extracts", "victory": "victories"}.get(run.result, "")
 	if key != "":

@@ -12,7 +12,9 @@ Make a character: every class and race is open. You can have up to 10."],
 	"boon": ["Boons", "Level-ups and elite kills each grant a boon: pick one of three. Boons last the rest of the run; some stack, so taking one again ranks it up.\n\nSkip, Reroll and Banish are limited per run. Buy more between runs under Upgrades with the gold you bring home."],
 	"event": ["Something strange", "Events are gambles. Read carefully: some choices cost HP or gold, some pay off."],
 	"floor_end": ["Descend or extract", "From floor 2 on you can extract: you keep your gold and bring home everything you carry. Dying loses all of it, including the gear you brought."],
-	"run_end": ["Back to town", "Gold and loot you bring home stay with you. In town, equip characters from the shared stash, buy and sell gear, and spend gold on power-ups at the Trainer."],
+	"run_end": ["Back to town", "Gold and loot you bring home stay with you. Every run, win or lose, also adds to your class mastery, which unlocks that class's skills.
+
+In town, equip characters from the shared stash, buy and sell gear, and spend gold on power-ups at the Trainer."],
 	"town": ["The town", "Between runs you're here. The Stash holds loot every character shares. The Quartermaster sells gear, the Trainer sells power-ups, and the Innkeeper keeps your characters. The Spiral Gate starts a run.
 
 Gear your character wears goes down with it: die, and it's gone."],

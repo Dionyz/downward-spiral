@@ -321,6 +321,10 @@
      "then": "whirlwind"
     },
     {
+     "if": "always",
+     "then": "cross slash"
+    },
+    {
      "if": "enemy_lacks_status",
      "value": "stunned",
      "then": "transfix"
@@ -334,10 +338,6 @@
      "if": "enemy_lacks_status",
      "value": "blind",
      "then": "blinding strike"
-    },
-    {
-     "if": "always",
-     "then": "cross slash"
     },
     {
      "if": "always",

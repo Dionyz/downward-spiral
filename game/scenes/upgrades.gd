@@ -56,6 +56,8 @@ func _refresh() -> void:
 				now = "+%d%% damage" % int(pk["damage_pct"])
 			"provisions":
 				now = "+%d potions" % int(pk["potions"])
+			"fortune":
+				now = "Luck %d" % int(pk["boon_luck"])
 			_:
 				now = "%d per run" % int(per_run[id])
 		head.add_child(UI.label(now, 20, UI.TEXT, false))

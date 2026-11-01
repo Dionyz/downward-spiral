@@ -15,16 +15,16 @@ func _ready() -> void:
 	var ch := Game.character()
 	var in_run := Game.run != null and Game.run.phase != "over" and Game.has_saved_run()
 	line = str(Game.run.line if in_run else ch.get("line", "warrior"))
-	level = Game.run.level if in_run else 1
+	level = Game.run.mastery if in_run else DSMeta.mastery_level(Game.data, Game.account, line)
 	var saved_order: Array = (Game.run.skill_order if in_run else ch.get("skill_order", [])).duplicate()
 	off = (Game.run.skill_off if in_run else ch.get("skill_off", [])).duplicate()
-	skills = DSFactory.class_skills(Game.data, line, 3)
+	skills = DSFactory.class_skills(Game.data, line, int(Game.data.balance.get("unlock_tier", 1)))
 	order = saved_order.filter(func(n): return skills.any(func(s): return s["name"] == n))
 	for s in skills:
 		if not order.has(s["name"]):
 			order.append(s["name"])
 	var v := UI.screen(self)
-	v.add_child(UI.label("Skills", 34, UI.ACCENT))
+	v.add_child(UI.label("Skills · %s mastery %d" % [str(Game.data.classes.get(line, {}).get("display", line)), level], 30, UI.ACCENT))
 	v.add_child(UI.label("Your character tries these top to bottom every turn and uses the first one that's ready and makes sense. Drag to reorder; switch off what you don't want used.", 16, UI.DIM))
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -79,16 +79,20 @@ func _card(i: int, s: Dictionary) -> SkillCard:
 	card.add_child(v)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 6)
-	var grip := UI.label("%d ≡" % (i + 1), 20, UI.DIM, false)
+	var grip := UI.icon("ui_grip", 24, UI.DIM)
 	grip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	head.add_child(grip)
+	var num := UI.label("%d" % (i + 1), 20, UI.DIM, false)
+	num.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.add_child(num)
 	var title := UI.label(nm.capitalize(), 22, UI.DIM if is_off else UI.ACCENT, false)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(title)
-	var up := UI.button("▲", func(): _move(i, i - 1), 40)
+	var up := UI.icon_button("ui_up", func(): _move(i, i - 1), 44)
 	up.disabled = i == 0
-	var dn := UI.button("▼", func(): _move(i, i + 1), 40)
+	var dn := UI.icon_button("ui_down", func(): _move(i, i + 1), 44)
 	dn.disabled = i == order.size() - 1
 	var tog := UI.button("Off" if is_off else "On", func(): _toggle(nm), 40)
 	tog.add_theme_color_override("font_color", UI.WARN if is_off else Color("#7fc8a9"))
@@ -103,7 +107,7 @@ func _card(i: int, s: Dictionary) -> SkillCard:
 	var cost := DSStats.mana_cost(int(a.get("min_mana", 0)), Game.data.balance) if line == "mage" else 0
 	bits.append("Cost: %s" % ("%d mana" % cost if cost > 0 else "free"))
 	if locked:
-		bits.append("unlocks at level %d" % int(s["unlock"]))
+		bits.append("unlocks at mastery %d" % int(s["unlock"]))
 	var meta := UI.label(" · ".join(PackedStringArray(bits)), 15, UI.WARN if locked else UI.DIM)
 	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.add_child(meta)

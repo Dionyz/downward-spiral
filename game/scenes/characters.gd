@@ -49,7 +49,8 @@ func _card(i: int, ch: Dictionary) -> PanelContainer:
 	var cur := i == int(Game.account["current"])
 	cv.add_child(UI.label(str(ch["name"]) + ("  (current)" if cur else ""), 22, UI.ACCENT if cur else UI.TEXT, false))
 	var R: Dictionary = Game.data.races.get(ch["race"], {})
-	cv.add_child(UI.label("%s %s · %d runs · best floor %d · %d wins" % [str(R.get("name", "")), str(L.get("display", "")),
+	cv.add_child(UI.label("%s %s · mastery %d · %d runs · best floor %d · %d wins" % [str(R.get("name", "")), str(L.get("display", "")),
+		DSMeta.mastery_level(Game.data, Game.account, str(ch["line"])),
 		int(ch.get("runs", 0)), int(ch.get("best_floor", 0)), int(ch.get("victories", 0))], 15, UI.DIM))
 	var ii := i
 	var pick := UI.button("Play", func():

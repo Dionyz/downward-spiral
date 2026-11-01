@@ -158,3 +158,36 @@ static func confirm(parent: Control, text: String, yes_label: String, on_yes: Ca
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(b)
 	v.add_child(row)
+
+
+static func tex(name: String) -> Texture2D:
+	var path := "res://game/assets/icons/%s.svg" % name
+	return load(path) if ResourceLoader.exists(path) else null
+
+
+## A button showing an icon (and optional text). The icon takes `color`.
+static func icon_button(icon_name: String, cb: Callable, min_h: int = 48, text: String = "", color: Color = TEXT) -> Button:
+	var b := button(text, cb, min_h)
+	b.icon = tex(icon_name)
+	b.expand_icon = true
+	b.add_theme_constant_override("icon_max_width", int(min_h * 0.6))
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER if text == "" else HORIZONTAL_ALIGNMENT_LEFT
+	for k in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
+		b.add_theme_color_override(k, color)
+	b.add_theme_color_override("icon_disabled_color", Color(color, 0.3))
+	return b
+
+
+## Small icon + text on one line.
+static func tag(icon_name: String, text: String, size: int = 16, color: Color = TEXT) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 6)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ic := icon(icon_name, size + 2, color)
+	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(ic)
+	var l := label(text, size, color, false)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(l)
+	return h

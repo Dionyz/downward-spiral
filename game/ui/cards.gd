@@ -32,7 +32,7 @@ static func item_lines(data: DSData, it: Dictionary) -> Array:
 		out.append(str(f).capitalize())
 	if it.has("passive"):
 		var lp: Dictionary = data.items.get("legendary_passives", {}).get(it["passive"], {})
-		out.append("★ %s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")])
+		out.append("%s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")])
 	return out
 
 
@@ -142,7 +142,7 @@ static func compare_lines(data: DSData, it: Dictionary, equipped) -> Array:
 				out.append({"text": "no %s" % str(f).capitalize(), "color": Color("#ff8c7a")})
 	if it.has("passive"):
 		var lp: Dictionary = data.items.get("legendary_passives", {}).get(it["passive"], {})
-		out.append({"text": "★ %s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e"), "wide": true})
+		out.append({"text": "%s: %s" % [lp.get("name", it["passive"]), lp.get("desc", "")], "color": Color("#ff9a2e"), "wide": true, "icon": "ui_star", "tip": "legendary"})
 	return out
 
 
@@ -157,11 +157,21 @@ static func stat_flow(lines: Array, size: int = 17) -> Control:
 		var l: Label
 		if line.get("wide", false):
 			l = UI.label(line["text"], size, line["color"])
-			box.add_child(l)
+			l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if line.has("icon"):
+				var h := HBoxContainer.new()
+				h.add_theme_constant_override("separation", 6)
+				var ic := UI.icon(str(line["icon"]), size + 2, line["color"])
+				ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+				h.add_child(ic)
+				h.add_child(l)
+				box.add_child(h)
+			else:
+				box.add_child(l)
 		else:
 			l = UI.label(line["text"], size, line["color"], false)
 			flow.add_child(l)
-		Tip.attach(l, str(line["text"]))
+		Tip.attach(l, str(line.get("tip", line["text"])))
 	return box
 
 
@@ -189,8 +199,19 @@ static func item_row(data: DSData, it: Dictionary, eq, actions: Array, note: Str
 	if note != "":
 		sub += " · " + note
 	if eq != null and DSRunState.is_pure_upgrade(it, eq):
-		v.add_child(Tip.attach(UI.label(sub + "  ·  ▲ UPGRADE", 14, Color("#5fd35f")), "upgrade"))
+		v.add_child(upgrade_line(sub, 14))
 	else:
 		v.add_child(Tip.attach(UI.label(sub, 14, UI.DIM), str(it.get("rarity", "common"))))
 	v.add_child(stat_flow(compare_lines(data, it, eq), 16))
 	return card
+
+
+## "Rare weapon · ilvl 3   [upgrade icon] Upgrade" in green, tappable for the guide entry.
+static func upgrade_line(sub: String, size: int) -> HBoxContainer:
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 8)
+	h.add_child(UI.label(sub, size, UI.DIM, false))
+	var t := UI.tag("ui_upgrade", "Upgrade", size, Color("#5fd35f"))
+	h.add_child(t)
+	Tip.attach(t, "upgrade")
+	return h

@@ -36,6 +36,8 @@ var auto_potions := false        # tests/balance/autoplay drink potions on their
 var events: Array = []           # this turn's events (sim + world)
 var pending: Dictionary = {}     # something the run must handle before play continues
 var regen_counter := 0
+var walk := PackedByteArray()    # 1 = walkable, indexed y * w + x (built from tiles)
+var _fov_at := Vector2i(-99, -99)
 var entrance := Vector2i.ZERO    # where the player arrived on this floor (extraction point)
 var extracting := false          # walking back to the entrance to extract
 var ambush := false              # this is an ambush floor: clear it to finish extracting
@@ -75,6 +77,7 @@ static func create(p_run, p_level: Dictionary, p_rng: DSRng) -> DSWorld:
 			st0 = "hunt"
 		wd._add_monster(str(sp["id"]), ml, Vector2i(int(sp["x"]), int(sp["y"])), i, st0,
 			sp.get("elite", false), sp.get("boss", false), -1)
+	wd._build_walk()
 	wd._attach_player()
 	wd._update_fov()
 	return wd
@@ -119,6 +122,7 @@ func refresh_player() -> void:
 	var stance := player.stance
 	var fl := player.flags.duplicate()
 	run.stats["revives"] = int(fl.get("revives_used", 0))
+	run.stats["last_stands"] = int(fl.get("last_stands_used", 0))
 	player = run.make_player()
 	player.cooldowns = cds
 	for k in sts.keys():
@@ -178,6 +182,7 @@ static func from_dict(p_run, d: Dictionary) -> DSWorld:
 	wd.ambush = bool(d.get("ambush", false))
 	var en: Array = d.get("entrance", wd.level["start"])
 	wd.entrance = Vector2i(int(en[0]), int(en[1]))
+	wd._build_walk()
 	wd._attach_player()
 	wd._update_fov()
 	return wd
@@ -197,8 +202,30 @@ func tile(p: Vector2i) -> String:
 	return str(tiles[p.y]).substr(p.x, 1)
 
 
+func _build_walk() -> void:
+	walk = PackedByteArray()
+	walk.resize(w * h)
+	for y in h:
+		var row := str(tiles[y])
+		for x in w:
+			walk[y * w + x] = 0 if row.substr(x, 1) == " " else 1
+
+
 func walkable(p: Vector2i) -> bool:
-	return tile(p) != " "
+	if p.x < 0 or p.y < 0 or p.x >= w or p.y >= h:
+		return false
+	return walk[p.y * w + p.x] == 1
+
+
+func idx(p: Vector2i) -> int:
+	return p.y * w + p.x
+
+
+## Distance at `p` on a distance map, or -1 if unreached / off the map.
+func dist_at(dist: PackedInt32Array, p: Vector2i) -> int:
+	if p.x < 0 or p.y < 0 or p.x >= w or p.y >= h:
+		return -1
+	return dist[p.y * w + p.x]
 
 
 func monster_at(p: Vector2i):
@@ -250,40 +277,60 @@ func los(a: Vector2i, b: Vector2i) -> bool:
 	return true
 
 
-## Breadth-first distances over walkable tiles (8-way, no corner cutting). Monsters block
-## unless `through_monsters`.
-func distance_map(from: Vector2i, through_monsters: bool = true, limit: int = 999) -> Dictionary:
-	var dist := {pk(from): 0}
-	var q: Array = [from]
+## Breadth-first distances over walkable tiles (8-way, no corner cutting), as a flat grid
+## (y * w + x; -1 = unreached). Monsters block unless `through_monsters`.
+func distance_map(from: Vector2i, through_monsters: bool = true, limit: int = 999) -> PackedInt32Array:
+	var dist := PackedInt32Array()
+	dist.resize(w * h)
+	dist.fill(-1)
+	if not walkable(from) and from != ppos:
+		return dist
+	var occ := PackedByteArray()
+	if not through_monsters:
+		occ.resize(w * h)
+		for m in monsters:
+			if m["c"].is_alive():
+				occ[idx(m["pos"])] = 1
+	dist[idx(from)] = 0
+	var q := PackedInt32Array([idx(from)])
 	var head := 0
 	while head < q.size():
-		var p: Vector2i = q[head]
+		var ci := q[head]
 		head += 1
-		var dp := int(dist[pk(p)])
+		var dp := dist[ci]
 		if dp >= limit:
 			continue
+		var cx := ci % w
+		var cy := ci / w
 		for d in DIRS8:
-			var n: Vector2i = p + d
-			if dist.has(pk(n)) or not can_step(p, n):
+			var nx: int = cx + d.x
+			var ny: int = cy + d.y
+			if nx < 0 or ny < 0 or nx >= w or ny >= h:
 				continue
-			if not through_monsters and monster_at(n) != null:
+			var ni := ny * w + nx
+			if dist[ni] != -1 or walk[ni] == 0:
 				continue
-			dist[pk(n)] = dp + 1
-			q.append(n)
+			if d.x != 0 and d.y != 0 and (walk[cy * w + nx] == 0 or walk[ny * w + cx] == 0):
+				continue
+			if not through_monsters and occ[ni] == 1:
+				continue
+			dist[ni] = dp + 1
+			q.append(ni)
 	return dist
 
 
 ## Next step from `from` that goes downhill on `dist` (a distance map toward a goal).
-func step_down(from: Vector2i, dist: Dictionary, avoid_occupied: bool = true):
+func step_down(from: Vector2i, dist: PackedInt32Array, avoid_occupied: bool = true):
 	var best = null
-	var best_d := int(dist.get(pk(from), 1 << 30))
+	var here := dist_at(dist, from)
+	var best_d := here if here >= 0 else (1 << 30)
 	for d in DIRS8:
 		var n: Vector2i = from + d
-		if not dist.has(pk(n)) or not can_step(from, n):
+		var dn := dist_at(dist, n)
+		if dn < 0 or not can_step(from, n):
 			continue
 		if avoid_occupied and occupied(n):
 			continue
-		var dn := int(dist[pk(n)])
 		if dn < best_d:
 			best_d = dn
 			best = n
@@ -291,6 +338,9 @@ func step_down(from: Vector2i, dist: Dictionary, avoid_occupied: bool = true):
 
 
 func _update_fov() -> void:
+	if ppos == _fov_at:
+		return
+	_fov_at = ppos
 	visible.clear()
 	var r := int(data.balance.get("level", {}).get("sight", 7))
 	# Pass 1: walkable tiles in line of sight. Pass 2: walls touching them (so rooms read properly).
@@ -538,6 +588,14 @@ func _player_fight(foes: Array) -> void:
 
 ## Explore: items in view, unused objects, then unexplored ground, then the stairs.
 func _explore() -> void:
+	# Clear out sleeping or wandering monsters next to you (not while heading out to extract).
+	if not extracting:
+		for m in monsters:
+			if m["c"].is_alive() and m["state"] != "hunt" and cheb(m["pos"], ppos) <= 1 and can_step(ppos, m["pos"]) and is_visible(m["pos"]):
+				_wake(m)
+				sim.start_encounter()
+				sim.melee(player, m["c"])
+				return
 	var dist := distance_map(ppos, false, 80)
 	var goal = _explore_goal(dist)
 	if goal == null:
@@ -550,20 +608,30 @@ func _explore() -> void:
 	if nxt == null:
 		back = distance_map(goal, true, 80)
 		nxt = step_down(ppos, back, false)
-		if nxt == null or monster_at(nxt) != null:
+		var blocker: Dictionary = {}
+		if nxt != null and monster_at(nxt) != null:
+			blocker = monster_at(nxt)
+		if not blocker.is_empty():
+			# A monster (usually asleep) blocks the only way: wake it up the hard way.
+			if blocker["state"] != "hunt":
+				_wake(blocker)
+			sim.start_encounter()
+			sim.melee(player, blocker["c"])
+			return
+		if nxt == null:
 			_emit({"t": "wait", "who": "player"})
 			return
 	_move_player(nxt)
 
 
-func _explore_goal(dist: Dictionary):
+func _explore_goal(dist: PackedInt32Array):
 	var best = null
 	var best_d := 1 << 30
 	if extracting:
 		return entrance
 	var hp_low := player.hp_pct() < 75.0
 	for it in items:
-		var d := int(dist.get(pk(it["pos"]), -1))
+		var d := dist_at(dist, it["pos"])
 		if d >= 0 and seen.has(pk(it["pos"])) and d < best_d:
 			best_d = d
 			best = it["pos"]
@@ -572,26 +640,38 @@ func _explore_goal(dist: Dictionary):
 			continue
 		if o["type"] == "campfire" and not hp_low:
 			continue
-		var d := int(dist.get(pk(o["pos"]), -1))
+		var d := dist_at(dist, o["pos"])
 		if d >= 0 and d < best_d:
 			best_d = d
 			best = o["pos"]
 	if best != null:
 		return best
-	# Frontier: a reachable tile next to unexplored ground.
-	for k in dist.keys():
-		var parts: PackedStringArray = str(k).split(",")
-		var p := Vector2i(int(parts[0]), int(parts[1]))
-		if _frontier(p):
-			var d := int(dist[k])
-			if d < best_d:
+	# Sleeping or wandering monsters in sight: go and kill them (a tile next to them).
+	for m in monsters:
+		if not m["c"].is_alive() or m["state"] == "hunt" or not is_visible(m["pos"]):
+			continue
+		for dd in DIRS8:
+			var n: Vector2i = m["pos"] + dd
+			var d := dist_at(dist, n)
+			if d >= 0 and d < best_d and can_step(n, m["pos"]):
 				best_d = d
-				best = p
+				best = n
+	if best != null:
+		return best
+	# Frontier: a reachable tile next to unexplored ground.
+	for i in dist.size():
+		var d := dist[i]
+		if d < 0 or d >= best_d:
+			continue
+		var p := Vector2i(i % w, i / w)
+		if _frontier(p):
+			best_d = d
+			best = p
 	if best != null:
 		return best
 	# Everything explored: rest at an unused campfire if hurt, then go down.
 	for o in objects:
-		if not o["used"] and o["type"] == "campfire" and player.hp_pct() < 100.0 and dist.has(pk(o["pos"])):
+		if not o["used"] and o["type"] == "campfire" and player.hp_pct() < 100.0 and dist_at(dist, o["pos"]) >= 0:
 			return o["pos"]
 	# The boss guards the way down: go find it (stairs stay sealed until it dies).
 	var boss = living_boss()
@@ -695,7 +775,7 @@ func drink(kind: String) -> bool:
 # Monsters
 # ---------------------------------------------------------------------------
 
-func _monster_act(m: Dictionary, dist: Dictionary) -> void:
+func _monster_act(m: Dictionary, dist: PackedInt32Array) -> void:
 	var c: Combatant = m["c"]
 	var d := cheb(m["pos"], ppos)
 	match m["state"]:

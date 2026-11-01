@@ -270,10 +270,15 @@ func _refresh() -> void:
 	pot_mp.text = "Mana ×%d" % int(run.potions.get("mp", 0))
 	pot_mp.disabled = int(run.potions.get("mp", 0)) <= 0 or p.mana >= p.max_mana
 	speed_btn.text = "Speed %dx" % int(Game.speed)
-	extract_btn.disabled = not run.can_extract()
-	extract_btn.text = "Ambush!" if run.world.ambush else ("Extracting" if run.world.extracting else "Extract")
+	extract_btn.disabled = run.world.ambush or run.phase != "explore"
+	extract_btn.text = "Ambush!" if run.world.ambush else ("Cancel Extract" if run.world.extracting else "Extract")
 	var ups := run.upgrade_slots()
-	gear_btn.text = ("Gear ▲" if not ups.is_empty() else "Gear")
+	gear_btn.text = "Gear"
+	gear_btn.icon = UI.tex("ui_upgrade") if not ups.is_empty() else null
+	gear_btn.expand_icon = true
+	gear_btn.add_theme_constant_override("icon_max_width", 24)
+	gear_btn.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
+	gear_btn.add_theme_color_override("icon_hover_color", Color("#5fd35f"))
 	_set_gear_glow(not ups.is_empty())
 	for c in log_strip.get_children():
 		c.queue_free()
@@ -341,7 +346,7 @@ func _show_boons() -> void:
 	var banish_left := int(run.charges.get("banish", 0))
 	for i in run.offer.size():
 		var ii := i
-		var card := _big_boon(str(run.offer[i]), func(): _take_boon(ii))
+		var card := _big_boon(str(run.offer[i]), str(run.offer_rarity[i]) if i < run.offer_rarity.size() else "common", func(): _take_boon(ii))
 		card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		if banish_left > 0:
 			# Small Banish button in the card's top-right corner.
@@ -373,21 +378,23 @@ func _show_boons() -> void:
 		_shot("boon_f%d" % run.floor_num, func(): _take_boon(0))
 
 
-func _big_boon(id: String, on_take: Callable) -> Button:
+func _big_boon(id: String, rarity: String, on_take: Callable) -> Button:
 	var b: Dictionary = run.data.boons.get(id, {})
+	var has_rarity: bool = not b.get("effect", {}).get("stats", {}).is_empty() or b.has("fixed_rarity")
+	var rcol := Color(str(run.data.boon_rarities().get(rarity, {}).get("color", "#d6a64f"))) if has_rarity else UI.ACCENT
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(0, 190)
 	btn.pressed.connect(func(): Game.sfx("click"))
 	btn.pressed.connect(on_take)
 	var st := StyleBoxFlat.new()
 	st.bg_color = Color("#1d1a26")
-	st.border_color = UI.ACCENT.darkened(0.3)
-	st.set_border_width_all(2)
+	st.border_color = rcol.darkened(0.2)
+	st.set_border_width_all(3 if has_rarity and rarity != "common" else 2)
 	st.set_corner_radius_all(14)
 	st.set_content_margin_all(18)
 	btn.add_theme_stylebox_override("normal", st)
 	var hv := st.duplicate()
-	hv.border_color = UI.ACCENT
+	hv.border_color = rcol
 	hv.bg_color = Color("#2a2534")
 	btn.add_theme_stylebox_override("hover", hv)
 	btn.add_theme_stylebox_override("pressed", hv)
@@ -402,7 +409,7 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 	row.add_theme_constant_override("separation", 18)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	m.add_child(row)
-	var ic := UI.icon("boon", 72, UI.ACCENT)
+	var ic := UI.icon("boon", 72, rcol)
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(ic)
 	var col := VBoxContainer.new()
@@ -413,13 +420,17 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 	var n := UI.label(str(b.get("name", id)), 28, UI.ACCENT)
 	n.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(n)
+	if has_rarity:
+		var rl := UI.label(rarity.capitalize(), 17, rcol)
+		rl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		col.add_child(rl)
 	var mx := run.boon_max(id)
 	if mx > 1:
 		var have := run.boon_rank(id)
 		var rk := UI.label("Stackable · you have %d" % have if have > 0 else "Stackable", 16, Color("#7fc8a9"))
 		rk.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(rk)
-	var d := UI.label(run.boon_desc(id), 19)
+	var d := UI.label(run.boon_desc(id, rarity), 19)
 	d.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(d)
 	# Families: progress toward the next bonus if you take this boon.
@@ -436,8 +447,8 @@ func _big_boon(id: String, on_take: Callable) -> Button:
 			if after == int(th) and now < int(th):
 				next_txt = "unlocks: %s" % str(fam.get("tiers", {}).get(th, {}).get("text", ""))
 				break
-		var fl := UI.label("◆ %s %d → %d · %s" % [str(fam.get("name", t)), now, after, next_txt] if after != now else "◆ %s %d · %s" % [str(fam.get("name", t)), now, next_txt], 15, Color(str(fam.get("color", "#e6e1d6"))))
-		fl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var ftxt := "%s %d to %d · %s" % [str(fam.get("name", t)), now, after, next_txt] if after != now else "%s %d · %s" % [str(fam.get("name", t)), now, next_txt]
+		var fl := UI.tag("ui_family", ftxt, 15, Color(str(fam.get("color", "#e6e1d6"))))
 		col.add_child(fl)
 	return btn
 
@@ -509,11 +520,18 @@ func _show_floor_end() -> void:
 	var s := UI.label("The stair spirals down into the dark.", 20, UI.DIM)
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)
+	# No input for 3 seconds: carry on down on your own.
+	var cd := UI.label("", 24, UI.ACCENT)
+	cd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(cd)
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("Descend to floor %d" % (run.floor_num + 1), _descend, 72))
 	v.add_child(UI.label("To leave with your loot, use Extract during the floor.", 16, UI.DIM))
 	v.add_child(UI.button("Gear", _open_gear, 56))
-	Hint.show(self, "floor_end")
+	if Game.autoplay == "":
+		Hint.show(self, "floor_end", func(): _auto_descend(cd, 3))
+	else:
+		Hint.show(self, "floor_end")
 	if Game.autoplay != "":
 		print("[autoplay] floor %d cleared, level %d, HP %d, gold %d, turn %d" % [run.floor_num, run.level, run.world.player.hp, run.gold, run.world.turn])
 		if run.floor_num == 1 and OS.get_cmdline_user_args().has("--shots") and not _gear_shown:
@@ -523,8 +541,25 @@ func _show_floor_end() -> void:
 		_shot("floor_end", _descend)
 
 
+## Countdown on the floor-cleared panel. Stops if the panel goes away (a button was pressed).
+func _auto_descend(lbl: Label, left: int) -> void:
+	if not is_instance_valid(lbl) or not lbl.is_inside_tree() or run.phase != "floor_end":
+		return
+	if left <= 0:
+		_descend()
+		return
+	lbl.text = "Descending in %d..." % left
+	get_tree().create_timer(1.0).timeout.connect(func(): _auto_descend(lbl, left - 1))
+
+
 ## Extract: the character walks back to this floor's entrance first.
 func _extract_pressed() -> void:
+	if run.world.extracting:
+		run.cancel_extract()
+		_recent.append(["Extraction cancelled. Exploring again.", "#7fc8a9"])
+		Game.save_run()
+		_refresh()
+		return
 	if not run.can_extract():
 		return
 	run.request_extract()
@@ -568,6 +603,8 @@ func _show_extract_choice() -> void:
 
 
 func _descend() -> void:
+	if run.phase != "floor_end":
+		return
 	run.descend()
 	grid.setup(run)
 	_recent.append(["You descend to floor %d." % run.floor_num, "#d6a64f"])

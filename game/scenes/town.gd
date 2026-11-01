@@ -77,6 +77,10 @@ func _character_card() -> PanelContainer:
 		var it = ch["loadout"].get(s)
 		if it != null:
 			gear.append(str(it.get("name", "?")))
+	var ml := DSMeta.mastery_level(Game.data, Game.account, str(ch["line"]))
+	var nxt := DSMeta.mastery_next(Game.data, ml)
+	cv.add_child(Tip.attach(UI.label("%s mastery %d%s" % [str(L.get("display", ch["line"])), ml,
+		(" · %d/%d XP" % [DSMeta.mastery_xp(Game.account, str(ch["line"])), nxt]) if nxt > 0 else " (max)"], 16, Color("#7fc8a9")), "mastery"))
 	var gl := UI.label("Gear: " + (", ".join(PackedStringArray(gear)) if not gear.is_empty() else "none"), 16, UI.DIM)
 	gl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	cv.add_child(gl)

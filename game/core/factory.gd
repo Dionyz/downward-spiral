@@ -35,10 +35,12 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 	c.flags["spell_mult"] = 1.0 + float(st.get("spell_pct", 0)) / 100.0
 	c.flags["damage_taken_mult"] = 1.0 + float(st.get("damage_taken_pct", 0)) / 100.0
 
+	# Skills come from class mastery (opts.skill_level), not the in-run level.
+	var sl := int(opts.get("skill_level", level))
 	var bonuses: Dictionary = opts.get("bonuses", {})
-	for n in data.kit_abilities(line, tier, level):
+	for n in data.kit_abilities(line, tier, sl):
 		var ul := data.unlock_level(n, line, tier)
-		c.skills[n] = DSStats.proficiency(ul, level, b, int(bonuses.get(n, 0)))
+		c.skills[n] = DSStats.proficiency(ul, sl, b, int(bonuses.get(n, 0)))
 	c.flags["weapon_skill"] = DSStats.weapon_proficiency(level, b, int(bonuses.get("weapon", 0)))
 
 	# Gear: one weapon slot (dual wielders wield a matched pair), armor, trinket.
@@ -67,11 +69,11 @@ static func make_player(data: DSData, line: String, tier: int, level: int, opts:
 	if opts.has("actives"):
 		c.actives = opts["actives"].duplicate()
 	else:
-		c.actives = data.kit_abilities(line, tier, level, "active")
+		c.actives = data.kit_abilities(line, tier, sl, "active")
 	if opts.has("rules"):
 		c.rules = opts["rules"].duplicate(true)
 	else:
-		c.rules = class_ai(data, line, tier, level)
+		c.rules = class_ai(data, line, tier, sl)
 	return c
 
 
@@ -134,7 +136,10 @@ static func apply_race(data: DSData, c: Combatant, race: String) -> void:
 	var r: Dictionary = data.races.get(race, {})
 	if r.is_empty():
 		return
-	c.stats = r.get("attributes", c.stats).duplicate()
+	# Race attributes shift the class's: 15 is neutral (a human changes nothing).
+	var ra: Dictionary = r.get("attributes", {})
+	for k in ra.keys():
+		c.stats[k] = int(c.stats.get(k, 15)) + int(ra[k]) - 15
 	c.size = str(r.get("size", c.size))
 	for t in r.get("resist", []):
 		if not c.resist.has(t):
@@ -252,18 +257,31 @@ static func family_bonuses(data: DSData, boon_ids: Array) -> Array:
 	return out
 
 
-static func apply_boons(data: DSData, c: Combatant, boon_ids: Array) -> void:
+## A boon stat after its rarity multiplier (rounded; never below the common value). Fixed-rarity
+## boons and stats listed in boons.json `no_scale` don't scale.
+static func scaled_stat(data: DSData, id: String, k: String, rarity: String) -> int:
+	var b: Dictionary = data.boons.get(id, {})
+	var base := int(b.get("effect", {}).get("stats", {}).get(k, 0))
+	if b.has("fixed_rarity") or data.boons_meta.get("no_scale", []).has(k):
+		return base
+	var mult := float(data.boon_rarities().get(rarity, {}).get("mult", 1.0))
+	return maxi(base, roundi(base * mult))
+
+
+static func apply_boons(data: DSData, c: Combatant, boon_ids: Array, rarities: Array = []) -> void:
 	for fb in family_bonuses(data, boon_ids):
 		for k in fb["stats"].keys():
 			c.flags[k] = int(c.flags.get(k, 0)) + int(fb["stats"][k])
-	for id in boon_ids:
+	for bi in boon_ids.size():
+		var id: String = boon_ids[bi]
+		var rarity: String = str(rarities[bi]) if bi < rarities.size() else "common"
 		var b: Dictionary = data.boons.get(id, {})
 		var e: Dictionary = b.get("effect", {})
 		if e.has("flag"):
 			c.flags[str(e["flag"])] = true
 		var bs: Dictionary = e.get("stats", {})
 		for k in bs.keys():
-			c.flags[k] = int(c.flags.get(k, 0)) + int(bs[k])
+			c.flags[k] = int(c.flags.get(k, 0)) + scaled_stat(data, id, k, rarity)
 		var sb: Dictionary = e.get("skill_bonus", {})
 		for k in sb.keys():
 			if c.skills.has(k):

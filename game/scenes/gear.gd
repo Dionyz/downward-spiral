@@ -27,7 +27,7 @@ func _ready() -> void:
 	tab_row.add_theme_constant_override("separation", 8)
 	for s in DSRunState.SLOTS:
 		var ss: String = s
-		var b := UI.button(s.capitalize() + (" ▲" if run.upgrade_slots().has(s) else ""), func(): _select(ss), 56)
+		var b := UI.button(s.capitalize(), func(): _select(ss), 56)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.toggle_mode = true
 		tab_row.add_child(b)
@@ -50,6 +50,7 @@ func _ready() -> void:
 		row.add_child(bt)
 	v.add_child(row)
 	_select("weapon")
+	_mark_tabs()
 	if Game.autoplay != "":
 		_select("armor")
 		Game.auto_next("gear", func(): Game.goto("dungeon"))
@@ -66,7 +67,8 @@ func _refresh() -> void:
 	var p := run.make_player()
 	var w = run.items.get("weapon")
 	var dmg := "%s avg" % Cards._num((int(w.get("min", 0)) + int(w.get("max", 0))) / 2.0) if w != null else "-"
-	summary.text = "HP %d · Weapon %s · +%s weapon damage · Armor %d · %d boons" % [p.max_hp, dmg, Cards._num(p.damroll / 10.0), -p.ac, run.boons.size()]
+	var wd := (" · +%s weapon damage" % Cards._num(p.damroll / 10.0)) if p.damroll >= 10 else ""
+	summary.text = "HP %d · Weapon %s%s · Armor %d · %d boons" % [p.max_hp, dmg, wd, -p.ac, run.boons.size()]
 	bag_label.text = "Bag %d/%d" % [run.inventory.size(), DSRunState.INVENTORY_MAX]
 	for c in equipped_box.get_children():
 		c.queue_free()
@@ -116,7 +118,8 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 		run.messages.clear()
 		Game.save_run()
 		for k in tabs.keys():
-			tabs[k].text = str(k).capitalize() + (" ▲" if run.upgrade_slots().has(k) else "")
+			pass
+		_mark_tabs()
 		_refresh()
 	, 48)
 	eb.custom_minimum_size.x = 110
@@ -124,7 +127,7 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 	v.add_child(head)
 	var sub := "%s · ilvl %d" % [str(it.get("rarity", "")).capitalize(), int(it.get("ilvl", 1))]
 	if DSRunState.is_pure_upgrade(it, eq):
-		v.add_child(UI.label(sub + "  ·  ▲ UPGRADE", 15, Color("#5fd35f")))
+		v.add_child(Cards.upgrade_line(sub, 15))
 	else:
 		v.add_child(UI.label(sub, 15, UI.DIM))
 	v.add_child(Cards.stat_flow(Cards.compare_lines(run.data, it, eq)))
@@ -155,21 +158,52 @@ func _show_boons() -> void:
 		var fam: Dictionary = run.data.families[f]
 		var n := int(counts.get(f, 0))
 		var col := Color(str(fam.get("color", "#e6e1d6")))
-		inner.add_child(Tip.attach(UI.label("◆ %s  %d  — %s" % [str(fam["name"]), n, str(fam.get("desc", ""))], 18, col if n > 0 else UI.DIM), str(fam["name"])))
+		inner.add_child(Tip.attach(UI.tag("ui_family", "%s  %d  — %s" % [str(fam["name"]), n, str(fam.get("desc", ""))], 18, col if n > 0 else UI.DIM), str(fam["name"])))
 		for th in ["2", "4", "6"]:
 			var on := n >= int(th)
-			inner.add_child(UI.label("     %s %s: %s" % ["✓" if on else "·", th, str(fam["tiers"][th]["text"])], 16, col if on else UI.DIM))
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation", 6)
+			var pad := Control.new()
+			pad.custom_minimum_size = Vector2(24, 0)
+			row.add_child(pad)
+			var ic := UI.icon("ui_check", 16, col)
+			ic.modulate = col if on else Color(0, 0, 0, 0)
+			row.add_child(ic)
+			row.add_child(UI.label("%s: %s" % [th, str(fam["tiers"][th]["text"])], 16, col if on else UI.DIM))
+			inner.add_child(row)
 	inner.add_child(UI.label("Your boons", 20, UI.DIM))
 	if run.boons.is_empty():
 		inner.add_child(UI.label("None yet. Level up or kill an elite to pick one.", 17, UI.DIM))
-	var seen := {}
-	for id in run.boons:
-		if seen.has(id):
-			continue
-		seen[id] = true
+	# One line per boon and rarity, with how many copies.
+	var groups := {}
+	var order: Array = []
+	for bi in run.boons.size():
+		var key := "%s|%s" % [run.boons[bi], run.boon_rarity[bi] if bi < run.boon_rarity.size() else "common"]
+		if not groups.has(key):
+			groups[key] = 0
+			order.append(key)
+		groups[key] = int(groups[key]) + 1
+	for key in order:
+		var parts: PackedStringArray = str(key).split("|")
+		var id := parts[0]
+		var rarity := parts[1]
 		var b: Dictionary = run.data.boons.get(id, {})
-		var n := run.boon_rank(id)
-		inner.add_child(UI.label("%s%s" % [str(b.get("name", id)), (" ×%d" % n) if n > 1 else ""], 19, UI.ACCENT))
-		inner.add_child(UI.label(run.boon_desc(id), 16))
+		var n := int(groups[key])
+		var rcol := Color(str(run.data.boon_rarities().get(rarity, {}).get("color", "#d6a64f")))
+		inner.add_child(UI.label("%s (%s)%s" % [str(b.get("name", id)), rarity.capitalize(), (" ×%d" % n) if n > 1 else ""], 19, rcol))
+		inner.add_child(UI.label(run.boon_desc(id, rarity), 16))
 	inner.add_child(Tip.attach(UI.label("Total damage reduction from boons is capped at 90%.", 15, UI.DIM), "damage reduction"))
 	v.add_child(UI.button("Close", func(): layer.queue_free(), 56))
+
+
+## Slot tabs with a pure upgrade waiting get the upgrade icon.
+func _mark_tabs() -> void:
+	var ups := run.upgrade_slots()
+	for k in tabs.keys():
+		var b: Button = tabs[k]
+		b.icon = UI.tex("ui_upgrade") if ups.has(k) else null
+		b.expand_icon = true
+		b.add_theme_constant_override("icon_max_width", 26)
+		b.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
+		b.add_theme_color_override("icon_pressed_color", Color("#5fd35f"))
+		b.add_theme_color_override("icon_hover_color", Color("#5fd35f"))

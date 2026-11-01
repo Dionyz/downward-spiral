@@ -24,10 +24,16 @@ func _ready() -> void:
 	else:
 		lines.append("Brought home: %d gold and %d items (equipped gear stays on, the rest is in the stash)." % [int(bank.get("gold", 0)), int(bank.get("items", 0))])
 	lines.append("Town purse: %d gold" % int(Game.account.get("gold", 0)))
+	lines.append("+%d %s mastery XP (mastery %d)" % [int(bank.get("mastery_xp", 0)), str(L.get("display", run.line)), int(bank.get("mastery_after", 1))])
 	for l in lines:
 		var s := UI.label(l, 20, UI.DIM)
 		s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(s)
+	if int(bank.get("mastery_after", 0)) > int(bank.get("mastery_before", 0)):
+		Game.sfx("level_up")
+		var up := UI.label("%s mastery %d! New skills may be unlocked: check Skills." % [str(L.get("display", run.line)), int(bank["mastery_after"])], 24, UI.ACCENT)
+		up.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(up)
 	if run.result == "rescued":
 		var warn := PanelContainer.new()
 		var st := StyleBoxFlat.new()
