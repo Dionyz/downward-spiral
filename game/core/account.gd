@@ -17,7 +17,16 @@ const SLOTS := ["weapon", "armor", "trinket"]
 
 static func fresh() -> Dictionary:
 	return {"gold": 0, "upgrades": {}, "stash": [], "characters": [], "current": -1, "shop": [],
-		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0}
+		"runs": 0, "deaths": 0, "extracts": 0, "victories": 0, "best_floor": 0, "rescue_used": false}
+
+
+## The one-time rescue: the account's first death (any character) is turned into an emergency
+## extraction. Call before bank_run; marks the run "rescued" if it applies.
+static func apply_rescue(a: Dictionary, run: DSRunState) -> bool:
+	if run.result != "death" or bool(a.get("rescue_used", false)):
+		return false
+	run.result = "rescued"
+	return true
 
 
 ## Fill in anything an older save lacks (old saves had XP and levels; those are dropped).
@@ -141,26 +150,52 @@ static func sell(data: DSData, a: Dictionary, idx: int) -> int:
 	return g
 
 
-## Sell every stash item of the given rarities (and, if `only_worse`, only items weaker than
-## what the current character has equipped in that slot). Returns {count, gold}.
-static func bulk_sell(data: DSData, a: Dictionary, rarities: Array, only_worse: bool = false) -> Dictionary:
+## Stash indexes a bulk sale would sell: the given rarities (and, if `only_worse`, only items
+## weaker than what the current character wears in that slot). Never legendaries, and never an
+## item that would be a pure upgrade for any of your characters.
+static func bulk_preview(data: DSData, a: Dictionary, rarities: Array, only_worse: bool = false) -> Array:
 	var ch := current(a)
+	var out: Array = []
+	for i in a["stash"].size():
+		var it: Dictionary = a["stash"][i]
+		var rar := str(it.get("rarity", "common"))
+		if rar == "legendary" or not rarities.has(rar):
+			continue
+		if only_worse:
+			var eq = ch["loadout"].get(it.get("slot", "")) if not ch.is_empty() else null
+			if eq == null or DSLoot.power(it) >= DSLoot.power(eq):
+				continue
+		var wanted := false
+		for c in a["characters"]:
+			var worn = c["loadout"].get(it.get("slot", ""))
+			if worn != null and DSRunState.is_pure_upgrade(it, worn):
+				wanted = true
+				break
+		if not wanted:
+			out.append(i)
+	return out
+
+
+## Sell what bulk_preview picks. Returns {count, gold}.
+static func bulk_sell(data: DSData, a: Dictionary, rarities: Array, only_worse: bool = false) -> Dictionary:
+	var pick := bulk_preview(data, a, rarities, only_worse)
 	var keep: Array = []
-	var n := 0
 	var g := 0
-	for it in a["stash"]:
-		var hit: bool = rarities.has(str(it.get("rarity", "common")))
-		if hit and only_worse and not ch.is_empty():
-			var eq = ch["loadout"].get(it.get("slot", ""))
-			hit = eq != null and DSLoot.power(it) < DSLoot.power(eq)
-		if hit:
-			n += 1
-			g += sell_value(data, it)
+	for i in a["stash"].size():
+		if pick.has(i):
+			g += sell_value(data, a["stash"][i])
 		else:
-			keep.append(it)
+			keep.append(a["stash"][i])
 	a["stash"] = keep
 	a["gold"] = int(a["gold"]) + g
-	return {"count": n, "gold": g}
+	return {"count": pick.size(), "gold": g}
+
+
+static func preview_gold(data: DSData, a: Dictionary, idx: Array) -> int:
+	var g := 0
+	for i in idx:
+		g += sell_value(data, a["stash"][i])
+	return g
 
 
 ## Restock the shop: items sized to how deep this account has been, for the current class.
@@ -210,7 +245,7 @@ static func bank_run(data: DSData, a: Dictionary, run: DSRunState) -> Dictionary
 	var out := {"gold": 0, "items": 0, "lost": 0}
 	a["runs"] = int(a["runs"]) + 1
 	a["best_floor"] = maxi(int(a["best_floor"]), run.floor_num)
-	var key: String = {"death": "deaths", "extract": "extracts", "victory": "victories"}.get(run.result, "")
+	var key: String = {"death": "deaths", "rescued": "deaths", "extract": "extracts", "victory": "victories"}.get(run.result, "")
 	if key != "":
 		a[key] = int(a.get(key, 0)) + 1
 	if not ch.is_empty():
@@ -224,6 +259,21 @@ static func bank_run(data: DSData, a: Dictionary, run: DSRunState) -> Dictionary
 	for s in SLOTS:
 		if run.items.get(s) != null:
 			carried.append(run.items[s])
+	if run.result == "rescued":
+		# Keep the gear brought in and half the gold; everything found this run is lost.
+		a["rescue_used"] = true
+		var g := DSStats.idiv(run.gold, 2)
+		a["gold"] = int(a["gold"]) + g
+		out["gold"] = g
+		out["rescued"] = true
+		var kept := 0
+		if not ch.is_empty():
+			for s in SLOTS:
+				ch["loadout"][s] = run.start_loadout.get(s)
+				if ch["loadout"][s] != null:
+					kept += 1
+		out["lost"] = maxi(0, carried.size() - kept)
+		return out
 	if run.result == "death":
 		out["lost"] = carried.size()
 		if not ch.is_empty() and ch["loadout"].get("weapon") == null:

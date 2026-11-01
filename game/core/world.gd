@@ -36,6 +36,9 @@ var auto_potions := false        # tests/balance/autoplay drink potions on their
 var events: Array = []           # this turn's events (sim + world)
 var pending: Dictionary = {}     # something the run must handle before play continues
 var regen_counter := 0
+var entrance := Vector2i.ZERO    # where the player arrived on this floor (extraction point)
+var extracting := false          # walking back to the entrance to extract
+var ambush := false              # this is an ambush floor: clear it to finish extracting
 
 
 # ---------------------------------------------------------------------------
@@ -53,6 +56,8 @@ static func create(p_run, p_level: Dictionary, p_rng: DSRng) -> DSWorld:
 	wd.h = int(p_level["h"])
 	var s: Array = p_level["start"]
 	wd.ppos = Vector2i(int(s[0]), int(s[1]))
+	wd.entrance = wd.ppos
+	wd.ambush = bool(p_level.get("ambush", false))
 	var st: Array = p_level["stairs"]
 	wd.stairs = Vector2i(int(st[0]), int(st[1]))
 	for o in p_level["objects"]:
@@ -65,8 +70,10 @@ static func create(p_run, p_level: Dictionary, p_rng: DSRng) -> DSWorld:
 			ml += int(p_run._cfg().get("elite_level_bonus", 0))
 		if sp.get("boss", false):
 			ml = int(p_run._cfg().get("boss_level", 10))
-		wd._add_monster(str(sp["id"]), ml, Vector2i(int(sp["x"]), int(sp["y"])), i,
-			"asleep" if sp.get("boss", false) else ("wander" if p_rng.number_percent() <= 25 else "asleep"),
+		var st0 := "asleep" if sp.get("boss", false) else ("wander" if p_rng.number_percent() <= 25 else "asleep")
+		if wd.ambush:
+			st0 = "hunt"
+		wd._add_monster(str(sp["id"]), ml, Vector2i(int(sp["x"]), int(sp["y"])), i, st0,
 			sp.get("elite", false), sp.get("boss", false), -1)
 	wd._attach_player()
 	wd._update_fov()
@@ -136,7 +143,8 @@ func to_dict() -> Dictionary:
 	for o in objects:
 		obs.append({"type": o["type"], "x": o["pos"].x, "y": o["pos"].y, "used": o["used"]})
 	return {"level": level, "seen": seen.keys(), "px": ppos.x, "py": ppos.y, "monsters": ms, "items": its,
-		"objects": obs, "turn": turn, "heading_down": heading_down, "rng": rng.save_state()}
+		"objects": obs, "turn": turn, "heading_down": heading_down,
+		"extracting": extracting, "ambush": ambush, "entrance": [entrance.x, entrance.y], "rng": rng.save_state()}
 
 
 static func from_dict(p_run, d: Dictionary) -> DSWorld:
@@ -165,6 +173,10 @@ static func from_dict(p_run, d: Dictionary) -> DSWorld:
 		i += 1
 	wd.turn = int(d.get("turn", 0))
 	wd.heading_down = bool(d.get("heading_down", false))
+	wd.extracting = bool(d.get("extracting", false))
+	wd.ambush = bool(d.get("ambush", false))
+	var en: Array = d.get("entrance", wd.level["start"])
+	wd.entrance = Vector2i(int(en[0]), int(en[1]))
 	wd._attach_player()
 	wd._update_fov()
 	return wd
@@ -418,6 +430,8 @@ func step() -> Array:
 	_update_fov()
 	if not player.is_alive():
 		pending = {"kind": "death"}
+	elif ambush and pending.is_empty() and monsters.all(func(m): return not m["c"].is_alive()):
+		pending = {"kind": "ambush_cleared"}
 	return events
 
 
@@ -544,6 +558,8 @@ func _explore() -> void:
 func _explore_goal(dist: Dictionary):
 	var best = null
 	var best_d := 1 << 30
+	if extracting:
+		return entrance
 	var hp_low := player.hp_pct() < 75.0
 	for it in items:
 		var d := int(dist.get(pk(it["pos"]), -1))
@@ -576,8 +592,29 @@ func _explore_goal(dist: Dictionary):
 	for o in objects:
 		if not o["used"] and o["type"] == "campfire" and player.hp_pct() < 100.0 and dist.has(pk(o["pos"])):
 			return o["pos"]
+	# The boss guards the way down: go find it (stairs stay sealed until it dies).
+	var boss = living_boss()
+	if boss != null:
+		if boss["state"] == "asleep":
+			_wake(boss)
+		return boss["pos"]
+	if ambush:
+		return ppos
 	heading_down = true
 	return stairs
+
+
+## The floor's boss if it's still alive, else null.
+func living_boss():
+	for m in monsters:
+		if m["boss"] and m["c"].is_alive():
+			return m
+	return null
+
+
+## Stairs are sealed while the boss lives.
+func stairs_sealed() -> bool:
+	return living_boss() != null
 
 
 func _frontier(p: Vector2i) -> bool:
@@ -628,7 +665,9 @@ func _interact() -> void:
 			"event":
 				o["used"] = true
 				pending = {"kind": "event"}
-	if ppos == stairs and heading_down:
+	if extracting and ppos == entrance:
+		pending = {"kind": "extract_choice"}
+	elif ppos == stairs and heading_down and not stairs_sealed():
 		pending = {"kind": "stairs"}
 
 

@@ -237,3 +237,43 @@ static func fully_connected(level: Dictionary) -> bool:
 			if grid[y][x] != ROCK and not dist.has("%d,%d" % [x, y]):
 				return false
 	return true
+
+
+## Ambush floor for a failed clean extraction: three 4x4 rooms in a row joined by short
+## hallways, about a quarter of a normal floor's monsters (at least one), all awake.
+static func ambush(data: DSData, rng: DSRng, floor_num: int) -> Dictionary:
+	const RW := 4
+	const HALL := 3
+	var w := 1 + RW * 3 + HALL * 2 + 1
+	var h := RW + 2
+	var grid: Array = []
+	for y in h:
+		var row: Array = []
+		row.resize(w)
+		row.fill(ROCK)
+		grid.append(row)
+	var rooms: Array = []
+	for r in 3:
+		var x0 := 1 + r * (RW + HALL)
+		for y in range(1, 1 + RW):
+			for x in range(x0, x0 + RW):
+				grid[y][x] = FLOOR
+		rooms.append({"x": x0, "y": 1, "w": RW, "h": RW})
+		if r < 2:
+			for x in range(x0 + RW, x0 + RW + HALL):
+				grid[2][x] = CORRIDOR
+	var cfg: Dictionary = data.balance.get("level", {})
+	var normal := int(cfg.get("monsters_base", 4)) + int(float(cfg.get("monsters_per_floor", 1.5)) * floor_num) + 1
+	var count := maxi(1, int(round(normal * float(cfg.get("ambush_pct", 25)) / 100.0)))
+	var pool := DSEncounters.pool(data, floor_num, "normal")
+	var used := {"1,1": true}
+	var spawns: Array = []
+	for i in count:
+		var p := _random_floor(rng, rooms[1 + i % 2], used)
+		used[_pk(p)] = true
+		spawns.append({"id": rng.pick(pool), "x": p.x, "y": p.y})
+	var rows: Array = []
+	for y in h:
+		rows.append("".join(PackedStringArray(grid[y])))
+	return {"w": w, "h": h, "tiles": rows, "rooms": rooms, "start": [2, 2], "stairs": [-9, -9],
+		"objects": [], "spawns": spawns, "floor": floor_num, "ambush": true}

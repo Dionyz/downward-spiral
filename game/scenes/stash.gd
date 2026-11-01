@@ -103,10 +103,20 @@ func _refresh() -> void:
 		]))
 
 
+## Bulk sales never touch legendaries or anything that's an upgrade for one of your characters
+## (equipped gear isn't in the stash at all). Always asks first.
 func _bulk(rarities: Array, only_worse: bool) -> void:
-	var res := DSAccount.bulk_sell(Game.data, Game.account, rarities, only_worse)
-	status.text = "Sold %d items for %d gold." % [int(res["count"]), int(res["gold"])] if int(res["count"]) > 0 else "Nothing to sell."
-	_saved()
+	var pick := DSAccount.bulk_preview(Game.data, Game.account, rarities, only_worse)
+	if pick.is_empty():
+		status.text = "Nothing to sell (legendaries and upgrades for your characters are kept)."
+		return
+	var g := DSAccount.preview_gold(Game.data, Game.account, pick)
+	UI.confirm(self, "Are you sure you want to sell %d items for %d gold?\n\nLegendaries and upgrades for any of your characters are kept." % [pick.size(), g],
+		"Sell %d" % pick.size(), func():
+			var res := DSAccount.bulk_sell(Game.data, Game.account, rarities, only_worse)
+			Game.sfx("level_up")
+			status.text = "Sold %d items for %d gold." % [int(res["count"]), int(res["gold"])]
+			_saved())
 
 
 func _saved() -> void:

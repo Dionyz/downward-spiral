@@ -61,7 +61,7 @@ func _refresh() -> void:
 	var p := run.make_player()
 	var w = run.items.get("weapon")
 	var dmg := "%s avg" % Cards._num((int(w.get("min", 0)) + int(w.get("max", 0))) / 2.0) if w != null else "-"
-	summary.text = "HP %d · Weapon %s · Armor %d · Damroll %d · %d boons" % [p.max_hp, dmg, -p.ac, p.damroll, run.boons.size()]
+	summary.text = "HP %d · Weapon %s · +%d weapon damage · Armor %d · %d boons" % [p.max_hp, dmg, p.damroll, -p.ac, run.boons.size()]
 	bag_label.text = "Bag %d/%d" % [run.inventory.size(), DSRunState.INVENTORY_MAX]
 	for c in equipped_box.get_children():
 		c.queue_free()

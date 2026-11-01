@@ -20,6 +20,7 @@ var rng: DSRng
 var seed_value: int = 1
 var line: String = "warrior"
 var race: String = "human"
+var start_loadout := {}       # gear the character brought in (kept by the one-time rescue)
 var level: int = 1
 var xp: int = 0               # toward next level
 var xp_total: int = 0         # earned this run (converted to account XP at the end)
@@ -71,6 +72,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 			r.items[slot] = p_loadout[slot].duplicate(true)
 	if r.items["weapon"] == null:
 		r.items["weapon"] = DSFactory.starting_weapon(p_data, str(L.get("starting_weapon", "dagger")), 1)
+	r.start_loadout = r.items.duplicate(true)
 	r._new_floor()
 	return r
 
@@ -78,7 +80,7 @@ static func new_run(p_data: DSData, p_line: String, p_seed: int, p_perks: Dictio
 func to_dict() -> Dictionary:
 	_sync_from_world()
 	return {
-		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "level": level, "xp": xp,
+		"version": 2, "seed": seed_value, "rng": rng.save_state(), "line": line, "race": race, "start_loadout": start_loadout.duplicate(true), "level": level, "xp": xp,
 		"xp_total": xp_total, "gold": gold, "hp": hp, "mana": mana, "potions": potions.duplicate(),
 		"items": items.duplicate(true), "inventory": inventory.duplicate(true), "boons": boons.duplicate(),
 		"floor_num": floor_num, "world": world.to_dict() if world != null else {}, "phase": phase,
@@ -97,6 +99,7 @@ static func from_dict(p_data: DSData, d: Dictionary) -> DSRunState:
 	r.rng.load_state(int(d.get("rng", 1)))
 	r.line = str(d.get("line", "warrior"))
 	r.race = str(d.get("race", "human"))
+	r.start_loadout = _normalize(d.get("start_loadout", {}))
 	r.level = int(d.get("level", 1))
 	r.xp = int(d.get("xp", 0))
 	r.xp_total = int(d.get("xp_total", 0))
@@ -156,6 +159,12 @@ func tick() -> Array:
 			end_run("victory")
 		else:
 			phase = "floor_end"
+	elif p.get("kind", "") == "extract_choice":
+		world.pending = {}
+		phase = "extract_choice"
+	elif p.get("kind", "") == "ambush_cleared":
+		world.pending = {}
+		end_run("extract")
 	elif p.get("kind", "") == "event":
 		world.pending = {}
 		var ids := data.events.keys()
@@ -363,7 +372,32 @@ func descend() -> void:
 
 
 func extract() -> void:
-	if can_extract():
+	end_run("extract")
+
+
+## The Extract button: the character heads back to this floor's entrance (fighting whatever
+## gets in the way). Arriving there asks: keep exploring, or attempt the extraction.
+func request_extract() -> void:
+	if phase == "explore" and world != null and not world.ambush:
+		world.extracting = true
+
+
+## At the entrance. `attempt` = false: back to exploring. true: 80% (balance.run.ambush_pct)
+## of the time an ambush floor must be cleared first; otherwise the run ends extracted.
+## Never more than one ambush per extraction.
+func extract_choice(attempt: bool) -> void:
+	if phase != "extract_choice":
+		return
+	world.extracting = false
+	if not attempt:
+		phase = "explore"
+		return
+	if rng.number_percent() <= int(_cfg().get("ambush_pct", 80)):
+		_sync_from_world()
+		world = DSWorld.create(self, DSLevelGen.ambush(data, rng, floor_num), rng.fork())
+		messages.append("Ambush! Fight your way out.")
+		phase = "explore"
+	else:
 		end_run("extract")
 
 
@@ -728,7 +762,7 @@ func _fight_loot(elite: bool) -> Array:
 
 
 func can_extract() -> bool:
-	return phase == "floor_end" and floor_num >= int(_cfg().get("extract_from_floor", 2))
+	return phase == "explore" and world != null and not world.ambush and not world.extracting
 
 
 func end_run(kind: String) -> void:

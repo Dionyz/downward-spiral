@@ -269,9 +269,17 @@ func _draw_map() -> void:
 	# Stairs.
 	if world.seen.has(DSWorld.pk(world.stairs)):
 		var c := cell_center(world.stairs)
+		var sealed := world.stairs_sealed()
 		for i in 3:
 			var wdt := tile * (0.8 - i * 0.2)
-			content.draw_rect(Rect2(Vector2(c.x - wdt / 2.0, c.y - tile * 0.3 + i * tile * 0.25), Vector2(wdt, tile * 0.15)), Color("#8d8798"))
+			content.draw_rect(Rect2(Vector2(c.x - wdt / 2.0, c.y - tile * 0.3 + i * tile * 0.25), Vector2(wdt, tile * 0.15)), Color("#5a3030") if sealed else Color("#8d8798"))
+		if sealed:
+			# A red bar across the stairs: sealed until the boss dies.
+			content.draw_line(c - Vector2(tile * 0.45, tile * 0.45), c + Vector2(tile * 0.45, tile * 0.45), Color("#ff5a3d"), 3.0)
+			content.draw_line(c + Vector2(-tile * 0.45, tile * 0.45), c + Vector2(tile * 0.45, -tile * 0.45), Color("#ff5a3d"), 3.0)
+	if world.seen.has(DSWorld.pk(world.entrance)) and not world.ambush:
+		var e := cell_center(world.entrance)
+		content.draw_arc(e, tile * 0.35, 0, TAU, 20, Color("#7fc8a9", 0.8 if world.extracting else 0.35), 2.0)
 	queue_redraw_objects()
 
 

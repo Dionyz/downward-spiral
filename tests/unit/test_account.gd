@@ -98,7 +98,7 @@ func test_sell_and_bulk_sell():
 	DSAccount.create_character(data, a, "One", "warrior", "human")
 	var rng := DSRng.new(9)
 	for i in 6:
-		DSAccount.stash_add(data, a, [DSLoot.roll_item(data, rng, 2, "", "common", "warrior")])
+		DSAccount.stash_add(data, a, [DSLoot.roll_item(data, rng, 2, ["armor", "trinket"][i % 2], "common", "warrior")])
 	DSAccount.stash_add(data, a, [DSLoot.roll_item(data, rng, 2, "", "rare", "warrior")])
 	var g := DSAccount.sell(data, a, 0)
 	assert_gt(g, 0)
@@ -127,3 +127,15 @@ func test_migrates_old_saves():
 	assert_false(a.has("xp"))
 	assert_eq(int(a["gold"]), 40)
 	assert_eq(a["characters"], [])
+
+
+func test_bulk_sell_keeps_legendaries_and_upgrades():
+	var a := DSAccount.fresh()
+	DSAccount.create_character(data, a, "One", "warrior", "human")
+	var weak := {"slot": "weapon", "rarity": "common", "min": 1, "max": 2, "flags": [], "name": "Stick"}
+	var great := {"slot": "weapon", "rarity": "common", "min": 900, "max": 999, "flags": [], "name": "Godblade"}
+	var leg := {"slot": "trinket", "rarity": "legendary", "flags": [], "name": "Relic", "passive": "x"}
+	DSAccount.stash_add(data, a, [weak, great, leg])
+	var pick := DSAccount.bulk_preview(data, a, ["common", "legendary"])
+	assert_eq(pick, [0], "only the stick: the godblade is an upgrade, the relic is legendary")
+	assert_eq(DSAccount.preview_gold(data, a, pick), DSAccount.sell_value(data, weak))

@@ -167,7 +167,6 @@ func test_stairs_end_the_floor_and_descend():
 	r.world._interact()
 	r.tick()
 	assert_eq(r.phase, "floor_end")
-	assert_false(r.can_extract(), "no extract after floor 1")
 	r.descend()
 	assert_eq(r.floor_num, 2)
 	assert_eq(r.phase, "explore")
@@ -347,3 +346,88 @@ func test_pure_upgrade_detection():
 	var r := DSRunState.new_run(data, "warrior", 3)
 	r.inventory = [{"slot": "armor", "ac": -5, "flags": []}]
 	assert_true(r.upgrade_slots().has("armor"))
+
+
+func test_boss_seals_the_stairs():
+	var r := DSRunState.new_run(data, "warrior", 3)
+	r.floor_num = 6
+	r._new_floor()
+	assert_true(r.world.stairs_sealed())
+	r.world.heading_down = true
+	r.world.ppos = r.world.stairs
+	r.world._interact()
+	assert_true(r.world.pending.is_empty(), "can't leave while the boss lives")
+	r.world.living_boss()["c"].hp = 0
+	assert_false(r.world.stairs_sealed())
+	r.world._interact()
+	assert_eq(r.world.pending.get("kind", ""), "stairs")
+
+
+func test_extract_walks_back_then_asks():
+	var r := DSRunState.new_run(data, "thief", 8)
+	for i in 30:
+		r.world.auto_potions = true
+		r.tick()
+	assert_true(r.can_extract())
+	r.request_extract()
+	var n := 0
+	while r.phase == "explore" and n < 400:
+		r.world.auto_potions = true
+		r.tick()
+		n += 1
+	if r.phase == "over":
+		return   # died on the way back: fine for this seed
+	if r.phase == "boon":
+		r.take_boon(0)
+		while r.phase == "explore" and n < 800:
+			r.tick()
+			n += 1
+	assert_eq(r.phase, "extract_choice")
+	assert_eq(r.world.ppos, r.world.entrance)
+	r.extract_choice(false)
+	assert_eq(r.phase, "explore")
+	assert_false(r.world.extracting)
+
+
+func test_extraction_ambush_or_clean():
+	var ambushes := 0
+	for sd in 20:
+		var r := DSRunState.new_run(data, "warrior", 100 + sd)
+		r.phase = "extract_choice"
+		r.extract_choice(true)
+		if r.phase == "over":
+			assert_eq(r.result, "extract")
+			continue
+		ambushes += 1
+		assert_true(r.world.ambush)
+		assert_eq(r.world.w, 20)
+		assert_gte(r.world.monsters.size(), 1)
+		assert_true(r.world.monsters.all(func(m): return m["state"] == "hunt"), "ambushers are awake")
+		assert_false(r.can_extract(), "no extracting out of an ambush")
+		for m in r.world.monsters:
+			m["c"].hp = 0
+		r.tick()
+		assert_eq(r.phase, "over")
+		assert_eq(r.result, "extract", "clearing the ambush finishes the extraction")
+	assert_between(ambushes, 10, 20, "about 80% ambushed")
+
+
+func test_one_time_rescue():
+	var a := DSAccount.fresh()
+	DSAccount.create_character(data, a, "Ash", "warrior", "human")
+	var r := DSAccount.start_run(data, a, 4)
+	var brought: Dictionary = r.items["weapon"]
+	r.items["armor"] = DSLoot.roll_item(data, DSRng.new(1), 3, "armor", "rare", "warrior")
+	r.inventory = [DSLoot.roll_item(data, DSRng.new(2), 3, "trinket", "", "warrior")]
+	r.gold = 101
+	r.end_run("death")
+	assert_true(DSAccount.apply_rescue(a, r))
+	var out := DSAccount.bank_run(data, a, r)
+	assert_true(out.get("rescued", false))
+	assert_eq(int(a["gold"]), 50, "half the gold")
+	assert_eq(DSAccount.current(a)["loadout"]["weapon"], brought, "keeps the gear brought in")
+	assert_null(DSAccount.current(a)["loadout"]["armor"], "found gear is lost")
+	assert_eq(a["stash"].size(), 0)
+	var r2 := DSAccount.start_run(data, a, 5)
+	r2.end_run("death")
+	assert_false(DSAccount.apply_rescue(a, r2), "only once, ever")

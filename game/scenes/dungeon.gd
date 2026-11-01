@@ -21,6 +21,7 @@ var pot_hp: Button
 var pot_mp: Button
 var speed_btn: Button
 var gear_btn: Button
+var extract_btn: Button
 var overlay: Control           # boon / event / floor end
 var timer: Timer
 var _recent: Array = []        # latest log lines as [text, color]
@@ -38,6 +39,10 @@ func _ready() -> void:
 	header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.clip_text = true
 	top.add_child(header)
+	extract_btn = UI.button("Extract", _extract_pressed, 44)
+	extract_btn.add_theme_font_size_override("font_size", 18)
+	extract_btn.add_theme_color_override("font_color", Color("#7fc8a9"))
+	top.add_child(extract_btn)
 	var set_btn := UI.button("Settings", _open_settings, 44)
 	set_btn.add_theme_font_size_override("font_size", 18)
 	top.add_child(set_btn)
@@ -258,6 +263,8 @@ func _refresh() -> void:
 	pot_mp.text = "Mana ×%d" % int(run.potions.get("mp", 0))
 	pot_mp.disabled = int(run.potions.get("mp", 0)) <= 0 or p.mana >= p.max_mana
 	speed_btn.text = "Speed %dx" % int(Game.speed)
+	extract_btn.disabled = not run.can_extract()
+	extract_btn.text = "Ambush!" if run.world.ambush else ("Extracting" if run.world.extracting else "Extract")
 	var ups := run.upgrade_slots()
 	gear_btn.text = ("Gear ▲ upgrade" if not ups.is_empty() else "Gear (%d)" % run.inventory.size())
 	_set_gear_glow(not ups.is_empty())
@@ -309,6 +316,8 @@ func _show_phase() -> void:
 			_show_event()
 		"floor_end":
 			_show_floor_end()
+		"extract_choice":
+			_show_extract_choice()
 
 
 ## Boon pick: takes over the whole screen.
@@ -478,13 +487,7 @@ func _show_floor_end() -> void:
 	v.add_child(s)
 	v.add_child(UI.spacer())
 	v.add_child(UI.button("Descend to floor %d" % (run.floor_num + 1), _descend, 72))
-	if run.can_extract():
-		v.add_child(UI.button("Extract (keep %d gold and %d items)" % [run.gold, run.inventory.size() + run.items.values().filter(func(x): return x != null).size()], func():
-			run.extract()
-			Game.save_run()
-			Game.goto("run_end"), 60))
-	else:
-		v.add_child(UI.label("You can extract from the end of floor 2.", 16, UI.DIM))
+	v.add_child(UI.label("To leave with your loot, use Extract during the floor.", 16, UI.DIM))
 	v.add_child(UI.button("Gear", _open_gear, 56))
 	Hint.show(self, "floor_end")
 	if Game.autoplay != "":
@@ -494,6 +497,50 @@ func _show_floor_end() -> void:
 			_shot("floor_end", func(): Game.goto("gear"))
 			return
 		_shot("floor_end", _descend)
+
+
+## Extract: the character walks back to this floor's entrance first.
+func _extract_pressed() -> void:
+	if not run.can_extract():
+		return
+	run.request_extract()
+	_recent.append(["Heading back to the entrance to extract...", "#7fc8a9"])
+	Game.save_run()
+	_refresh()
+
+
+func _show_extract_choice() -> void:
+	var v := _overlay_box()
+	v.add_child(UI.spacer())
+	var t := UI.label("The way out", 38, Color("#7fc8a9"))
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	var carried := run.inventory.size() + run.items.values().filter(func(x): return x != null).size()
+	var s := UI.label("You're back at the entrance with %d gold and %d items.\n\nThe way up is watched: %d%% of the time you'll be ambushed and have to fight through one last stretch before you're out." % [run.gold, carried, int(run._cfg().get("ambush_pct", 80))], 20)
+	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(s)
+	v.add_child(UI.spacer())
+	v.add_child(UI.button("Attempt extraction", func():
+		run.extract_choice(true)
+		if run.phase == "over":
+			Game.save_run()
+			Game.goto("run_end")
+			return
+		grid.setup(run)
+		_recent.append(["Ambush! Clear them out to escape.", "#ff7a3d"])
+		Game.sfx("defeat")
+		_after_choice(), 72))
+	v.add_child(UI.button("Keep exploring", func():
+		run.extract_choice(false)
+		_after_choice(), 60))
+	if Game.autoplay != "":
+		_shot("extract_choice", func():
+			run.extract_choice(true)
+			if run.phase == "over":
+				Game.goto("run_end")
+			else:
+				grid.setup(run)
+				_after_choice())
 
 
 func _descend() -> void:

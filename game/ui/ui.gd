@@ -120,3 +120,41 @@ static func spacer() -> Control:
 	var c := Control.new()
 	c.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	return c
+
+
+## Modal yes/no card over `parent`. `on_yes` runs if confirmed.
+static func confirm(parent: Control, text: String, yes_label: String, on_yes: Callable, no_label: String = "Cancel") -> void:
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.z_index = 120
+	parent.add_child(layer)
+	var dim := ColorRect.new()
+	dim.color = Color(0, 0, 0, 0.7)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	layer.add_child(dim)
+	var m := MarginContainer.new()
+	m.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "right"]:
+		m.add_theme_constant_override("margin_" + side, 32)
+	layer.add_child(m)
+	var col := VBoxContainer.new()
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	m.add_child(col)
+	var card := PanelContainer.new()
+	col.add_child(card)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 14)
+	card.add_child(v)
+	v.add_child(label(text, 22))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var no := button(no_label, func(): layer.queue_free(), 56)
+	var yes := button(yes_label, func():
+		layer.queue_free()
+		on_yes.call(), 56)
+	yes.add_theme_color_override("font_color", ACCENT)
+	for b in [no, yes]:
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(b)
+	v.add_child(row)

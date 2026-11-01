@@ -18,7 +18,7 @@ static func item_lines(data: DSData, it: Dictionary) -> Array:
 		"trinket":
 			out.append("Trinket")
 	if int(it.get("damroll", 0)) != 0:
-		out.append("+%d damroll" % int(it["damroll"]))
+		out.append("+%d weapon damage" % int(it["damroll"]))
 	if int(it.get("hp", 0)) != 0:
 		out.append("+%d HP" % int(it["hp"]))
 	if int(it.get("mana", 0)) != 0:
@@ -87,7 +87,7 @@ static func item_stats(it) -> Array:
 	if int(it.get("ac", 0)) != 0:
 		s.append(["Armor", -int(it.get("ac", 0))])
 	if int(it.get("damroll", 0)) != 0:
-		s.append(["Damroll", int(it.get("damroll", 0))])
+		s.append(["Weapon damage", int(it.get("damroll", 0))])
 	if int(it.get("hp", 0)) != 0:
 		s.append(["HP", int(it.get("hp", 0))])
 	if int(it.get("mana", 0)) != 0:
@@ -125,6 +125,8 @@ static func compare_lines(data: DSData, it: Dictionary, equipped) -> Array:
 			col = Color("#5fd35f") if diff > 0 else Color("#ff8c7a")
 			tail = " (%s%s)" % ["+" if diff > 0 else "", _num(diff)]
 		var text := "%s %s%s" % [k, _num(e[1]), tail]
+		if k == "Weapon damage":
+			text = "%s%s weapon damage%s" % ["+" if float(e[1]) >= 0 else "", _num(e[1]), tail]
 		if k == "Avg dmg":
 			text += "  [%d-%d]" % [int(it.get("min", 0)), int(it.get("max", 0))]
 		out.append({"text": text, "color": col})

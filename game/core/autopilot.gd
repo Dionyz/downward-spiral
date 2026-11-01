@@ -34,6 +34,8 @@ static func advance(run: DSRunState) -> Array:
 			run.event_done()
 		"floor_end":
 			run.descend()
+		"extract_choice":
+			run.extract_choice(true)
 	return []
 
 

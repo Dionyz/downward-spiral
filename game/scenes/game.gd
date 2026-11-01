@@ -124,6 +124,7 @@ func finish_run() -> Dictionary:
 	if run == null or run.phase != "over":
 		return last_bank
 	if not run.room.get("banked", false):
+		DSAccount.apply_rescue(account, run)
 		last_bank = DSAccount.bank_run(data, account, run)
 		run.room["banked"] = true
 		DSAccount.roll_shop(data, account, DSRng.new(int(Time.get_ticks_usec()) % 2147483646 + 1))
