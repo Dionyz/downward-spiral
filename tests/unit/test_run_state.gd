@@ -604,3 +604,12 @@ func test_explore_keeps_walking_to_a_sleeping_monster_that_drops_out_of_view():
 	wd.heading_down = false
 	wd.hunt_mark = rat
 	assert_eq(wd._explore_goal(dist), Vector2i(26, 1), "the marked sleeper stays the goal")
+
+
+func test_disabled_boons_are_never_offered():
+	var r := DSRunState.new_run(data, "warrior", 17)
+	assert_true(data.boons["bulwark"].get("disabled", false), "Bulwark is switched off for now")
+	assert_false(r.available_boons().has("bulwark"))
+	for i in 30:
+		r._open_offer("level")
+		assert_false(r.offer.has("bulwark"))

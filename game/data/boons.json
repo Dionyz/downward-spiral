@@ -1,5 +1,5 @@
 {
- "_note": "Boons. `tags` = families (see `families`): collecting distinct boons of a family unlocks its 2/4/6 bonuses. `stack`: true = can be taken again with no limit, each copy adds its stats again. effect keys: flag (read by CombatSim), stats (numbers summed per stack), skill_bonus. desc may hold {tokens} filled with live numbers by DSRunState.boon_desc(). Total percent damage reduction is capped at 90%. Boons with stats roll a rarity when offered (`rarities`: weight and stat multiplier; `fixed_rarity` overrides; stats in `no_scale` never scale). Each Fortune power-up applies `luck_shift` to the weights once.",
+ "_note": "Boons. `tags` = families (see `families`): collecting distinct boons of a family unlocks its 2/4/6 bonuses. `disabled`: true = never offered (the boon still works if a save already has it). `stack`: true = can be taken again with no limit, each copy adds its stats again. effect keys: flag (read by CombatSim), stats (numbers summed per stack), skill_bonus. desc may hold {tokens} filled with live numbers by DSRunState.boon_desc(). Total percent damage reduction is capped at 90%. Boons with stats roll a rarity when offered (`rarities`: weight and stat multiplier; `fixed_rarity` overrides; stats in `no_scale` never scale). Each Fortune power-up applies `luck_shift` to the weights once.",
  "boons": {
   "vampiric_edge": {
    "name": "Vampiric Edge",
@@ -349,6 +349,7 @@
   },
   "bulwark": {
    "name": "Bulwark",
+   "disabled": true,
    "desc": "After you take damage, gain a shield that absorbs {bulwark} damage for 2 turns.",
    "lines": [],
    "refs": [

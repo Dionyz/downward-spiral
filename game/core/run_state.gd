@@ -822,7 +822,7 @@ func available_boons() -> Array:
 	for id in ids:
 		var b: Dictionary = data.boons[id]
 		var lines: Array = b.get("lines", [])
-		if boon_rank(id) >= boon_max(id) or banished.has(id):
+		if boon_rank(id) >= boon_max(id) or banished.has(id) or b.get("disabled", false):
 			continue
 		if int(b.get("tier", 1)) > int(perks.get("boon_tier", 99)):
 			continue
