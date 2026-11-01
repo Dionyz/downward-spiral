@@ -12,4 +12,4 @@ for c in warrior thief mage knifer; do
 	"${GODOT:-godot}" --headless --path . -s tools/balance_run.gd -- --runs "$RUNS" --classes "$c" "$@" > "$OUT/$c.txt" 2>&1 &
 done
 wait
-for c in warrior thief mage knifer; do grep -E "^$c " "$OUT/$c.txt"; done
+for c in warrior thief mage knifer; do grep -E "^$c +[0-9]" "$OUT/$c.txt"; done
