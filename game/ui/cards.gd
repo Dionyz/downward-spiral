@@ -42,7 +42,7 @@ static func item_card(data: DSData, it: Dictionary, equipped, on_take: Callable,
 	card.add_child(v)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 10)
-	head.add_child(UI.icon("item_" + str(it.get("slot", "weapon")), 40, rarity_color(data, str(it.get("rarity", "common")))))
+	head.add_child(Art.item_icon(data, it, 44))
 	var nm := UI.label(str(it.get("name", "?")), 22, rarity_color(data, str(it.get("rarity", "common"))))
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(nm)
@@ -186,7 +186,7 @@ static func item_row(data: DSData, it: Dictionary, eq, actions: Array, note: Str
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 8)
 	var col := rarity_color(data, str(it.get("rarity", "common")))
-	head.add_child(UI.icon("item_" + str(it.get("slot", "weapon")), 34, col))
+	head.add_child(Art.item_icon(data, it, 38))
 	var nm := UI.label(str(it.get("name", "?")), 19, col)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(nm)

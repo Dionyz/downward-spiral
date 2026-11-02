@@ -32,6 +32,7 @@ func _ready() -> void:
 	content = Control.new()
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	content.draw.connect(_draw_map)
+	content.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	add_child(content)
 	fx_layer = Control.new()
 	fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -51,8 +52,8 @@ func setup(p_run: DSRunState) -> void:
 func _relayout() -> void:
 	if world == null or size.x <= 0:
 		return
-	# Small screens: zoom out a little so the view keeps about 15 tiles across.
-	tile = floorf(clampf(size.x / 15.0, 24.0, TILE))
+	# About 11 tiles across, in steps of 16 px so the 32 px pixel art scales evenly.
+	tile = clampf(floorf(size.x / 11.0 / 16.0) * 16.0, 32.0, 64.0)
 	content.size = Vector2(world.w, world.h) * tile
 	sync_tokens(true)
 	_camera(true)
@@ -103,9 +104,11 @@ func _make_token(nm: String, icon_name: String, col: Color, ring: Color) -> Dict
 	body.size = Vector2(tile, tile)
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.add_child(body)
+	var art := Art.has(icon_name)
 	var bg := Panel.new()
 	var st := StyleBoxFlat.new()
-	st.bg_color = Color("#14121a")
+	# Pixel-art sprites stand on the floor; only a colored ring marks the player, elites and bosses.
+	st.bg_color = Color(ring, 0.18) if art and ring.a > 0.0 else (Color(0, 0, 0, 0) if art else Color("#14121a"))
 	st.border_color = ring
 	st.set_border_width_all(2)
 	st.set_corner_radius_all(int(tile / 2))
@@ -113,9 +116,10 @@ func _make_token(nm: String, icon_name: String, col: Color, ring: Color) -> Dict
 	bg.size = Vector2(tile, tile)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.add_child(bg)
-	var ic := UI.icon(icon_name, int(tile) - 4, col)
-	ic.size = Vector2(tile - 4, tile - 4)
-	ic.position = Vector2(2, 2)
+	var ic: TextureRect = Art.rect(icon_name, int(tile)) if art else UI.icon(icon_name, int(tile) - 4, col)
+	ic.modulate = col
+	ic.size = Vector2(tile, tile) if art else Vector2(tile - 4, tile - 4)
+	ic.position = Vector2.ZERO if art else Vector2(2, 2)
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	body.add_child(ic)
 	var bar := ColorRect.new()
@@ -133,16 +137,19 @@ func sync_tokens(snap: bool = false) -> void:
 		return
 	var want := {}
 	var L: Dictionary = run.data.classes.get(run.line, {})
-	want[world.player.name] = {"pos": world.ppos, "icon": "class_" + run.line, "col": Color(str(L.get("color", "#d6a64f"))),
-		"ring": UI.ACCENT, "c": world.player}
+	var pid := Art.player(run.line, run.race)
+	want[world.player.name] = {"pos": world.ppos, "icon": pid if Art.has(pid) else "class_" + run.line,
+		"col": Color.WHITE if Art.has(pid) else Color(str(L.get("color", "#d6a64f"))), "ring": UI.ACCENT, "c": world.player}
 	for m in world.monsters:
 		if not m["c"].is_alive() or not world.is_visible(m["pos"]):
 			continue
-		var col := Color(str(run.data.monsters.get(m["id"], {}).get("color", "#c9c2b6")))
-		var ring := Color("#ff5a3d") if m["boss"] else (Color("#ff9a2e") if m["elite"] else Color("#5a5466"))
+		var mid := "monsters/" + str(m["id"])
+		var art := Art.has(mid)
+		var col := Color.WHITE if art else Color(str(run.data.monsters.get(m["id"], {}).get("color", "#c9c2b6")))
+		var ring := Color("#ff5a3d") if m["boss"] else (Color("#ff9a2e") if m["elite"] else (Color(0, 0, 0, 0) if art else Color("#5a5466")))
 		if m["state"] == "asleep":
 			col = col.darkened(0.45)
-		want[m["c"].name] = {"pos": m["pos"], "icon": "mon_" + m["id"], "col": col, "ring": ring, "c": m["c"]}
+		want[m["c"].name] = {"pos": m["pos"], "icon": mid if art else "mon_" + m["id"], "col": col, "ring": ring, "c": m["c"]}
 	for k in tokens.keys():
 		if not want.has(k):
 			# Fade out (dead or out of sight) but keep it findable for this turn's hit effects.
@@ -244,9 +251,18 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color("#0b0a0e"))
 
 
+func _theme() -> String:
+	return "abyss" if run.in_abyss_depths() else run.dungeon
+
+
+const FOG := Color(0.36, 0.34, 0.44)
+
+
 func _draw_map() -> void:
 	if world == null:
 		return
+	var th := _theme()
+	var sets := {" ": Art.tiles(th, "wall"), "#": Art.tiles(th, "corridor"), ".": Art.tiles(th, "floor")}
 	for y in world.h:
 		for x in world.w:
 			var p := Vector2i(x, y)
@@ -256,6 +272,14 @@ func _draw_map() -> void:
 			var vis := world.visible.has(k)
 			var t := world.tile(p)
 			var r := Rect2(origin + Vector2(p) * tile, Vector2(tile, tile))
+			var texs: Array = sets.get(t, sets["."])
+			if not texs.is_empty():
+				# Variant picked from the position, so a tile always looks the same.
+				var h := absi((x * 73856093) ^ (y * 19349663)) % 100
+				var tx: Texture2D = texs[0] if h < 40 else texs[h % texs.size()]
+				content.draw_texture_rect(tx, r, false, Color.WHITE if vis else FOG)
+				continue
+			# No art: flat colors.
 			var col: Color
 			if t == " ":
 				col = Color("#3a3446") if vis else Color("#241f2c")
@@ -270,16 +294,25 @@ func _draw_map() -> void:
 	if world.seen.has(DSWorld.pk(world.stairs)):
 		var c := cell_center(world.stairs)
 		var sealed := world.stairs_sealed()
-		for i in 3:
-			var wdt := tile * (0.8 - i * 0.2)
-			content.draw_rect(Rect2(Vector2(c.x - wdt / 2.0, c.y - tile * 0.3 + i * tile * 0.25), Vector2(wdt, tile * 0.15)), Color("#5a3030") if sealed else Color("#8d8798"))
+		var down := Art.tex("tiles/stairs_down")
+		if down != null:
+			content.draw_texture_rect(down, Rect2(c - Vector2(tile, tile) / 2.0, Vector2(tile, tile)), false,
+				Color(0.55, 0.4, 0.4) if sealed else (Color.WHITE if world.visible.has(DSWorld.pk(world.stairs)) else FOG))
+		else:
+			for i in 3:
+				var wdt := tile * (0.8 - i * 0.2)
+				content.draw_rect(Rect2(Vector2(c.x - wdt / 2.0, c.y - tile * 0.3 + i * tile * 0.25), Vector2(wdt, tile * 0.15)), Color("#5a3030") if sealed else Color("#8d8798"))
 		if sealed:
 			# A red bar across the stairs: sealed until the boss dies.
 			content.draw_line(c - Vector2(tile * 0.45, tile * 0.45), c + Vector2(tile * 0.45, tile * 0.45), Color("#ff5a3d"), 3.0)
 			content.draw_line(c + Vector2(-tile * 0.45, tile * 0.45), c + Vector2(tile * 0.45, -tile * 0.45), Color("#ff5a3d"), 3.0)
 	if world.seen.has(DSWorld.pk(world.entrance)) and not world.ambush:
 		var e := cell_center(world.entrance)
-		content.draw_arc(e, tile * 0.35, 0, TAU, 20, Color("#7fc8a9", 0.8 if world.extracting else 0.35), 2.0)
+		var up := Art.tex("tiles/stairs_up")
+		if up != null:
+			content.draw_texture_rect(up, Rect2(e - Vector2(tile, tile) / 2.0, Vector2(tile, tile)), false,
+				Color.WHITE if world.visible.has(DSWorld.pk(world.entrance)) else FOG)
+		content.draw_arc(e, tile * 0.48, 0, TAU, 24, Color("#7fc8a9", 0.9 if world.extracting else 0.35), 2.0)
 	queue_redraw_objects()
 
 
@@ -303,9 +336,8 @@ func queue_redraw_objects() -> void:
 	for it in world.items:
 		if not world.seen.has(DSWorld.pk(it["pos"])):
 			continue
-		var col := Cards.rarity_color(run.data, str(it["item"].get("rarity", "common")))
-		var ic2 := UI.icon("item_" + str(it["item"].get("slot", "weapon")), int(tile * 0.7), col)
-		ic2.size = Vector2(tile * 0.7, tile * 0.7)
+		var ic2 := Art.item_icon(run.data, it["item"], int(tile * 0.8))
+		ic2.size = Vector2(tile * 0.8, tile * 0.8)
 		ic2.position = cell_center(it["pos"]) - ic2.size / 2.0
 		ic2.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		content.add_child(ic2)

@@ -134,6 +134,11 @@ func _ready() -> void:
 	row.add_theme_constant_override("separation", 8)
 	pot_hp = UI.button("", func(): _drink("hp"), 60)
 	pot_mp = UI.button("", func(): _drink("mp"), 60)
+	for pb in [[pot_hp, "items/potion_hp"], [pot_mp, "items/potion_mp"]]:
+		pb[0].icon = Art.tex(pb[1])
+		pb[0].expand_icon = true
+		pb[0].add_theme_constant_override("icon_max_width", 32)
+		pb[0].texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	speed_btn = UI.button("", _toggle_speed, 60)
 	char_btn = UI.button("Character", _open_character, 60)
 	for b in [pot_hp, pot_mp, speed_btn, char_btn]:
@@ -320,11 +325,11 @@ func _refresh() -> void:
 	mana_bar.max_value = maxi(1, p.max_mana)
 	mana_bar.value = p.mana
 	hp_label.text = "%d/%d" % [maxi(0, p.hp), p.max_hp]
-	pot_hp.text = "Potion ×%d" % int(run.potions.get("hp", 0))
+	pot_hp.text = "×%d" % int(run.potions.get("hp", 0))
 	pot_hp.add_theme_color_override("font_color", UI.WARN if p.hp_pct() < 30.0 and not pot_hp.disabled else UI.TEXT)
 	pot_hp.disabled = int(run.potions.get("hp", 0)) <= 0 or p.hp >= p.max_hp
 	pot_mp.visible = p.max_mana > 0
-	pot_mp.text = "Mana ×%d" % int(run.potions.get("mp", 0))
+	pot_mp.text = "×%d" % int(run.potions.get("mp", 0))
 	pot_mp.disabled = int(run.potions.get("mp", 0)) <= 0 or p.mana >= p.max_mana
 	speed_btn.text = "Speed %dx" % int(Game.speed)
 	extract_btn.disabled = run.world.ambush or run.phase != "explore"

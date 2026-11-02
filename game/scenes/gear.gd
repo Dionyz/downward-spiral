@@ -84,7 +84,7 @@ func _refresh() -> void:
 	else:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
-		row.add_child(UI.icon("item_" + slot, 40, Cards.rarity_color(run.data, str(eq.get("rarity", "common")))))
+		row.add_child(Art.item_icon(run.data, eq, 44))
 		var nm := UI.label(str(eq.get("name", "?")), 22, Cards.rarity_color(run.data, str(eq.get("rarity", "common"))))
 		nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(nm)
@@ -107,7 +107,7 @@ func _bag_card(it: Dictionary, idx: int, eq) -> PanelContainer:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 10)
 	var col := Cards.rarity_color(run.data, str(it.get("rarity", "common")))
-	head.add_child(UI.icon("item_" + slot, 36, col))
+	head.add_child(Art.item_icon(run.data, it, 40))
 	var nm := UI.label(str(it.get("name", "?")), 21, col)
 	nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(nm)

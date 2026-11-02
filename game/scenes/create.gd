@@ -53,7 +53,8 @@ func _ready() -> void:
 			_update(), 56)
 		b.toggle_mode = true
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.icon = load("res://game/assets/icons/class_%s.svg" % l)
+		b.icon = Art.tex(Art.player(l, race))
+		b.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		b.expand_icon = true
 		b.add_theme_constant_override("icon_max_width", 36)
 		cg.add_child(b)
@@ -93,13 +94,20 @@ func _ready() -> void:
 func _update() -> void:
 	for k in class_btns.keys():
 		class_btns[k].button_pressed = k == line
+		class_btns[k].icon = Art.tex(Art.player(k, race))
 	for k in race_btns.keys():
 		race_btns[k].button_pressed = k == race
 	for c in info.get_children():
 		c.queue_free()
 	var L: Dictionary = Game.data.classes.get(line, {})
 	var R: Dictionary = Game.data.races.get(race, {})
-	info.add_child(UI.label("%s %s" % [str(R.get("name", race)), str(L.get("display", line))], 24, Color(str(L.get("color", "#d6a64f")))))
+	var hdr := HBoxContainer.new()
+	hdr.add_theme_constant_override("separation", 12)
+	hdr.add_child(Art.rect(Art.player(line, race), 72))
+	var hl := UI.label("%s %s" % [str(R.get("name", race)), str(L.get("display", line))], 24, Color(str(L.get("color", "#d6a64f"))))
+	hl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	hdr.add_child(hl)
+	info.add_child(hdr)
 	info.add_child(UI.label(str(L.get("role", "")), 17, UI.DIM))
 	info.add_child(UI.label("%s mastery %d (shared by all your %ss)" % [str(L.get("display", line)), DSMeta.mastery_level(Game.data, Game.account, line), str(L.get("display", line))], 16, Color("#7fc8a9")))
 	info.add_child(UI.label(str(R.get("desc", "")), 17))

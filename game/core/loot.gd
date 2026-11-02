@@ -54,6 +54,7 @@ static func roll_item(data: DSData, rng: DSRng, ilvl: int, slot: String = "", ra
 			var tn: Array = it.get("trinket", {}).get("names", ["Charm"])
 			base_name = rng.pick(tn)
 			item["damroll"] = int(ilvl * 2 * mult)
+	item["base"] = base_name    # picks the item's picture (Art.item)
 	# Affixes.
 	var pool: Array = []
 	var affs: Dictionary = it.get("affixes", {})

@@ -42,7 +42,7 @@ func _card(i: int, ch: Dictionary) -> PanelContainer:
 	h.add_theme_constant_override("separation", 10)
 	card.add_child(h)
 	var L: Dictionary = Game.data.classes.get(ch["line"], {})
-	h.add_child(UI.icon("class_" + str(ch["line"]), 52, Color(str(L.get("color", "#d6a64f")))))
+	h.add_child(Art.rect(Art.player(str(ch["line"]), str(ch.get("race", "human"))), 52))
 	var cv := VBoxContainer.new()
 	cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(cv)

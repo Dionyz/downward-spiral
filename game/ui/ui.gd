@@ -89,7 +89,11 @@ static func button(text: String, cb: Callable, min_h: int = 64) -> Button:
 
 
 ## Tinted icon from game/assets/icons (white SVG silhouettes).
+## Pixel art (game/assets/art) is used instead when there is some for `name`; it is never tinted.
 static func icon(name: String, size: int = 64, color: Color = TEXT) -> TextureRect:
+	var art := Art.for_icon(name)
+	if art != "":
+		return Art.rect(art, size)
 	var t := TextureRect.new()
 	var path := "res://game/assets/icons/%s.svg" % name
 	if ResourceLoader.exists(path):

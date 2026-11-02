@@ -1,0 +1,630 @@
+{
+ "items/armor_brigandine": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/ring_mail1.png",
+  "license": "CC0-1.0"
+ },
+ "items/armor_coat_of_plates": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/plate1.png",
+  "license": "CC0-1.0"
+ },
+ "items/armor_cuirass": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/scale_mail2.png",
+  "license": "CC0-1.0"
+ },
+ "items/armor_hauberk": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/scale_mail1.png",
+  "license": "CC0-1.0"
+ },
+ "items/armor_jerkin": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/leather_armour1.png",
+  "license": "CC0-1.0"
+ },
+ "items/gold": {
+  "source": "crawl/tiles releases/Nov-2015/item/gold/06.png",
+  "license": "CC0-1.0"
+ },
+ "items/potion_hp": {
+  "source": "crawl/tiles releases/Nov-2015/item/potion/ruby.png",
+  "license": "CC0-1.0"
+ },
+ "items/potion_mp": {
+  "source": "crawl/tiles releases/Nov-2015/item/potion/brilliant_blue.png",
+  "license": "CC0-1.0"
+ },
+ "items/trinket_amulet": {
+  "source": "crawl/tiles releases/Nov-2015/item/amulet/celtic_blue.png",
+  "license": "CC0-1.0"
+ },
+ "items/trinket_charm": {
+  "source": "crawl/tiles releases/Nov-2015/item/amulet/stone1_green.png",
+  "license": "CC0-1.0"
+ },
+ "items/trinket_fetish": {
+  "source": "crawl/tiles releases/Nov-2015/item/amulet/bone_gray.png",
+  "license": "CC0-1.0"
+ },
+ "items/trinket_ring": {
+  "source": "crawl/tiles releases/Nov-2015/item/ring/ruby.png",
+  "license": "CC0-1.0"
+ },
+ "items/trinket_talisman": {
+  "source": "crawl/tiles releases/Nov-2015/item/amulet/face1_gold.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_axe": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/hand_axe1.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_dagger": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_mace": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/mace1.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_sabre": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/scimitar1.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_staff": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/quarterstaff.png",
+  "license": "CC0-1.0"
+ },
+ "items/weapon_sword": {
+  "source": "crawl/tiles releases/Nov-2015/item/weapon/long_sword1.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/carrion_knight": {
+  "source": "crawl/tiles releases/Nov-2015/mon/death_knight.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/cave_spider": {
+  "source": "crawl/tiles releases/Nov-2015/mon/animals/spider.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/ghoul": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/ghoul.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/goblin_cutter": {
+  "source": "crawl/tiles releases/Nov-2015/mon/goblin.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/gravewarden": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/lich.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/hollow_matron": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/flayed_ghost.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/hooded_cultist": {
+  "source": "crawl/tiles releases/Nov-2015/mon/necromancer.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/orc_brute": {
+  "source": "crawl/tiles releases/Nov-2015/mon/orc_warrior.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/restless_skeleton": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/skeletal_warrior.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/sewer_rat": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/dc-mon/animals/rat.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/spiral_warden": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/ancient_lich.png",
+  "license": "CC0-1.0"
+ },
+ "monsters/wailing_shade": {
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/silent_spectre.png",
+  "license": "CC0-1.0"
+ },
+ "objects/campfire": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_fire1.png",
+  "license": "CC0-1.0"
+ },
+ "objects/chest": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/UNUSED/other/chest2_closed.png",
+  "license": "CC0-1.0"
+ },
+ "objects/event": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/gateways/portal_unknown.png",
+  "license": "CC0-1.0"
+ },
+ "objects/shrine": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/altars/zin.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_daemon": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/demonspawn_red_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_dwarf": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/dwarf_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, head/bandana_ybrown.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_golem": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/gargoyle_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_halfling": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/halfling_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, head/bandana_ybrown.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_high_elf": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/elf_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, head/bandana_ybrown.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_human": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/human_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, head/bandana_ybrown.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_lizardman": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/draconian_green_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/knifer_minotaur": {
+  "source": "crawl/tiles player doll: cloak/brown.png, base/minotaur_brown1_m.png, legs/pants_short_darkbrown.png, boots/middle_brown.png, body/leather_stud.png, hand1/dagger_slant.png, hand2/misc/dagger.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_daemon": {
+  "source": "crawl/tiles player doll: base/demonspawn_red_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_dwarf": {
+  "source": "crawl/tiles player doll: base/dwarf_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_golem": {
+  "source": "crawl/tiles player doll: base/gargoyle_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_halfling": {
+  "source": "crawl/tiles player doll: base/halfling_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_high_elf": {
+  "source": "crawl/tiles player doll: base/elf_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_human": {
+  "source": "crawl/tiles player doll: base/human_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_lizardman": {
+  "source": "crawl/tiles player doll: base/draconian_green_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/mage_minotaur": {
+  "source": "crawl/tiles player doll: base/minotaur_brown1_m.png, boots/short_purple.png, body/robe_blue.png, hand1/staff_mage.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_daemon": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/demonspawn_red_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_dwarf": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/dwarf_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, head/hood_black2.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_golem": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/gargoyle_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_halfling": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/halfling_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, head/hood_black2.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_high_elf": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/elf_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, head/hood_black2.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_human": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/human_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, head/hood_black2.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_lizardman": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/draconian_green_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/thief_minotaur": {
+  "source": "crawl/tiles player doll: cloak/black.png, base/minotaur_brown1_m.png, legs/pants_black.png, boots/short_brown2.png, body/leather_jacket.png, hand1/short_sword_slant.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_daemon": {
+  "source": "crawl/tiles player doll: base/demonspawn_red_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_dwarf": {
+  "source": "crawl/tiles player doll: base/dwarf_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, head/helm_plume.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_golem": {
+  "source": "crawl/tiles player doll: base/gargoyle_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_halfling": {
+  "source": "crawl/tiles player doll: base/halfling_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, head/helm_plume.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_high_elf": {
+  "source": "crawl/tiles player doll: base/elf_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, head/helm_plume.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_human": {
+  "source": "crawl/tiles player doll: base/human_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, head/helm_plume.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_lizardman": {
+  "source": "crawl/tiles player doll: base/draconian_green_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "player/warrior_minotaur": {
+  "source": "crawl/tiles player doll: base/minotaur_brown1_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/corridor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/floor_nerves6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/floor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/demonic_red8.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell01.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell02.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell03.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell04.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell05.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell06.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell07.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/abyss/wall_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/hell08.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/corridor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/pebble_brown7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt01.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt02.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt03.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt04.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt05.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt06.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt07.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/floor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/black_cobalt08.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/wall_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/stone_dark0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/wall_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/stone_dark1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/wall_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/stone_dark2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/black_spiral/wall_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/stone_dark3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/corridor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/mud0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/corridor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/mud1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/corridor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/mud2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/corridor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/mud3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/floor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/limestone7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/deep_spiral/wall_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/catacombs7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/corridor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/grey_dirt7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood4.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_4": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood5.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_5": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood6.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_6": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood7.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/floor_7": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/floor/cobble_blood8.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/wall_0": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/brick_gray0.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/wall_1": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/brick_gray1.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/wall_2": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/brick_gray2.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/spiral/wall_3": {
+  "source": "crawl/tiles releases/Nov-2015/dngn/wall/brick_gray3.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/stairs_down": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/dc-dngn/gateways/stone_stairs_down.png",
+  "license": "CC0-1.0"
+ },
+ "tiles/stairs_up": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/dc-dngn/gateways/stone_stairs_up.png",
+  "license": "CC0-1.0"
+ },
+ "town/gate": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/dc-dngn/gateways/stone_stairs_down.png",
+  "license": "CC0-1.0"
+ },
+ "town/inn": {
+  "source": "crawl/tiles releases/Nov-2015/mon/human.png",
+  "license": "CC0-1.0"
+ },
+ "town/shop": {
+  "source": "crawl/tiles releases/Nov-2015/mon/dwarf.png",
+  "license": "CC0-1.0"
+ },
+ "town/stash": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/UNUSED/other/chest2_closed.png",
+  "license": "CC0-1.0"
+ },
+ "town/trainer": {
+  "source": "crawl/tiles releases/Nov-2015/mon/deep_elf_blademaster.png",
+  "license": "CC0-1.0"
+ }
+}

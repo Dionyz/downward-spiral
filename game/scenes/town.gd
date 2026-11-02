@@ -71,7 +71,7 @@ func _character_card() -> PanelContainer:
 		h.add_child(nl)
 		return card
 	var L: Dictionary = Game.data.classes.get(ch["line"], {})
-	h.add_child(UI.icon("class_" + str(ch["line"]), 64, Color(str(L.get("color", "#d6a64f")))))
+	h.add_child(Art.rect(Art.player(str(ch["line"]), str(ch.get("race", "human"))), 64))
 	var cv := VBoxContainer.new()
 	cv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(cv)
@@ -113,7 +113,7 @@ func _npc(n: Array, enabled: bool) -> Button:
 	h.add_theme_constant_override("separation", 14)
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	m.add_child(h)
-	var ic := UI.icon(str(n[3]), 56, Color(str(n[4])))
+	var ic := UI.icon(str(n[3]), 64, Color(str(n[4])))
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	h.add_child(ic)
 	var cv := VBoxContainer.new()
