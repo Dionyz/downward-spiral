@@ -59,6 +59,19 @@ Game-icons.net icons, CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/). 
 | `game/assets/icons/boon.svg` | "spiral-bloom" by Lorc, game-icons.net | https://game-icons.net/1x1/lorc/spiral-bloom.html (via https://github.com/game-icons/icons) | CC BY 3.0 (recolored, background removed) |
 | `game/assets/icons/title.svg` | "spiral-arrow" by Lorc, game-icons.net | https://game-icons.net/1x1/lorc/spiral-arrow.html (via https://github.com/game-icons/icons) | CC BY 3.0 (recolored, background removed) |
 
+## Pixel art and fonts
+
+All map, item, monster, boon, skill, status, effect and UI art lives in `game/assets/art/`;
+`game/assets/art/manifest.json` records the source and license of every file and
+`game/assets/art/CREDITS.md` has the details.
+
+| What | Where in repo | Source | License |
+| --- | --- | --- | --- |
+| Dungeon Crawl Stone Soup tiles (placeholders: tiles, sprites, items, boon/skill icons, status overlays, effects, banner parts) | `game/assets/art/` | https://github.com/crawl/tiles (curated releases `Nov-2015`, `Ancient/Oct-5-2010`; nothing from TILES_UNDER_UNKNOWN_LICENSE.md) | CC0 1.0 |
+| Original pixel art drawn for this game (UI glyphs, some status icons, slash/heal/level-up effects, UI skin, title logo) | `game/assets/art/` (manifest says "original") | `tools/art/pixel_art.py` | CC0 1.0 |
+| Jersey 10 font (headings, title logo lettering) by Sarah Cadigan-Fried | `game/assets/art/fonts/jersey10.ttf` (+ `jersey10_OFL.txt`) | https://github.com/google/fonts/tree/main/ofl/jersey10 (upstream https://github.com/scfried/soft-type-jersey) | SIL OFL 1.1 |
+| Pixelify Sans font (button text) by Stefie Justprince | `game/assets/art/fonts/pixelify_sans.ttf` (+ `pixelify_sans_OFL.txt`) | https://github.com/google/fonts/tree/main/ofl/pixelifysans (upstream https://github.com/eifetx/Pixelify-Sans) | SIL OFL 1.1 |
+
 ## Sound
 
 All sound effects in `game/assets/sfx/` are original, synthesized by `tools/gen_sfx.py` (no third-party audio).

@@ -1,4 +1,366 @@
 {
+ "boons/adrenaline": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/fire/inner_flame.png",
+  "license": "CC0-1.0"
+ },
+ "boons/assassins_mark": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/stabbing.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/back_to_the_wall": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/passwall.png",
+  "license": "CC0-1.0"
+ },
+ "boons/bleeding_cross": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/necromancy/excruciating_wounds.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/bloodlust": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/sublimation_of_blood.png",
+  "license": "CC0-1.0"
+ },
+ "boons/bone_breaker": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/animate_skeleton.png",
+  "license": "CC0-1.0"
+ },
+ "boons/bulwark": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/translocation/shroud_of_golubria.png",
+  "license": "CC0-1.0"
+ },
+ "boons/cold_snap": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/ozocubus_refrigeration.png",
+  "license": "CC0-1.0"
+ },
+ "boons/concussive_bash": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/earth/maxwells_silver_hammer.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/contagion": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/poison/poisonous_cloud.png",
+  "license": "CC0-1.0"
+ },
+ "boons/counterstrike": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/deflect_missiles.png",
+  "license": "CC0-1.0"
+ },
+ "boons/crushing_fist": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/iron_shot.png",
+  "license": "CC0-1.0"
+ },
+ "boons/deep_well": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/conjuration/battlesphere.png",
+  "license": "CC0-1.0"
+ },
+ "boons/evasive_counter": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/dodging.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/executioner": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/symbol_of_torment.png",
+  "license": "CC0-1.0"
+ },
+ "boons/first_blood": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/agony.png",
+  "license": "CC0-1.0"
+ },
+ "boons/flurry": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/swiftness.png",
+  "license": "CC0-1.0"
+ },
+ "boons/forked_bolt": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/lightning_bolt.png",
+  "license": "CC0-1.0"
+ },
+ "boons/frostbite": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/freeze.png",
+  "license": "CC0-1.0"
+ },
+ "boons/glacial_edge": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/throw_frost.png",
+  "license": "CC0-1.0"
+ },
+ "boons/hamstring": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/enchantment/slow.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/heavy_hands": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/statue_form.png",
+  "license": "CC0-1.0"
+ },
+ "boons/hemorrhage": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/necromancy/lethal_infusion.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/hoarfrost": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/freezing_cloud.png",
+  "license": "CC0-1.0"
+ },
+ "boons/iron_skin": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/stoneskin.png",
+  "license": "CC0-1.0"
+ },
+ "boons/keen_eye": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/translocation/portal_projectile.png",
+  "license": "CC0-1.0"
+ },
+ "boons/last_bastion": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/deaths_door.png",
+  "license": "CC0-1.0"
+ },
+ "boons/last_stand": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/death_channel.png",
+  "license": "CC0-1.0"
+ },
+ "boons/mesmerist": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/confuse.png",
+  "license": "CC0-1.0"
+ },
+ "boons/overkill": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/lees_rapid_deconstruction.png",
+  "license": "CC0-1.0"
+ },
+ "boons/rampage": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/song_of_slaying.png",
+  "license": "CC0-1.0"
+ },
+ "boons/retaliation": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/repel_missiles.png",
+  "license": "CC0-1.0"
+ },
+ "boons/rime_armor": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/ice_form.png",
+  "license": "CC0-1.0"
+ },
+ "boons/riposte": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/enchantment/tukimas_vorpal_blade.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "boons/rot_touch": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/corpse_rot.png",
+  "license": "CC0-1.0"
+ },
+ "boons/shatter": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/shatter.png",
+  "license": "CC0-1.0"
+ },
+ "boons/soul_siphon": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/bolt_of_draining.png",
+  "license": "CC0-1.0"
+ },
+ "boons/spiked_hide": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/lehudibs_crystal_spear.png",
+  "license": "CC0-1.0"
+ },
+ "boons/spinning_steel": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/translocation/warp_weapon.png",
+  "license": "CC0-1.0"
+ },
+ "boons/static_charge": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/static_discharge.png",
+  "license": "CC0-1.0"
+ },
+ "boons/thick_blood": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/borgnjors_revivification.png",
+  "license": "CC0-1.0"
+ },
+ "boons/toxic_blood": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/poison/venom_bolt.png",
+  "license": "CC0-1.0"
+ },
+ "boons/troll_blood": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/regeneration.png",
+  "license": "CC0-1.0"
+ },
+ "boons/twin_throw": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/conjuration/force_lance.png",
+  "license": "CC0-1.0"
+ },
+ "boons/vampiric_edge": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/vampiric_draining.png",
+  "license": "CC0-1.0"
+ },
+ "boons/virulence": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/poison/olgrebs_toxic_radiance.png",
+  "license": "CC0-1.0"
+ },
+ "boons/virulent": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/fire/ignite_poison.png",
+  "license": "CC0-1.0"
+ },
+ "boons/volatile": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/fire/fireball.png",
+  "license": "CC0-1.0"
+ },
+ "boons/war_mender": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/twisted_resurrection.png",
+  "license": "CC0-1.0"
+ },
+ "boons/whetstone": {
+  "source": "crawl/tiles releases/Nov-2015/gui/invocations/tso_bless_weapon.png",
+  "license": "CC0-1.0"
+ },
+ "boons/whirling_blades": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/spectral_weapon.png",
+  "license": "CC0-1.0"
+ },
+ "boons/wither": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/poison/poison_arrow.png",
+  "license": "CC0-1.0"
+ },
+ "fonts/jersey10": {
+  "source": "Jersey 10 by Sarah Cadigan-Fried (The Soft Type Project), github.com/google/fonts ofl/jersey10/Jersey10-Regular.ttf",
+  "license": "OFL-1.1",
+  "file": "fonts/jersey10.ttf"
+ },
+ "fonts/pixelify_sans": {
+  "source": "Pixelify Sans by Stefie Justprince, github.com/google/fonts ofl/pixelifysans/PixelifySans[wght].ttf",
+  "license": "OFL-1.1",
+  "file": "fonts/pixelify_sans.ttf"
+ },
+ "fx/bolt_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/magic_dart0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/bolt_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/magic_dart2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/bolt_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/magic_dart4.png",
+  "license": "CC0-1.0"
+ },
+ "fx/bolt_3": {
+  "source": "crawl/tiles releases/Nov-2015/effect/magic_dart5.png",
+  "license": "CC0-1.0"
+ },
+ "fx/burst_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_fire0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/burst_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_fire1.png",
+  "license": "CC0-1.0"
+ },
+ "fx/burst_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_fire2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/crit_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray3.png",
+  "license": "CC0-1.0"
+ },
+ "fx/crit_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray4.png",
+  "license": "CC0-1.0"
+ },
+ "fx/crit_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray5.png",
+  "license": "CC0-1.0"
+ },
+ "fx/dark_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_neg0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/dark_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_neg1.png",
+  "license": "CC0-1.0"
+ },
+ "fx/dark_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_neg2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/frost_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_cold0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/frost_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_cold1.png",
+  "license": "CC0-1.0"
+ },
+ "fx/frost_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_cold2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/heal_0": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/heal_1": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/heal_2": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/hit_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/hit_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/hit_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/searing_ray4.png",
+  "license": "CC0-1.0"
+ },
+ "fx/levelup_0": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/levelup_1": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/levelup_2": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/levelup_3": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/poison_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_poison0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/poison_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_poison1.png",
+  "license": "CC0-1.0"
+ },
+ "fx/poison_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/cloud_poison2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/slash_0": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/slash_1": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/slash_2": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "fx/zap_0": {
+  "source": "crawl/tiles releases/Nov-2015/effect/zap0.png",
+  "license": "CC0-1.0"
+ },
+ "fx/zap_1": {
+  "source": "crawl/tiles releases/Nov-2015/effect/zap1.png",
+  "license": "CC0-1.0"
+ },
+ "fx/zap_2": {
+  "source": "crawl/tiles releases/Nov-2015/effect/zap2.png",
+  "license": "CC0-1.0"
+ },
+ "fx/zap_3": {
+  "source": "crawl/tiles releases/Nov-2015/effect/zap3.png",
+  "license": "CC0-1.0"
+ },
  "items/armor_brigandine": {
   "source": "crawl/tiles releases/Nov-2015/item/armour/ring_mail1.png",
   "license": "CC0-1.0"
@@ -96,7 +458,7 @@
   "license": "CC0-1.0"
  },
  "monsters/hollow_matron": {
-  "source": "crawl/tiles releases/Nov-2015/mon/undead/flayed_ghost.png",
+  "source": "crawl/tiles releases/Nov-2015/mon/undead/vampire_mage.png",
   "license": "CC0-1.0"
  },
  "monsters/hooded_cultist": {
@@ -116,7 +478,7 @@
   "license": "CC0-1.0"
  },
  "monsters/spiral_warden": {
-  "source": "crawl/tiles releases/Nov-2015/mon/undead/ancient_lich.png",
+  "source": "crawl/tiles releases/Nov-2015/mon/vault_warden.png",
   "license": "CC0-1.0"
  },
  "monsters/wailing_shade": {
@@ -124,7 +486,7 @@
   "license": "CC0-1.0"
  },
  "objects/campfire": {
-  "source": "crawl/tiles releases/Nov-2015/effect/cloud_fire1.png",
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/fire/sticky_flame.png",
   "license": "CC0-1.0"
  },
  "objects/chest": {
@@ -265,6 +627,178 @@
  },
  "player/warrior_minotaur": {
   "source": "crawl/tiles player doll: base/minotaur_brown1_m.png, legs/metal_gray.png, boots/middle_gray.png, body/half_plate.png, hand1/long_sword_slant.png, hand2/shield_knight_gray.png",
+  "license": "CC0-1.0"
+ },
+ "skills/armor": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/ozocubus_armour.png",
+  "license": "CC0-1.0"
+ },
+ "skills/backstab": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/sure_blade.png",
+  "license": "CC0-1.0"
+ },
+ "skills/bash": {
+  "source": "crawl/tiles releases/Nov-2015/item/armour/shields/large_shield1.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "skills/berserk": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/berserker_rage.png",
+  "license": "CC0-1.0"
+ },
+ "skills/blinding_strike": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/conjuration/dazzling_spray.png",
+  "license": "CC0-1.0"
+ },
+ "skills/chain_lightning": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/chain_lightning.png",
+  "license": "CC0-1.0"
+ },
+ "skills/charge": {
+  "source": "crawl/tiles releases/Nov-2015/gui/abilities/jump.png",
+  "license": "CC0-1.0"
+ },
+ "skills/circle": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/excruciating_wounds.png",
+  "license": "CC0-1.0"
+ },
+ "skills/cross_slash": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/transmutation/blade_hands.png",
+  "license": "CC0-1.0"
+ },
+ "skills/dirt_kicking": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/sandblast.png",
+  "license": "CC0-1.0"
+ },
+ "skills/envenom": {
+  "source": "crawl/tiles releases/Ancient/Oct-5-2010/spells/poison/poison_brand.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "skills/gouge": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/necromancy/pain.png",
+  "license": "CC0-1.0"
+ },
+ "skills/haste": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/haste.png",
+  "license": "CC0-1.0"
+ },
+ "skills/implosion": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/translocation/gravitas.png",
+  "license": "CC0-1.0"
+ },
+ "skills/kick": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/unarmed_combat.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "skills/magic_fist": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/conjuration/iskenderuns_mystic_blast.png",
+  "license": "CC0-1.0"
+ },
+ "skills/sanctuary": {
+  "source": "crawl/tiles releases/Nov-2015/gui/invocations/elyvilon_heal_other.png",
+  "license": "CC0-1.0"
+ },
+ "skills/shield": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/condensation_shield.png",
+  "license": "CC0-1.0"
+ },
+ "skills/sleep": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/ice/ensorcelled_hibernation.png",
+  "license": "CC0-1.0"
+ },
+ "skills/slow": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/slow.png",
+  "license": "CC0-1.0"
+ },
+ "skills/storm_of_blades": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/tukimas_dance.png",
+  "license": "CC0-1.0"
+ },
+ "skills/toss_daggers": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/throwing.png on the gui/spells frame",
+  "license": "CC0-1.0"
+ },
+ "skills/transfix": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/petrify.png",
+  "license": "CC0-1.0"
+ },
+ "skills/trip": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/earth/ledas_liquefaction.png",
+  "license": "CC0-1.0"
+ },
+ "skills/warcry": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/enchantment/cause_fear.png",
+  "license": "CC0-1.0"
+ },
+ "skills/whirlwind": {
+  "source": "crawl/tiles releases/Nov-2015/gui/spells/air/tornado.png",
+  "license": "CC0-1.0"
+ },
+ "status/armor": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/asleep": {
+  "source": "crawl/tiles releases/Nov-2015/misc/icons/sleeping.png (cropped to 16 x 16)",
+  "license": "CC0-1.0"
+ },
+ "status/berserk": {
+  "source": "crawl/tiles releases/Nov-2015/misc/icons/might.png (cropped to 16 x 16)",
+  "license": "CC0-1.0"
+ },
+ "status/bleeding": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/blind": {
+  "source": "crawl/tiles releases/Nov-2015/misc/icons/blind.png (cropped to 16 x 16)",
+  "license": "CC0-1.0"
+ },
+ "status/dazed": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/envenomed": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/frozen": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/haste": {
+  "source": "crawl/tiles releases/Nov-2015/misc/icons/hasted.png (cropped to 16 x 16)",
+  "license": "CC0-1.0"
+ },
+ "status/knocked_down": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/poisoned": {
+  "source": "crawl/tiles releases/Nov-2015/misc/icons/poison.png (cropped to 16 x 16)",
+  "license": "CC0-1.0"
+ },
+ "status/sanctuary": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/shield": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/slowed": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/stunned": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/transfixed": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "status/warcry": {
+  "source": "original, drawn by tools/art/pixel_art.py",
   "license": "CC0-1.0"
  },
  "tiles/abyss/corridor_0": {
@@ -625,6 +1159,138 @@
  },
  "town/trainer": {
   "source": "crawl/tiles releases/Nov-2015/mon/deep_elf_blademaster.png",
+  "license": "CC0-1.0"
+ },
+ "ui/banner_abyss": {
+  "source": "crawl/tiles composition: abyss tiles, Ancient stone_stairs_down, mon/undead/vampire_mage, mon/undead/lich",
+  "license": "CC0-1.0"
+ },
+ "ui/banner_black_spiral": {
+  "source": "crawl/tiles composition: black_spiral tiles, Ancient stone_stairs_down, mon/death_knight, mon/vault_warden",
+  "license": "CC0-1.0"
+ },
+ "ui/banner_deep_spiral": {
+  "source": "crawl/tiles composition: deep_spiral tiles, Ancient stone_stairs_down, mon/undead/ghoul, mon/undead/silent_spectre",
+  "license": "CC0-1.0"
+ },
+ "ui/banner_spiral": {
+  "source": "crawl/tiles composition: spiral tiles, Ancient stone_stairs_down, mon/goblin, mon/undead/skeletal_warrior",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_bg": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_enemy": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_hp": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_mana": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_shield": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/bar_xp": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/boon": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/button": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/button_disabled": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/button_hover": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/button_pressed": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/chip": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/family_blood": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/necromancy.png",
+  "license": "CC0-1.0"
+ },
+ "ui/family_frost": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/ice_magic.png",
+  "license": "CC0-1.0"
+ },
+ "ui/family_fury": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/fighting.png",
+  "license": "CC0-1.0"
+ },
+ "ui/family_iron": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/shields.png",
+  "license": "CC0-1.0"
+ },
+ "ui/family_storm": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/air_magic.png",
+  "license": "CC0-1.0"
+ },
+ "ui/family_venom": {
+  "source": "crawl/tiles releases/Nov-2015/gui/skills/poison_magic.png",
+  "license": "CC0-1.0"
+ },
+ "ui/panel": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/popup": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/title": {
+  "source": "original, drawn by tools/art/pixel_art.py (lettering set in Jersey 10, OFL)",
+  "license": "CC0-1.0"
+ },
+ "ui/town_trophy": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_check": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_down": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_family": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_grip": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_star": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_up": {
+  "source": "original, drawn by tools/art/pixel_art.py",
+  "license": "CC0-1.0"
+ },
+ "ui/ui_upgrade": {
+  "source": "original, drawn by tools/art/pixel_art.py",
   "license": "CC0-1.0"
  }
 }
