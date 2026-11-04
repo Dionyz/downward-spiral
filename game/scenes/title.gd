@@ -5,12 +5,24 @@ extends Control
 func _ready() -> void:
 	var v := UI.screen(self)
 	v.add_child(UI.spacer())
-	var logo := UI.icon("title", 220, UI.ACCENT)
-	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	v.add_child(logo)
-	var t := UI.label("DOWNWARD\nSPIRAL", 64, UI.ACCENT)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
+	if Art.has("ui/title"):
+		# Pixel logo (x2) over the first dungeon's banner (x3).
+		if Art.has("ui/banner_spiral"):
+			var art := Art.rect("ui/banner_spiral", 0)
+			art.custom_minimum_size = Vector2(288, 144)
+			art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			v.add_child(art)
+		var lg := Art.rect("ui/title", 0)
+		lg.custom_minimum_size = Vector2(384, 112)
+		lg.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		v.add_child(lg)
+	else:
+		var logo := UI.icon("title", 220, UI.ACCENT)
+		logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		v.add_child(logo)
+		var t := UI.label("DOWNWARD\nSPIRAL", 64, UI.ACCENT)
+		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(t)
 	var s := UI.label("A descent in rounds.", 22, UI.DIM)
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(s)

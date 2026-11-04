@@ -65,7 +65,7 @@ static func boon_card(data: DSData, id: String, on_take: Callable, take_label: S
 	card.add_child(v)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 10)
-	head.add_child(UI.icon("boon", 40, UI.ACCENT))
+	head.add_child(Art.boon_icon(id, 44, UI.ACCENT))
 	var bn := UI.label(str(b.get("name", id)), 22, UI.ACCENT)
 	bn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(bn)

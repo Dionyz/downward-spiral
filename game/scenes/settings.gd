@@ -71,6 +71,8 @@ func _ready() -> void:
 
 	inner.add_child(UI.label("Credits", 26, UI.ACCENT))
 	inner.add_child(UI.label("Rules adapted from the Devil's Silence MUD (ROM/ROT lineage); all code and text written fresh.", 18, UI.DIM))
+	inner.add_child(UI.label("Pixel art: Dungeon Crawl Stone Soup tiles (CC0), thanks to its artists; the rest drawn for this game (CC0).", 18, UI.DIM))
+	inner.add_child(UI.label("Fonts: Jersey 10 by Sarah Cadigan-Fried and Pixelify Sans by Stefie Justprince (SIL Open Font License).", 18, UI.DIM))
 	inner.add_child(UI.label("Icons from game-icons.net (CC BY 3.0) by Lorc, Delapouite, Skoll, Carl Olsen and Cathelineau.", 18, UI.DIM))
 	inner.add_child(UI.label("Sound effects synthesized for this game. Tests use GUT (MIT).", 18, UI.DIM))
 	inner.add_child(UI.label("Built with Godot Engine (MIT).", 18, UI.DIM))

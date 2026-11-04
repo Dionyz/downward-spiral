@@ -1,8 +1,9 @@
 class_name GridView
 extends Control
 ## Draws a DSWorld: tiles with fog of war, objects, loot on the floor, the stairs, and tokens for
-## the player and every monster in view. Tokens glide between tiles each turn; hits flash and
-## float numbers; big hits shake the view.
+## the player and every monster in view. Tokens glide between tiles each turn; hits play short
+## sprite effects (game/assets/art/fx, or a color flash without art) and float numbers; big hits
+## shake the view. Status icons sit along the top of each token.
 
 const OBJ_ICON := {"chest": "room_treasure", "shrine": "room_shrine", "campfire": "room_rest", "event": "room_event"}
 const OBJ_COLOR := {"chest": "#d6a64f", "shrine": "#9d7cf2", "campfire": "#ff9a2e", "event": "#5f9fd3"}
@@ -127,8 +128,40 @@ func _make_token(nm: String, icon_name: String, col: Color, ring: Color) -> Dict
 	bar.size = Vector2(tile, 3)
 	bar.position = Vector2(0, tile - 1)
 	body.add_child(bar)
+	# Status icons: 16 px pixel art in a row along the top edge (up to 4).
+	var sts := HBoxContainer.new()
+	sts.add_theme_constant_override("separation", 0)
+	sts.position = Vector2(0, -4)
+	sts.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(sts)
 	content.add_child(node)
-	return {"node": node, "body": body, "icon": ic, "bar": bar, "color": col, "target": node.position, "tw": null}
+	return {"node": node, "body": body, "icon": ic, "bar": bar, "sts": sts, "shown": "", "color": col, "target": node.position, "tw": null}
+
+
+## Up to `most` status ids with art on `c`, most important first.
+static func status_ids(c: Combatant, most: int = 4) -> Array:
+	var out: Array = []
+	for s in Art.STATUSES:
+		if c.has_status(s) and Art.status(s) != "":
+			out.append(s)
+			if out.size() >= most:
+				break
+	return out
+
+
+func _sync_statuses(t: Dictionary, c: Combatant) -> void:
+	var ids := status_ids(c)
+	var key := ",".join(PackedStringArray(ids))
+	if t["shown"] == key:
+		return
+	t["shown"] = key
+	var box: HBoxContainer = t["sts"]
+	for ch in box.get_children():
+		ch.queue_free()
+	for s in ids:
+		var r := Art.rect(Art.status(s), 16)
+		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(r)
 
 
 ## Create/remove tokens to match who is alive and visible; snap or glide to positions.
@@ -175,6 +208,7 @@ func sync_tokens(snap: bool = false) -> void:
 		var c: Combatant = wv["c"]
 		t["bar"].size.x = tile * clampf(float(c.hp) / float(maxi(1, c.max_hp)), 0.0, 1.0)
 		t["bar"].visible = c.hp < c.max_hp
+		_sync_statuses(t, c)
 		var target := cell_center(wv["pos"]) - Vector2(tile, tile) / 2.0
 		if t["tw"] != null and t["tw"].is_valid() and t["target"] != target:
 			t["tw"].kill()
@@ -195,6 +229,43 @@ func set_move_time(sec: float) -> void:
 
 
 # --- effects ----------------------------------------------------------------
+
+## Play hit effect `name` (fx/<name>_<frame>.png) over `nm`'s tile. Frames run about 0.06 s each at
+## 1x game speed. `delay` (seconds at 1x) lets a second effect follow the first. Returns false when
+## there is no art for it, so the caller can fall back to a flash.
+func fx(nm: String, name: String, delay: float = 0.0) -> bool:
+	var frames := Art.frames(name)
+	var t := _tok(nm)
+	if frames.is_empty() or t.is_empty():
+		return not frames.is_empty()
+	var spd := maxf(1.0, Game.speed)
+	var r := TextureRect.new()
+	r.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	r.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	r.stretch_mode = TextureRect.STRETCH_SCALE
+	r.size = Vector2(tile, tile)
+	r.position = t["target"]
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	r.visible = false
+	fx_layer.add_child(r)
+	var step := 0.06 / spd
+	var tw := create_tween()
+	if delay > 0.0:
+		tw.tween_interval(delay / spd)
+	for f in frames:
+		var tx: Texture2D = f
+		tw.tween_callback(func():
+			r.texture = tx
+			r.visible = true)
+		tw.tween_interval(step)
+	tw.tween_callback(r.queue_free)
+	return true
+
+
+## How long effect `name` lasts at 1x speed (to chain another after it).
+static func fx_time(name: String) -> float:
+	return 0.06 * Art.frames(name).size()
+
 
 func flash(nm: String, col: Color) -> void:
 	var t := _tok(nm)

@@ -21,7 +21,9 @@ var pot_hp: Button
 var pot_mp: Button
 var speed_btn: Button
 var char_btn: Button
-var shield_rect: ColorRect
+var shield_rect: Control
+var status_row: HBoxContainer   # the player's status icons beside the health bar
+var _status_key := ""
 var shield_label: Label
 var _banner: Label
 var info_vals := {}            # HUD readouts: key -> [value Label, detail Label]
@@ -60,8 +62,10 @@ func _ready() -> void:
 	hp_bar = UI.bar(UI.HP, 18)
 	bv.add_child(hp_bar)
 	# Shield: a pale blue segment after current health (overlapping its end when it doesn't fit).
-	shield_rect = ColorRect.new()
-	shield_rect.color = Color(0.62, 0.85, 1.0, 0.9)
+	var sh_flat := StyleBoxFlat.new()
+	sh_flat.bg_color = Color(0.62, 0.85, 1.0, 0.9)
+	shield_rect = Panel.new()
+	shield_rect.add_theme_stylebox_override("panel", UI.skin("bar_shield", sh_flat, 0))
 	shield_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	shield_rect.visible = false
 	hp_bar.add_child(shield_rect)
@@ -74,6 +78,9 @@ func _ready() -> void:
 	shield_label = UI.label("", 17, Color("#9fd8ff"), false)
 	shield_label.visible = false
 	bars.add_child(shield_label)
+	status_row = HBoxContainer.new()
+	status_row.add_theme_constant_override("separation", 0)
+	bars.add_child(status_row)
 	v.add_child(bars)
 
 	grid = GridView.new()
@@ -99,14 +106,7 @@ func _ready() -> void:
 	for k in [["avg", "Avg hit"], ["avoid", "Avoid"], ["dps", "DPS (5s)"], ["best", "Best hit"]]:
 		var chip := PanelContainer.new()
 		chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var cst := StyleBoxFlat.new()
-		cst.bg_color = Color("#16141c")
-		cst.set_corner_radius_all(8)
-		cst.content_margin_left = 8
-		cst.content_margin_right = 8
-		cst.content_margin_top = 3
-		cst.content_margin_bottom = 3
-		chip.add_theme_stylebox_override("panel", cst)
+		chip.add_theme_stylebox_override("panel", UI.chip_style())
 		var cv := VBoxContainer.new()
 		cv.add_theme_constant_override("separation", -2)
 		chip.add_child(cv)
@@ -243,6 +243,23 @@ func _turn() -> void:
 	_show_phase()
 
 
+## Damage nouns (`dt`) that get their own effect; anything else from an attacker is a melee hit.
+const DT_FX := {"poison": "poison", "static": "zap", "chain lightning": "zap", "lightning bolt": "zap",
+	"explosion": "burst", "flaming": "burst", "frost": "frost", "vampiric": "dark", "implosion": "dark",
+	"magic fist": "bolt", "execute": "crit", "thorns": "hit"}
+
+
+## Sprite effect for one hit; false when there's no art (the caller flashes instead).
+func _hit_fx(src: String, dst: String, dt: String, crit: bool) -> bool:
+	if DT_FX.has(dt):
+		return grid.fx(dst, DT_FX[dt])
+	if src == "":
+		return false   # bleeding and other ticks: the number is enough
+	var ok := grid.fx(dst, "slash")
+	grid.fx(dst, "crit" if crit else "hit", GridView.fx_time("slash") * 0.5)
+	return ok
+
+
 ## Animate a turn's events on the map and add them to the log.
 func _play(evs: Array) -> void:
 	log_full.add_events(evs)
@@ -270,7 +287,8 @@ func _play(evs: Array) -> void:
 						run.stats["best_hit"] = amt
 				var crit: bool = ev.get("crit", false)
 				grid.lunge(src, dst)
-				grid.flash(dst, Color(1.0, 0.35, 0.3))
+				if amt > 0 and not _hit_fx(src, dst, str(ev.get("dt", "")), crit):
+					grid.flash(dst, Color(1.0, 0.35, 0.3))
 				grid.float_text(dst, str(amt), Color("#ffd24a") if crit else (Color("#ff8c7a") if dst == pname else Color.WHITE), 22 if crit else 18)
 				Game.sfx("crit" if crit else "hit", randf_range(0.9, 1.1))
 				if dst == pname and amt >= int(run.world.player.max_hp * 0.12):
@@ -280,10 +298,12 @@ func _play(evs: Array) -> void:
 				grid.float_text(who, t, UI.DIM, 14)
 				Game.sfx("block" if t in ["block", "parry"] else "miss", randf_range(0.9, 1.1))
 			"cast":
-				grid.flash(src, Color(0.7, 0.5, 1.0))
+				if not grid.fx(dst if dst != "" else src, "bolt"):
+					grid.flash(src, Color(0.7, 0.5, 1.0))
 				Game.sfx("spell")
 			"heal":
 				if int(ev.get("amount", 0)) > 0:
+					grid.fx(dst, "heal")
 					grid.float_text(dst, "+%d" % int(ev.get("amount", 0)), Color("#5fd35f"), 18)
 				Game.sfx("heal")
 			"status_applied":
@@ -308,6 +328,7 @@ func _play(evs: Array) -> void:
 		log_full.append_text("[color=#7fc8a9]%s[/color]\n" % str(m).replace("[", "[lb]"))
 		if str(m).begins_with("Level "):
 			Game.sfx("level_up")
+			grid.fx(pname, "levelup")
 	run.messages.clear()
 	if _recent.size() > 50:
 		_recent = _recent.slice(_recent.size() - 50)
@@ -325,6 +346,7 @@ func _refresh() -> void:
 	mana_bar.max_value = maxi(1, p.max_mana)
 	mana_bar.value = p.mana
 	hp_label.text = "%d/%d" % [maxi(0, p.hp), p.max_hp]
+	_refresh_statuses(p)
 	pot_hp.text = "×%d" % int(run.potions.get("hp", 0))
 	pot_hp.add_theme_color_override("font_color", UI.WARN if p.hp_pct() < 30.0 and not pot_hp.disabled else UI.TEXT)
 	pot_hp.disabled = int(run.potions.get("hp", 0)) <= 0 or p.hp >= p.max_hp
@@ -337,7 +359,7 @@ func _refresh() -> void:
 	var ups := run.upgrade_slots()
 	char_btn.icon = UI.tex("ui_upgrade") if not ups.is_empty() else null
 	char_btn.expand_icon = true
-	char_btn.add_theme_constant_override("icon_max_width", 24)
+	char_btn.add_theme_constant_override("icon_max_width", 16 if Art.for_icon("ui_upgrade") != "" else 24)
 	char_btn.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
 	char_btn.add_theme_color_override("icon_hover_color", Color("#5fd35f"))
 	_refresh_shield()
@@ -453,7 +475,7 @@ func _big_boon(id: String, rarity: String, on_take: Callable) -> Button:
 	st.bg_color = Color("#1d1a26")
 	st.border_color = rcol.darkened(0.2)
 	st.set_border_width_all(3 if has_rarity and rarity != "common" else 2)
-	st.set_corner_radius_all(14)
+	st.set_corner_radius_all(0 if Art.boon(id) != "" else 14)
 	st.set_content_margin_all(18)
 	btn.add_theme_stylebox_override("normal", st)
 	var hv := st.duplicate()
@@ -472,7 +494,7 @@ func _big_boon(id: String, rarity: String, on_take: Callable) -> Button:
 	row.add_theme_constant_override("separation", 18)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	m.add_child(row)
-	var ic := UI.icon("boon", 72, rcol)
+	var ic := Art.boon_icon(id, 72, rcol)
 	ic.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(ic)
 	var col := VBoxContainer.new()
@@ -511,7 +533,7 @@ func _big_boon(id: String, rarity: String, on_take: Callable) -> Button:
 				next_txt = "unlocks: %s" % str(fam.get("tiers", {}).get(th, {}).get("text", ""))
 				break
 		var ftxt := "%s %d to %d · %s" % [str(fam.get("name", t)), now, after, next_txt] if after != now else "%s %d · %s" % [str(fam.get("name", t)), now, next_txt]
-		var fl := UI.tag("ui_family", ftxt, 15, Color(str(fam.get("color", "#e6e1d6"))))
+		var fl := UI.tag("family_" + str(t), ftxt, 15, Color(str(fam.get("color", "#e6e1d6"))))
 		col.add_child(fl)
 	return btn
 
@@ -818,6 +840,21 @@ func _shot(name: String, next: Callable) -> void:
 
 # --- HUD extras ------------------------------------------------------------------
 
+## The player's statuses as 32 px icons (x2 pixel art) beside the health bar; tap one for its name.
+func _refresh_statuses(p: Combatant) -> void:
+	var ids := GridView.status_ids(p, 3)
+	var key := ",".join(PackedStringArray(ids))
+	if key == _status_key:
+		return
+	_status_key = key
+	for c in status_row.get_children():
+		c.queue_free()
+	for s in ids:
+		var r := Art.rect(Art.status(s), 32)
+		r.tooltip_text = str(s).replace("_", " ").capitalize()
+		status_row.add_child(r)
+
+
 ## Shield (Bulwark and friends) drawn on the health bar, with the amount beside the numbers.
 func _refresh_shield() -> void:
 	if run == null or run.world == null or shield_rect == null:
@@ -972,7 +1009,7 @@ func _open_character() -> void:
 	if not run.upgrade_slots().is_empty():
 		gear_b.icon = UI.tex("ui_upgrade")
 		gear_b.expand_icon = true
-		gear_b.add_theme_constant_override("icon_max_width", 24)
+		gear_b.add_theme_constant_override("icon_max_width", 32 if Art.for_icon("ui_upgrade") != "" else 24)
 		gear_b.add_theme_color_override("icon_normal_color", Color("#5fd35f"))
 		gear_b.add_theme_color_override("font_color", Color("#5fd35f"))
 	var boons_b := UI.button("Boons (%d)" % run.boons.size(), func(): BoonList.open(self, run), 60)

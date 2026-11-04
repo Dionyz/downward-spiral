@@ -92,7 +92,7 @@ static func show_tip(from: Control, e: Dictionary) -> void:
 	st.set_border_width_all(2)
 	st.set_corner_radius_all(12)
 	st.set_content_margin_all(16)
-	card.add_theme_stylebox_override("panel", st)
+	card.add_theme_stylebox_override("panel", UI.skin("popup", st))
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.add_child(card)
 	var v := VBoxContainer.new()

@@ -79,7 +79,7 @@ static func show(parent: Control, id: String, on_close: Callable = Callable()) -
 	st.set_border_width_all(2)
 	st.set_corner_radius_all(12)
 	st.set_content_margin_all(18)
-	card.add_theme_stylebox_override("panel", st)
+	card.add_theme_stylebox_override("panel", UI.skin("popup", st))
 	col.add_child(card)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)

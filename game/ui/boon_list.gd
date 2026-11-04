@@ -30,7 +30,7 @@ static func open(parent: Control, run: DSRunState) -> void:
 		var fam: Dictionary = run.data.families[f]
 		var n := int(counts.get(f, 0))
 		var col := Color(str(fam.get("color", "#e6e1d6")))
-		inner.add_child(Tip.attach(UI.tag("ui_family", "%s  %d  — %s" % [str(fam["name"]), n, str(fam.get("desc", ""))], 18, col if n > 0 else UI.DIM), str(fam["name"])))
+		inner.add_child(Tip.attach(UI.tag("family_" + str(f), "%s  %d  — %s" % [str(fam["name"]), n, str(fam.get("desc", ""))], 18, col if n > 0 else UI.DIM), str(fam["name"])))
 		for th in ["2", "4", "6"]:
 			var on := n >= int(th)
 			var row := HBoxContainer.new()
@@ -41,7 +41,9 @@ static func open(parent: Control, run: DSRunState) -> void:
 			var ic := UI.icon("ui_check", 16, col)
 			ic.modulate = col if on else Color(0, 0, 0, 0)
 			row.add_child(ic)
-			row.add_child(UI.label("%s: %s" % [th, str(fam["tiers"][th]["text"])], 16, col if on else UI.DIM))
+			var tl := UI.label("%s: %s" % [th, str(fam["tiers"][th]["text"])], 16, col if on else UI.DIM)
+			tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL   # else it wraps one letter per line
+			row.add_child(tl)
 			inner.add_child(row)
 	inner.add_child(UI.label("Your boons", 20, UI.DIM))
 	if run.boons.is_empty():
@@ -62,7 +64,17 @@ static func open(parent: Control, run: DSRunState) -> void:
 		var b: Dictionary = run.data.boons.get(id, {})
 		var n := int(groups[key])
 		var rcol := Color(str(run.data.boon_rarities().get(rarity, {}).get("color", "#d6a64f")))
-		inner.add_child(UI.label("%s (%s)%s" % [str(b.get("name", id)), rarity.capitalize(), (" ×%d" % n) if n > 1 else ""], 19, rcol))
-		inner.add_child(UI.label(run.boon_desc(id, rarity), 16))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		var ic := Art.boon_icon(id, 44, rcol)
+		ic.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		row.add_child(ic)
+		var tv := VBoxContainer.new()
+		tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tv.add_theme_constant_override("separation", 0)
+		tv.add_child(UI.label("%s (%s)%s" % [str(b.get("name", id)), rarity.capitalize(), (" ×%d" % n) if n > 1 else ""], 19, rcol))
+		tv.add_child(UI.label(run.boon_desc(id, rarity), 16))
+		row.add_child(tv)
+		inner.add_child(row)
 	inner.add_child(Tip.attach(UI.label("Total damage reduction from boons is capped at 90%.", 15, UI.DIM), "damage reduction"))
 	v.add_child(UI.button("Close", func(): layer.queue_free(), 56))

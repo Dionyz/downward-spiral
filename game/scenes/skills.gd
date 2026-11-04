@@ -86,6 +86,11 @@ func _card(i: int, s: Dictionary) -> SkillCard:
 	var num := UI.label("%d" % (i + 1), 20, UI.DIM, false)
 	num.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(num)
+	if Art.skill(nm) != "":
+		var sic := Art.rect(Art.skill(nm), 32)
+		sic.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		head.add_child(sic)
 	var title := UI.label(nm.capitalize(), 22, UI.DIM if is_off else UI.ACCENT, false)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
